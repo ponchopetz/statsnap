@@ -138,7 +138,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# macOS specific 
+# macOS specific
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -147,3 +147,5 @@ vite.config.ts.timestamp-*
 dist/
 dist-ssr/
 *.local
+
+CLAUDE.md
