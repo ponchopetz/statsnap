@@ -1,6 +1,7 @@
 import os
 import polars as pl
 from polars import col
+import certifi
 from pymongo import MongoClient, UpdateOne, ASCENDING, DESCENDING
 from dotenv import load_dotenv
 
@@ -173,7 +174,7 @@ def load():
 
     # Step 3: connect to MongoDB and write
     print("\nConnecting to MongoDB...")
-    client     = MongoClient(MONGODB_URI)
+    client     = MongoClient(MONGODB_URI, tlsCAFile=certifi.where())
     db         = client[DB_NAME]
     collection = db[COLLECTION_NAME]
 
