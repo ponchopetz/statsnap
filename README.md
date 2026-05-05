@@ -8,3 +8,4 @@ StatSnap is a free NFL player analytics tool that gives fantasy players and foot
 npm install
 npm run dev
 ```
+
