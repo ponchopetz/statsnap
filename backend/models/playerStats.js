@@ -7,26 +7,31 @@ const weekSchema = new mongoose.Schema(
     week: { type: Number, required: true },
 
     // QB metrics
+    attempts:        { type: Number },
+    completions:     { type: Number },
     passingEpa:      { type: Number },
     pacr:            { type: Number },
-    passingAirYards: { type: Number },
-    adot:            { type: Number },
-    sacks:           { type: Number },
-    sackYardsLost:   { type: Number },
     passingCpoe:     { type: Number },
+    passingAirYards: { type: Number },
+    sacksSuffered:   { type: Number },
+    sackYardsLost:   { type: Number },
+    adot:            { type: Number },
 
-    // WR / TE metrics
-    targetShare:     { type: Number },
-    airYardsShare:   { type: Number },
-    wopr:            { type: Number },
-    racr:            { type: Number },
+    // WR / TE / RB metrics
+    targets:           { type: Number },
+    receptions:        { type: Number },
+    targetShare:       { type: Number },
+    airYardsShare:     { type: Number },
+    wopr:              { type: Number },
+    racr:              { type: Number },
+    receivingEpa:      { type: Number },
     receivingAirYards: { type: Number },
-    yacPerRec:       { type: Number },
-    receivingEpa:    { type: Number },
+    receivingYac:      { type: Number },
+    yacPerRec:         { type: Number },
 
     // RB metrics
-    rushingEpa:      { type: Number },
-    carries:         { type: Number },
+    rushingEpa: { type: Number },
+    carries:    { type: Number },
   },
   { _id: false }
 );

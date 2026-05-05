@@ -1,10 +1,14 @@
+import os
+from dotenv import load_dotenv
 import polars as pl
 from polars import col
 import nflreadpy
 
+load_dotenv()
+
 # ── Constants ────────────────────────────────────────────────────────────────
 
-SEASON = 2024
+SEASON = int(os.environ.get("SEASON", 2024))
 SKILL_POSITIONS = ["QB", "WR", "TE", "RB"]
 
 # Columns to keep from the raw 114-column DataFrame, in nflverse snake_case.

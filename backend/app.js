@@ -1,17 +1,21 @@
 // app.js — entry point
 
-require("dotenv").config();
-const express = require("express");
+require('dotenv').config();
+const express = require('express');
 
-require("./utils/db");
+require('./utils/db');
+
+const playersRouter = require('./routes/players');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.status(200).json({ status: "StatSnap API is running" });
+app.use('/players', playersRouter);
+
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'StatSnap API is running' });
 });
 
 app.listen(PORT, () => {
