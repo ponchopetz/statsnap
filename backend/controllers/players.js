@@ -45,12 +45,20 @@ const getPlayerById = async (req, res, next) => {
   try {
     const seasons = await PlayerStats.find(
       { playerId },
-      { _id: 0, playerId: 1, displayName: 1, position: 1,
-        team: 1, season: 1, gamesPlayed: 1, weeks: 1 }
+      {
+        _id: 0,
+        playerId: 1,
+        displayName: 1,
+        position: 1,
+        team: 1,
+        season: 1,
+        gamesPlayed: 1,
+        weeks: 1,
+      },
     ).sort({ season: -1 });
 
     if (!seasons.length) {
-      return res.status(404).json({ message: 'Player not found' });
+      return res.status(404).json({ message: "Player not found" });
     }
 
     res.status(200).json(seasons);
