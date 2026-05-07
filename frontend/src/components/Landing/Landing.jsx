@@ -6,8 +6,6 @@ function Landing() {
 
   return (
     <div className="landing">
-      <div className="landing-grid" />
-
       <div className="landing-inner">
         <div className="wordmark">
           STAT<span className="slash">/</span>SNAP

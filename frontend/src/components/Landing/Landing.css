@@ -10,19 +10,6 @@
   position: relative;
 }
 
-/* Faint dot-grid background with radial fade toward edges */
-.landing-grid {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.35;
-  background-image:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
-}
-
 .landing-inner {
   padding: 0 24px;
   flex: 1;
