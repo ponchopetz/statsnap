@@ -1,7 +1,9 @@
+import { useParams } from "react-router-dom";
 import "./PlayerPage.css";
 
 function PlayerPage() {
-  return null;
+  const { playerId } = useParams();
+  return <p>Player route — id: {playerId}</p>;
 }
 
 export default PlayerPage;
