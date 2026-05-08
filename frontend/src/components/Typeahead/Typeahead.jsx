@@ -1,45 +1,11 @@
-import { useState, useEffect } from "react";
-import { searchPlayers } from "../../utils/api.js";
-import { useDebouncedValue } from "../../hooks/useDebouncedValue.js";
 import "./Typeahead.css";
 
-const DEBOUNCE_MS = 200;
-
-function Typeahead({ query, onPick }) {
-  const debouncedQuery = useDebouncedValue(query, DEBOUNCE_MS);
-  const [status, setStatus] = useState("idle");
-  const [results, setResults] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    const trimmed = debouncedQuery.trim();
-
-    if (!trimmed) {
-      setStatus("idle");
-      setResults([]);
-      return;
-    }
-
-    let cancelled = false;
-    setStatus("loading");
-
-    searchPlayers(trimmed)
-      .then((data) => {
-        if (cancelled) return;
-        setResults(data);
-        setStatus("success");
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setErrorMessage(err.message);
-        setStatus("error");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedQuery]);
-
+/**
+ * Presentational component. Receives all data via props — no state,
+ * no fetching. Renders the dropdown based on status, highlights the
+ * row at activeIdx, and emits onPick(player) when a row is clicked.
+ */
+function Typeahead({ status, results, errorMessage, activeIdx, onPick }) {
   if (status === "idle") return null;
 
   return (
@@ -63,11 +29,12 @@ function Typeahead({ query, onPick }) {
           <div className="typeahead-hint">
             <b>{results.length}</b> {results.length === 1 ? "MATCH" : "MATCHES"}
           </div>
-          {results.map((p) => (
+          {results.map((p, i) => (
             <div
               key={p.playerId}
-              className="typeahead-item"
+              className={"typeahead-item" + (i === activeIdx ? " active" : "")}
               role="option"
+              aria-selected={i === activeIdx}
               onClick={() => onPick(p)}
             >
               <div className={"pos-badge " + p.position}>{p.position}</div>

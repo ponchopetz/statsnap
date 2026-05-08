@@ -148,5 +148,9 @@ dist/
 dist-ssr/
 *.local
 
+#AI help
 CLAUDE.md
 AGENTS.md
+
+.claude/
+.playwright-mcp/

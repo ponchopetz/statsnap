@@ -119,3 +119,29 @@
   color: var(--fg-2);
   font-weight: 500;
 }
+
+/* Recent searches — chips below the search-wrap, persisted to localStorage */
+
+.recent-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.recent-chip {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--line-2);
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--fg-3);
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.recent-chip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
