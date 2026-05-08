@@ -1,8 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Typeahead from "../Typeahead/Typeahead.jsx";
 import "./Landing.css";
 
 function Landing() {
   const [query, setQuery] = useState("");
+  const navigate = useNavigate();
+
+  const handlePick = (player) => {
+    navigate(`/players/${player.playerId}`);
+  };
 
   return (
     <div className="landing">
@@ -26,6 +33,7 @@ function Landing() {
             />
             <span className="kbd">⌘K</span>
           </div>
+          <Typeahead query={query} onPick={handlePick} />
         </div>
       </div>
 
