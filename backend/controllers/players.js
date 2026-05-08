@@ -19,8 +19,10 @@ const searchPlayers = async (req, res, next) => {
           displayName: { $first: "$displayName" },
           position: { $first: "$position" },
           team: { $first: "$team" },
+          gamesPlayed: { $first: "$gamesPlayed" },
         },
       },
+      { $sort: { gamesPlayed: -1 } },
       {
         $project: {
           _id: 0,
