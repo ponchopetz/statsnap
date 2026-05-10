@@ -17,3 +17,25 @@ export async function searchPlayers(query) {
 
   return response.json();
 }
+
+/**
+ * Fetch a single player's profile by ID. Returns an array of season
+ * documents (most-recent first), each with identity fields and an
+ * embedded weeks array.
+ *
+ * Returns: Promise<Array<seasonDoc>>
+ * Throws:  Error with .status property on non-2xx responses.
+ *          .status === 404 means the player ID does not exist.
+ */
+export async function getPlayerProfile(playerId) {
+  const url = `${API_BASE_URL}/players/${encodeURIComponent(playerId)}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    const err = new Error(`Player profile failed: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+
+  return response.json();
+}
