@@ -75,6 +75,7 @@ function Landing() {
 
   return (
     <div className="landing">
+      <div className="landing-grid" />
       <header className="landing-topbar">
         <span className="brand-mark">
           <span className="dot" /> STAT<span className="slash">/</span>SNAP

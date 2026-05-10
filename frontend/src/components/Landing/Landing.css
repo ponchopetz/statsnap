@@ -61,6 +61,18 @@
   position: relative;
 }
 
+.landing-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
 .landing-inner {
   flex: 1;
   display: flex;
@@ -81,6 +93,9 @@
   line-height: 0.88;
   text-align: center;
   text-transform: uppercase;
+  position: relative;
+  background: var(--bg);
+  padding: 12px 24px;
 }
 
 .wordmark .slash {
@@ -97,6 +112,8 @@
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   padding: 10px 18px;
+  position: relative;
+  background: var(--bg);
 }
 
 .tagline b {
