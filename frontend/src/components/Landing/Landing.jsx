@@ -10,29 +10,22 @@ const MAX_RECENTS = 5;
 
 function Landing() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [recents, setRecents] = useLocalStorageState(RECENTS_KEY, []);
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef(null);
   const navigate = useNavigate();
+  const { status, results, errorMessage } = usePlayerSearch(query);
 
   const updateQuery = (value) => {
     setQuery(value);
-    if (value === "") {
-      setSearchParams({}, { replace: true });
-    } else {
-      setSearchParams({ q: value }, { replace: true });
-    }
+    setSearchParams(value ? { q: value } : {}, { replace: true });
   };
-  const { status, results, errorMessage } = usePlayerSearch(query);
 
-  // Reset highlight to the top whenever the result set changes.
   useEffect(() => {
     setActiveIdx(0);
   }, [results]);
 
-  // Global Cmd+K (Mac) / Ctrl+K (others) focuses the search input.
-  // preventDefault stops Chrome from opening its built-in search bar.
   useEffect(() => {
     const onKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -58,8 +51,6 @@ function Landing() {
     navigate(`/players/${player.playerId}`);
   };
 
-  // Arrow keys navigate results, Enter picks, Escape clears.
-  // preventDefault on the arrows stops them from moving the text cursor.
   const onInputKeyDown = (e) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -84,6 +75,18 @@ function Landing() {
 
   return (
     <div className="landing">
+      <header className="landing-topbar">
+        <span className="brand-mark">
+          <span className="dot" /> STAT<span className="slash">/</span>SNAP
+        </span>
+        <div className="meta">
+          <span>
+            <span className="live-dot" /> LIVE · SKILL POSITIONS ONLY
+          </span>
+          <span>v0.2</span>
+        </div>
+      </header>
+
       <div className="landing-inner">
         <div className="wordmark">
           STAT<span className="slash">/</span>SNAP

@@ -1,60 +1,8 @@
-/* App shell and persistent topbar */
+/* App shell — pages render their own topbars */
 
 .app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
-}
-
-.app-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 28px;
-  border-bottom: 1px solid var(--line);
-  font-family: var(--display);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--fg-3);
-}
-
-.app-topbar .brand-mark {
-  color: var(--fg);
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.app-topbar .brand-mark .dot {
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
-  display: inline-block;
-}
-
-.app-topbar .brand-mark .slash {
-  color: var(--accent);
-}
-
-.app-topbar .meta {
-  display: flex;
-  gap: 22px;
-}
-
-.app-topbar .meta span {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.app-topbar .meta .live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
-  animation: pulse 1.8s infinite;
 }
