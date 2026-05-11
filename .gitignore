@@ -143,6 +143,10 @@ vite.config.ts.timestamp-*
 .AppleDouble
 .LSOverride
 
+# Python cache
+__pycache__/
+*.pyc
+
 # Vite specific
 dist/
 dist-ssr/
