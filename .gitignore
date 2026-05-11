@@ -15,3 +15,6 @@
 # Repo meta
 CLAUDE.md
 AGENTS.md
+
+#Py files cache
+.__pycache__/

@@ -24,6 +24,17 @@ TOP_LEVEL_FIELDS = [
     "position",
     "team",
     "gamesPlayed",
+    "jerseyNumber",
+    "birthDate",
+    "heightInches",
+    "weight",
+    "college",
+    "experience",
+    "headshotUrl",
+    "draftYear",
+    "draftRound",
+    "draftPick",
+    "teamCity",
 ]
 
 # These belong inside the weeks array — different value per week.
