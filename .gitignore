@@ -152,7 +152,7 @@ dist/
 dist-ssr/
 *.local
 
-#AI help
+# AI help
 CLAUDE.md
 AGENTS.md
 

@@ -6,35 +6,11 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# Diagnostic reports
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage
-lib-cov
-coverage
-*.lcov
-.nyc_output
-
-# Build tools
-.grunt
-bower_components
-.lock-wscript
-build/Release
-
 # Dependencies
 node_modules/
 jspm_packages/
-
-# Environment files
-.env
-.env.*
-!.env.example
+web_modules/
+bower_components
 
 # TypeScript
 *.tsbuildinfo
@@ -42,8 +18,6 @@ jspm_packages/
 # npm / yarn
 .npm
 .yarn-integrity
-.node_repl_history
-*.tgz
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -56,15 +30,37 @@ jspm_packages/
 .eslintcache
 .stylelintcache
 .cache
+.cache/
 .parcel-cache
+
+# Coverage
+coverage
+*.lcov
+.nyc_output
 
 # Build output
 dist
 dist/
+dist-ssr/
+out
 
-# Misc
+# Framework outputs
+.next
+.nuxt
+.svelte-kit/
+.vuepress/dist
+.temp
+**/.vitepress/dist
+**/.vitepress/cache
+.docusaurus
+
+# Misc build tools
 .serverless/
-.dynamodb/
-.tern-port
+.fusebox/
+.firebase/
 .vscode-test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
 *.local
