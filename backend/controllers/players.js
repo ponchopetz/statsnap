@@ -55,6 +55,19 @@ const getPlayerById = async (req, res, next) => {
         team: 1,
         season: 1,
         gamesPlayed: 1,
+        // Roster fields (nflverse load_rosters)
+        birthDate: 1,
+        college: 1,
+        experience: 1,
+        headshotUrl: 1,
+        heightInches: 1,
+        jerseyNumber: 1,
+        teamCity: 1,
+        weight: 1,
+        // Draft fields (nflverse load_draft_picks; null for undrafted players)
+        draftYear: 1,
+        draftRound: 1,
+        draftPick: 1,
         weeks: 1,
       },
     ).sort({ season: -1 });
