@@ -1,12 +1,8 @@
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
+import { formatAge, formatHeight, formatDraft } from "../../utils/format.js";
 import "./PlayerPage.css";
-
-// Identity contract — fields beyond displayName/position/team
-// (jerseyNumber, age, experience, height, weight, college, draft,
-// teamCity, headshotUrl) are deferred to Chunk 10's ETL extension
-// (nflverse load_rosters + load_draft_picks). Until then, the
-// identity block renders em-dash placeholders for those fields.
 
 function PlayerPage() {
   const { playerId } = useParams();
@@ -14,6 +10,9 @@ function PlayerPage() {
 
   const { status, data, errorMessage } = usePlayerProfile(playerId);
   const player = data?.[0];
+
+  const [imageFailed, setImageFailed] = useState(false);
+  useEffect(() => { setImageFailed(false); }, [playerId]);
 
   const nameParts = player?.displayName?.split(" ") ?? [];
   const firstName = nameParts.slice(0, -1).join(" ");
@@ -63,7 +62,20 @@ function PlayerPage() {
         <div className="player-content">
           <aside className="identity">
             <div className="id-photo">
-              <span className="id-photo-label">PHOTO · {player.team}</span>
+              {player.headshotUrl && !imageFailed ? (
+                <img
+                  src={player.headshotUrl}
+                  alt={player.displayName}
+                  onError={() => setImageFailed(true)}
+                />
+              ) : (
+                <>
+                  <span className="id-photo-label">PHOTO · {player.team}</span>
+                  {player.jerseyNumber != null && (
+                    <span className="id-photo-jersey">{player.jerseyNumber}</span>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="id-name">
@@ -76,32 +88,44 @@ function PlayerPage() {
                 {player.position}
               </span>
               <span className="id-team">{player.team}</span>
+              {player.jerseyNumber != null && (
+                <>
+                  <span className="id-sep">·</span>
+                  <span>#{player.jerseyNumber}</span>
+                </>
+              )}
+              {player.teamCity && (
+                <>
+                  <span className="id-sep">·</span>
+                  <span>{player.teamCity}</span>
+                </>
+              )}
             </div>
 
             <div className="bio-grid">
               <div className="bio-cell">
                 <div className="bio-label">AGE</div>
-                <div className="bio-value">—</div>
+                <div className="bio-value">{formatAge(player.birthDate) ?? "—"}</div>
               </div>
               <div className="bio-cell">
                 <div className="bio-label">EXP</div>
-                <div className="bio-value">—</div>
+                <div className="bio-value">{player.experience ?? "—"}</div>
               </div>
               <div className="bio-cell">
                 <div className="bio-label">HT</div>
-                <div className="bio-value">—</div>
+                <div className="bio-value">{formatHeight(player.heightInches) ?? "—"}</div>
               </div>
               <div className="bio-cell">
                 <div className="bio-label">WT</div>
-                <div className="bio-value">—</div>
+                <div className="bio-value">{player.weight ?? "—"}</div>
               </div>
               <div className="bio-cell bio-cell-wide">
                 <div className="bio-label">COLLEGE</div>
-                <div className="bio-value">—</div>
+                <div className="bio-value">{player.college ?? "—"}</div>
               </div>
               <div className="bio-cell bio-cell-wide">
                 <div className="bio-label">DRAFT</div>
-                <div className="bio-value">—</div>
+                <div className="bio-value">{formatDraft(player.draftYear, player.draftRound, player.draftPick) ?? "—"}</div>
               </div>
             </div>
           </aside>
