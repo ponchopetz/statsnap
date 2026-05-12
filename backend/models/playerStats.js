@@ -44,7 +44,23 @@ const playerStatsSchema = new mongoose.Schema(
     team:        { type: String, required: true },
     season:      { type: Number, required: true },
     gamesPlayed: { type: Number },
-    weeks:       { type: [weekSchema], default: [] },
+
+    // Roster fields (nflverse load_rosters)
+    birthDate:    { type: String },
+    college:      { type: String },
+    experience:   { type: Number },
+    headshotUrl:  { type: String },
+    heightInches: { type: Number },
+    jerseyNumber: { type: Number },
+    teamCity:     { type: String },
+    weight:       { type: Number },
+
+    // Draft fields (nflverse load_draft_picks; null for undrafted players)
+    draftYear:  { type: Number },
+    draftRound: { type: Number },
+    draftPick:  { type: Number },
+
+    weeks: { type: [weekSchema], default: [] },
   },
   {
     timestamps: true,
