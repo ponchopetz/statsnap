@@ -45,6 +45,11 @@ WEEK_FIELDS = [
     # QB
     "attempts",
     "completions",
+    "passingYards",
+    "passingTds",
+    "interceptions",
+    "passingFirstDowns",
+    "passingTwoPtConversions",
     "passingEpa",
     "pacr",
     "passingCpoe",
@@ -55,6 +60,11 @@ WEEK_FIELDS = [
     # WR / TE / RB
     "targets",
     "receptions",
+    "receivingYards",
+    "receivingTds",
+    "receivingFirstDowns",
+    "receivingFumblesLost",
+    "receivingTwoPtConversions",
     "targetShare",
     "airYardsShare",
     "wopr",
@@ -66,6 +76,15 @@ WEEK_FIELDS = [
     # RB
     "rushingEpa",
     "carries",
+    "rushingYards",
+    "rushingTds",
+    "rushingFirstDowns",
+    "rushingFumblesLost",
+    "rushingTwoPtConversions",
+    # Other
+    "specialTeamsTds",
+    "fantasyPoints",
+    "fantasyPointsPpr",
 ]
 
 # ── Stage 1: reshape ──────────────────────────────────────────────────────────
