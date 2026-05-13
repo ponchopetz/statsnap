@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { formatAge, formatHeight, formatDraft } from "../../utils/format.js";
+import Tabs from "../Tabs/Tabs.jsx";
 import "./PlayerPage.css";
 
 function PlayerPage() {
@@ -131,16 +132,50 @@ function PlayerPage() {
           </aside>
 
           <main className="stats">
-            <div className="stats-placeholder">
-              <div className="stats-placeholder-label">STATS</div>
-              <div className="stats-placeholder-text">
-                Tabs (Overview · Advanced · Game Log · Career), stat tiles,
-                and advanced metrics arrive in Chunks 11 through 15.
-              </div>
-              <div className="stats-placeholder-id">
-                playerId from URL: {playerId}
-              </div>
-            </div>
+            <Tabs defaultTab="overview">
+              <Tabs.List>
+                <Tabs.Tab id="overview">OVERVIEW</Tabs.Tab>
+                <Tabs.Tab id="advanced">ADVANCED</Tabs.Tab>
+                <Tabs.Tab id="gamelog">GAME LOG</Tabs.Tab>
+                <Tabs.Tab id="career">CAREER</Tabs.Tab>
+              </Tabs.List>
+
+              <Tabs.Panel id="overview">
+                <div className="stats-placeholder">
+                  <div className="stats-placeholder-label">OVERVIEW</div>
+                  <div className="stats-placeholder-text">
+                    Overview content arrives in Chunk 13.
+                  </div>
+                </div>
+              </Tabs.Panel>
+
+              <Tabs.Panel id="advanced">
+                <div className="stats-placeholder">
+                  <div className="stats-placeholder-label">ADVANCED</div>
+                  <div className="stats-placeholder-text">
+                    Advanced metrics arrive in Chunk 14.
+                  </div>
+                </div>
+              </Tabs.Panel>
+
+              <Tabs.Panel id="gamelog">
+                <div className="stats-placeholder">
+                  <div className="stats-placeholder-label">GAME LOG</div>
+                  <div className="stats-placeholder-text">
+                    Game Log arrives in Chunk 15.
+                  </div>
+                </div>
+              </Tabs.Panel>
+
+              <Tabs.Panel id="career">
+                <div className="stats-placeholder">
+                  <div className="stats-placeholder-label">CAREER</div>
+                  <div className="stats-placeholder-text">
+                    Career arrives in Chunk 16.
+                  </div>
+                </div>
+              </Tabs.Panel>
+            </Tabs>
           </main>
         </div>
       )}
