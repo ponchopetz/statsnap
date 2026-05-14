@@ -48,3 +48,16 @@ export function completionPct(weeks) {
 export function totalTouchdowns(weeks) {
   return sumWeeks(weeks, "rushingTds") + sumWeeks(weeks, "receivingTds");
 }
+
+/**
+ * Maps the weeks array to per-week values for a single stat key.
+ * null/undefined values are preserved as null — the Sparkline distinguishes
+ * null (player didn't play / no data) from zero (played and posted nothing).
+ * @param {Array<Object>|null|undefined} weeks - Weekly stat objects
+ * @param {string} key - Property name to extract
+ * @returns {Array<number|null>} Per-week values in order, or [] for missing input
+ */
+export function weekSeries(weeks, key) {
+  if (!weeks?.length) return [];
+  return weeks.map((w) => w[key] ?? null);
+}

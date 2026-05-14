@@ -1,12 +1,14 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import StatRow from "../StatRow/StatRow.jsx";
-import { sumWeeks, averageWeeks, completionPct } from "../../utils/stats.js";
+import SparkBlock from "../Sparkline/SparkBlock.jsx";
+import { sumWeeks, averageWeeks, completionPct, weekSeries } from "../../utils/stats.js";
 import { formatNumber, formatPercent, formatSigned } from "../../utils/format.js";
 
 const QB_PRIMARY_KEY = "passingYards";
 
 function OverviewQB({ player }) {
   const weeks = player.weeks ?? [];
+  const [selectedKey, setSelectedKey] = useState(QB_PRIMARY_KEY);
 
   const cells = useMemo(() => [
     { key: "gamesPlayed",   label: "GP",       value: formatNumber(player.gamesPlayed),               chartable: false },
@@ -17,12 +19,32 @@ function OverviewQB({ player }) {
     { key: "passingEpa",    label: "PASS EPA", value: formatSigned(averageWeeks(weeks, "passingEpa")), chartable: true  },
   ], [player]);
 
+  const seriesMap = useMemo(() => ({
+    completionPct: {
+      data: weeks.map((w) => {
+        if (!w.attempts) return null;
+        return (w.completions / w.attempts) * 100;
+      }),
+      formatValue: (n) => formatPercent(n / 100),
+    },
+    passingYards:  { data: weekSeries(weeks, "passingYards"),  formatValue: formatNumber },
+    passingTds:    { data: weekSeries(weeks, "passingTds"),    formatValue: formatNumber },
+    interceptions: { data: weekSeries(weeks, "interceptions"), formatValue: formatNumber },
+    passingEpa:    { data: weekSeries(weeks, "passingEpa"),    formatValue: (n) => formatSigned(n, 2) },
+  }), [weeks]);
+
+  const selectedCell = cells.find((c) => c.key === selectedKey);
+
   return (
-    <StatRow
-      cells={cells}
-      selectedKey={QB_PRIMARY_KEY}
-      onSelectStat={() => {}}
-    />
+    <>
+      <StatRow cells={cells} selectedKey={selectedKey} onSelectStat={setSelectedKey} />
+      <SparkBlock
+        label={selectedCell.label}
+        data={seriesMap[selectedKey].data}
+        weeks={weeks.map((w) => w.week)}
+        formatValue={seriesMap[selectedKey].formatValue}
+      />
+    </>
   );
 }
 
