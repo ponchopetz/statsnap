@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { formatAge, formatHeight, formatDraft } from "../../utils/format.js";
 import Tabs from "../Tabs/Tabs.jsx";
+import Overview from "../Overview/Overview.jsx";
 import "./PlayerPage.css";
 
 function PlayerPage() {
@@ -141,12 +142,7 @@ function PlayerPage() {
               </Tabs.List>
 
               <Tabs.Panel id="overview">
-                <div className="stats-placeholder">
-                  <div className="stats-placeholder-label">OVERVIEW</div>
-                  <div className="stats-placeholder-text">
-                    Overview content arrives in Chunk 13.
-                  </div>
-                </div>
+                <Overview player={player} />
               </Tabs.Panel>
 
               <Tabs.Panel id="advanced">

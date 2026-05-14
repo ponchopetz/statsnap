@@ -155,6 +155,7 @@ dist-ssr/
 # AI help
 CLAUDE.md
 AGENTS.md
+StatSnap_Brief.md
 
 .claude/
 .playwright-mcp/
