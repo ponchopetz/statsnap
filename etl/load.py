@@ -85,6 +85,14 @@ WEEK_FIELDS = [
     "specialTeamsTds",
     "fantasyPoints",
     "fantasyPointsPpr",
+    # Game context (added Chunk 14c.1)
+    "opponent",
+    "homeAway",
+    "teamScore",
+    "opponentScore",
+    "gameday",
+    "overtime",
+    "result",
 ]
 
 # ── Stage 1: reshape ──────────────────────────────────────────────────────────

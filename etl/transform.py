@@ -88,6 +88,13 @@ KEEP_COLUMNS = [
     "draft_year",
     "draft_round",
     "draft_pick",
+    "opponent_team",
+    "homeAway",
+    "teamScore",
+    "opponentScore",
+    "gameday",
+    "overtime",
+    "result",
     "team_city",
 ]
 
@@ -148,6 +155,13 @@ RENAME_MAP = {
     "draft_year":    "draftYear",
     "draft_round":   "draftRound",
     "draft_pick":    "draftPick",
+    "opponent_team": "opponent",
+    "homeAway":      "homeAway",
+    "teamScore":     "teamScore",
+    "opponentScore": "opponentScore",
+    "gameday":       "gameday",
+    "overtime":      "overtime",
+    "result":        "result",
     "team_city":     "teamCity",
 }
 
@@ -168,6 +182,13 @@ def extract_draft():
     pick. Used as a LEFT join — undrafted free agents keep null
     draft fields, which the frontend renders as em-dash placeholders."""
     return nflreadpy.load_draft_picks()
+
+
+def extract_schedules():
+    """Pull game-level schedule data for the configured season.
+    Used to join home/away and scoring context onto the per-week
+    player stats."""
+    return nflreadpy.load_schedules(SEASON)
 
 
 def enrich_with_identity(stats_df, rosters_df, draft_df):
@@ -201,6 +222,71 @@ def enrich_with_identity(stats_df, rosters_df, draft_df):
     return enriched
 
 
+def enrich_with_game_context(stats_df, schedules_df):
+    """Join schedules onto per-week stats to derive homeAway,
+    teamScore, opponentScore, gameday, overtime, and result.
+
+    Implementation: pivot the schedules DataFrame into a per-team-
+    per-week shape (each game becomes two rows — one from the home
+    team's perspective and one from the away team's), then join on
+    [season, week, team]. This sidesteps the conditional 'is the
+    player on the home or away side' logic at join time.
+    """
+    schedules_slim = schedules_df.select([
+        "season", "week", "home_team", "away_team",
+        "home_score", "away_score", "gameday", "overtime",
+    ])
+
+    home_perspective = schedules_slim.select([
+        col("season"),
+        col("week"),
+        col("home_team").alias("team"),
+        col("away_team").alias("opponent_from_sched"),
+        pl.lit("home").alias("homeAway"),
+        col("home_score").alias("teamScore"),
+        col("away_score").alias("opponentScore"),
+        col("gameday").alias("gameday"),
+        col("overtime").alias("overtime"),
+    ])
+
+    away_perspective = schedules_slim.select([
+        col("season"),
+        col("week"),
+        col("away_team").alias("team"),
+        col("home_team").alias("opponent_from_sched"),
+        pl.lit("away").alias("homeAway"),
+        col("away_score").alias("teamScore"),
+        col("home_score").alias("opponentScore"),
+        col("gameday").alias("gameday"),
+        col("overtime").alias("overtime"),
+    ])
+
+    schedules_by_team = pl.concat([home_perspective, away_perspective])
+
+    joined = stats_df.join(
+        schedules_by_team,
+        on=["season", "week", "team"],
+        how="left",
+    )
+
+    mismatches = joined.filter(
+        col("opponent_team") != col("opponent_from_sched")
+    )
+    if len(mismatches) > 0:
+        print(f"WARNING: {len(mismatches)} rows where opponent_team disagrees with schedules-derived opponent")
+
+    joined = joined.drop("opponent_from_sched")
+
+    joined = joined.with_columns(
+        pl.when(col("teamScore") > col("opponentScore")).then(pl.lit("W"))
+        .when(col("teamScore") < col("opponentScore")).then(pl.lit("L"))
+        .otherwise(pl.lit("T"))
+        .alias("result")
+    )
+
+    return joined
+
+
 def filter_positions(df):
     """Keep only skill positions, regular season only."""
     return df.filter(
@@ -221,6 +307,9 @@ def rename_columns(df):
         .rename(RENAME_MAP)
         .with_columns(
             col("birthDate").dt.strftime("%Y-%m-%d")
+        )
+        .with_columns(
+            col("gameday").cast(pl.Utf8)
         )
     )
 
@@ -283,9 +372,11 @@ def transform():
     raw       = extract()
     rosters   = extract_rosters()
     draft     = extract_draft()
+    schedules = extract_schedules()
     filtered  = filter_positions(raw)
     enriched  = enrich_with_identity(filtered, rosters, draft)
-    selected  = select_columns(enriched)
+    with_ctx  = enrich_with_game_context(enriched, schedules)
+    selected  = select_columns(with_ctx)
     renamed   = rename_columns(selected)
     derived   = compute_derived(renamed)
     clean     = handle_nulls(derived)
