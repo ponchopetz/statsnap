@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import StatRow from "../StatRow/StatRow.jsx";
 import SparkBlock from "../Sparkline/SparkBlock.jsx";
+import ByWeekRail from "../ByWeekRail/ByWeekRail.jsx";
 import { sumWeeks, totalTouchdowns, weekSeries } from "../../utils/stats.js";
 import { formatNumber } from "../../utils/format.js";
 
@@ -41,6 +42,7 @@ function OverviewRB({ player }) {
         weeks={weeks.map((w) => w.week)}
         formatValue={seriesMap[selectedKey].formatValue}
       />
+      <ByWeekRail player={player} />
     </>
   );
 }

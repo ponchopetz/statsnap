@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import StatRow from "../StatRow/StatRow.jsx";
 import SparkBlock from "../Sparkline/SparkBlock.jsx";
+import ByWeekRail from "../ByWeekRail/ByWeekRail.jsx";
 import { sumWeeks, averageWeeks, completionPct, weekSeries } from "../../utils/stats.js";
 import { formatNumber, formatPercent, formatSigned } from "../../utils/format.js";
 
@@ -44,6 +45,7 @@ function OverviewQB({ player }) {
         weeks={weeks.map((w) => w.week)}
         formatValue={seriesMap[selectedKey].formatValue}
       />
+      <ByWeekRail player={player} />
     </>
   );
 }

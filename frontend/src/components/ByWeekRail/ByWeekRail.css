@@ -1,0 +1,188 @@
+.byweek {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.byweek-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.byweek-title {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.byweek-count {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+
+/* Strip: horizontal scroll, 6 cards visible, hidden scrollbar, static fade */
+.byweek-strip-wrap {
+  position: relative;
+}
+.byweek-strip {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+}
+.byweek-strip::-webkit-scrollbar { display: none; }
+
+.byweek-strip-fade {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 56px;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--bg));
+}
+
+.byweek-mini {
+  flex: 0 0 calc((100% - 28px) / 6);
+  min-width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 6px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  margin-right: -1px;
+  cursor: pointer;
+  font-family: var(--display);
+  text-align: center;
+  transition: background 0.1s, border-color 0.1s;
+  position: relative;
+}
+.byweek-mini:last-child { margin-right: 0; }
+.byweek-mini:hover { background: var(--bg-2); z-index: 1; }
+.byweek-mini.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  z-index: 2;
+}
+
+.byweek-mini-wk {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--fg-2);
+}
+.byweek-mini-opp {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--fg);
+}
+.byweek-mini-result {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.byweek-mini-result.win { color: var(--accent); }
+.byweek-mini-result.loss { color: var(--fg-3); }
+.byweek-mini-result.tie { color: var(--fg-2); }
+.byweek-mini-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+  margin-top: 2px;
+}
+.byweek-mini-label {
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  color: var(--fg-3);
+}
+
+/* Active card: invert text to background color for contrast on lime */
+.byweek-mini.active .byweek-mini-wk,
+.byweek-mini.active .byweek-mini-opp,
+.byweek-mini.active .byweek-mini-num,
+.byweek-mini.active .byweek-mini-label,
+.byweek-mini.active .byweek-mini-result { color: var(--bg); }
+
+/* Detail card */
+.byweek-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.byweek-detail-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.byweek-detail-matchup {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--display);
+}
+.byweek-detail-venue {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+.byweek-detail-opp {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+.byweek-detail-sep { color: var(--fg-3); }
+.byweek-detail-result {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.byweek-detail-result.win { color: var(--accent); }
+.byweek-detail-result.loss { color: var(--fg-3); }
+.byweek-detail-result.tie { color: var(--fg-2); }
+.byweek-detail-wk {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+
+/* Stat grid: 5 columns, per-cell borders only (no wrapper border) */
+.byweek-detail-grid {
+  display: grid;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.byweek-detail-grid-5 { grid-template-columns: repeat(5, 1fr); }
+.byweek-detail-stat {
+  padding: 12px 8px;
+  border-left: 1px solid var(--line);
+  text-align: center;
+}
+.byweek-detail-stat:first-child { border-left: none; }
+.byweek-detail-stat-key {
+  font-family: var(--display);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.byweek-detail-stat-val {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
