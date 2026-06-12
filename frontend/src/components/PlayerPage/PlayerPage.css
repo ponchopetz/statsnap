@@ -226,6 +226,26 @@
   color: var(--fg);
 }
 
+/* Stats column header — season selector sits above the tabs, right-aligned.
+   Its bottom rule lets the active season's lime stripe sit on it, mirroring
+   the tablist treatment one row below. */
+.stats-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+
+.stats-header-label {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  padding-bottom: 10px;
+}
+
 /* ───── Stats column placeholder (right) ───── */
 
 .stats {

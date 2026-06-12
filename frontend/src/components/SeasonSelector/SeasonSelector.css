@@ -1,0 +1,44 @@
+/* SeasonSelector — controlled segmented season switcher.
+   Rhymes with the Tabs primitive: a row of buttons sitting on a 1px rule,
+   the active one painted with a lime bottom stripe. */
+
+.season-selector {
+  display: flex;
+  gap: 0;
+}
+
+.season-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  /* Pull the 2px stripe down onto the .stats-header rule, mirroring .tabs-tab */
+  margin-bottom: -2px;
+  padding: 8px 14px;
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--fg-3);
+  cursor: pointer;
+  transition:
+    color 0.12s,
+    border-color 0.12s;
+}
+
+.season-btn:hover {
+  color: var(--fg-2);
+}
+
+.season-btn:focus {
+  outline: none;
+}
+
+.season-btn:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.season-btn-active {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
