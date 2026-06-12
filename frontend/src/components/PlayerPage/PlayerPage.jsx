@@ -1,17 +1,30 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { formatAge, formatHeight, formatDraft } from "../../utils/format.js";
 import Tabs from "../Tabs/Tabs.jsx";
 import Overview from "../Overview/Overview.jsx";
+import SeasonSelector from "../SeasonSelector/SeasonSelector.jsx";
 import "./PlayerPage.css";
 
 function PlayerPage() {
   const { playerId } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { status, data, errorMessage } = usePlayerProfile(playerId);
-  const player = data?.[0];
+
+  const seasons = data?.map((d) => d.season) ?? [];
+  const paramSeason = Number(searchParams.get("season"));
+  const selectedSeason = seasons.includes(paramSeason) ? paramSeason : seasons[0];
+  const player = data?.find((d) => d.season === selectedSeason);
+
+  const handleSeasonChange = (season) => {
+    // setSearchParams replaces ALL search params. Fine today — season is the
+    // only one. When the search box lands (Chunk 18), merge instead of clobbering:
+    //   setSearchParams((prev) => { prev.set("season", String(season)); return prev; });
+    setSearchParams({ season: String(season) });
+  };
 
   const [imageFailed, setImageFailed] = useState(false);
   useEffect(() => { setImageFailed(false); }, [playerId]);
@@ -133,6 +146,16 @@ function PlayerPage() {
           </aside>
 
           <main className="stats">
+            {seasons.length > 1 && (
+              <div className="stats-header">
+                <span className="stats-header-label">SEASON</span>
+                <SeasonSelector
+                  seasons={seasons}
+                  selected={selectedSeason}
+                  onSelect={handleSeasonChange}
+                />
+              </div>
+            )}
             <Tabs defaultTab="overview">
               <Tabs.List>
                 <Tabs.Tab id="overview">OVERVIEW</Tabs.Tab>
