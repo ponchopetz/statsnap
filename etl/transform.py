@@ -4,6 +4,8 @@ import polars as pl
 from polars import col
 import nflreadpy
 
+from percentiles import compute_percentiles
+
 load_dotenv()
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -380,12 +382,14 @@ def transform():
     renamed   = rename_columns(selected)
     derived   = compute_derived(renamed)
     clean     = handle_nulls(derived)
+    advanced  = compute_percentiles(clean)
 
     print(f"\nTotal rows after transform: {len(clean)}")
     print(f"Columns: {clean.columns}")
+    print(f"Players with advanced metrics: {len(advanced)}")
     sample_by_position(clean)
 
-    return clean
+    return clean, advanced
 
 
 if __name__ == "__main__":

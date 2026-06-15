@@ -202,13 +202,26 @@ def load():
 
     # Step 1: run the full transform pipeline
     print("Running transform...")
-    clean_df = transform()
+    clean_df, advanced_map = transform()
     print(f"Transform complete: {len(clean_df)} rows")
 
     # Step 2: reshape flat DataFrame → list of player-season dicts
     print("\nReshaping to player-season documents...")
     docs = reshape(clean_df)
     print(f"Reshape complete: {len(docs)} documents")
+
+    # Attach the per-player advanced metrics map. Done here rather than inside
+    # reshape() because the map has position-varying string keys that Polars
+    # cannot represent as a struct column without a fixed schema. Plain-Python
+    # dict mutation after to_dicts() is the natural fit and leaves reshape()
+    # unchanged.
+    advanced_count = 0
+    for doc in docs:
+        pid = doc["playerId"]
+        if pid in advanced_map:
+            doc["advanced"] = advanced_map[pid]
+            advanced_count += 1
+    print(f"Advanced metrics attached to {advanced_count} documents")
 
     # Step 3: connect to MongoDB and write
     print("\nConnecting to MongoDB...")
