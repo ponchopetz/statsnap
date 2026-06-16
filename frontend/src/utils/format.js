@@ -77,3 +77,14 @@ export function formatSigned(n, decimals = 1) {
   const fixed = n.toFixed(decimals);
   return n >= 0 ? `+${fixed}` : fixed;
 }
+
+/**
+ * Formats a number to a fixed number of decimal places.
+ * @param {number|null|undefined} n
+ * @param {number} [decimals=1]
+ * @returns {string} e.g. "13.6", or "—" if input is missing
+ */
+export function formatDecimal(n, decimals = 1) {
+  if (n == null) return "—";
+  return n.toFixed(decimals);
+}

@@ -5,6 +5,7 @@ import { formatAge, formatHeight, formatDraft } from "../../utils/format.js";
 import Tabs from "../Tabs/Tabs.jsx";
 import Overview from "../Overview/Overview.jsx";
 import AdvancedPanel from "../AdvancedPanel/AdvancedPanel.jsx";
+import GameLog from "../GameLog/GameLog.jsx";
 import SeasonSelector from "../SeasonSelector/SeasonSelector.jsx";
 import "./PlayerPage.css";
 
@@ -178,12 +179,7 @@ function PlayerPage() {
               </Tabs.Panel>
 
               <Tabs.Panel id="gamelog">
-                <div className="stats-placeholder">
-                  <div className="stats-placeholder-label">GAME LOG</div>
-                  <div className="stats-placeholder-text">
-                    Game Log arrives in Chunk 15.
-                  </div>
-                </div>
+                <GameLog player={player} />
               </Tabs.Panel>
 
               <Tabs.Panel id="career">

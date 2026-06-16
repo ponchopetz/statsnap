@@ -1,0 +1,78 @@
+.gamelog-panel {
+  border: 1px solid var(--line);
+  padding: 16px;
+}
+
+.gamelog-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.gamelog-head-label {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.gamelog-head-count {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+
+.gamelog-scroll {
+  overflow-x: auto;
+}
+
+.gamelog-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--display);
+  white-space: nowrap;
+}
+
+.gamelog-table th {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  text-align: right;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.gamelog-table td {
+  font-family: var(--display);
+  font-size: 13px;
+  color: var(--fg);
+  text-align: right;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.gamelog-table th.ctx,
+.gamelog-table td.ctx {
+  text-align: left;
+}
+
+.gamelog-result.win  { color: var(--accent); }
+.gamelog-result.loss { color: var(--fg-3); }
+.gamelog-result.tie  { color: var(--fg-2); }
+
+.gamelog-empty {
+  padding: 32px 16px;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--fg-3);
+}
