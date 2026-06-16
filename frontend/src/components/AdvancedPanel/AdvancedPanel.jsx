@@ -7,7 +7,7 @@ const STAT_GLOSSARY = {
   "Air Yards Share": "Share of the team's total air yards (downfield distance on all targets) accounted for by this player.",
   "WOPR": "Weighted Opportunity Rating — combines target share (1.5×) and air-yards share (0.7×). Single number for receiving opportunity. 0.50+ is elite.",
   "RACR": "Receiver Air Conversion Ratio — receiving yards ÷ air yards thrown his way. >1.0 means he's adding yards beyond what was thrown.",
-  "Receiving Air Yards": "Total downfield distance of every pass thrown to him, whether caught or not.",
+  "Receiving Air Yards": "Total downfield distance of every pass thrown to him at the moment of release. Targets behind the line of scrimmage — screens and checkdowns — count as negative, so backs and short-area receivers can post low or even negative totals.",
   "YAC / Rec": "Yards After Catch per Reception. Pure with-ball production.",
   "Receiving EPA": "Expected Points Added on plays targeting him. Captures yards + situation (down, distance, field position).",
   "Rushing EPA": "Expected Points Added on his carries. Positive = above league expectation given the down & distance.",
