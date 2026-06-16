@@ -353,6 +353,50 @@ const ADVANCED_CONFIG = {
   ],
 };
 
+// ── Per-week helpers (single week object, not weeks array) ───────────────────
+// These operate on one week document and return number|null. They are
+// intentionally distinct from the season-aggregate helpers above.
+
+/**
+ * Per-game completion percentage: completions / attempts.
+ * @param {Object} week - Single weekly stat object
+ * @returns {number|null}
+ */
+export function gameCompletionPct(week) {
+  if (!week.attempts) return null;
+  return week.completions / week.attempts;
+}
+
+/**
+ * Per-game yards per carry: rushingYards / carries.
+ * @param {Object} week - Single weekly stat object
+ * @returns {number|null}
+ */
+export function gameYardsPerCarry(week) {
+  if (!week.carries) return null;
+  return week.rushingYards / week.carries;
+}
+
+/**
+ * Per-game yards per reception: receivingYards / receptions.
+ * @param {Object} week - Single weekly stat object
+ * @returns {number|null}
+ */
+export function gameYardsPerRec(week) {
+  if (!week.receptions) return null;
+  return week.receivingYards / week.receptions;
+}
+
+/**
+ * Combined rushing + receiving touchdowns for a single game.
+ * Always returns a number (nulls treated as 0).
+ * @param {Object} week - Single weekly stat object
+ * @returns {number}
+ */
+export function combinedTds(week) {
+  return (week.rushingTds ?? 0) + (week.receivingTds ?? 0);
+}
+
 /**
  * Builds the ordered advanced-tab rows for a player, ready for the panel to
  * map over. Returns rows with bar:null (not an empty array) for sub-threshold
