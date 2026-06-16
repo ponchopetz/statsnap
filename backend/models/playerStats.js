@@ -61,6 +61,10 @@ const playerStatsSchema = new mongoose.Schema(
     draftPick:  { type: Number },
 
     weeks: { type: [weekSchema], default: [] },
+
+    // Per-position percentile map (e.g. passingEpa for QB, targetShare for WR).
+    // Map (not a named sub-schema) because the key set varies by position.
+    advanced: { type: Map, of: Number },
   },
   {
     timestamps: true,

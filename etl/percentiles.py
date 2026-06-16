@@ -69,6 +69,11 @@ def _aggregate_season(df: pl.DataFrame) -> pl.DataFrame:
         and denominator; achieved by letting the null product propagate to
         zero in the numerator and using when/then to null out the denominator
         contribution for those weeks.
+      RATIO OF SUMS (passingEpa, rushingEpa, receivingEpa): the stored weekly
+        value is a per-game EPA TOTAL, not a per-play rate, so averaging
+        weekly totals (the old behavior) produced neither a rate nor a season
+        total. Same fix as passingCpoe: a null-EPA week must drop its
+        play-count from the denominator too, achieved via when/then null-out.
     """
     agg = df.group_by("playerId").agg([
         pl.first("position"),
@@ -86,9 +91,6 @@ def _aggregate_season(df: pl.DataFrame) -> pl.DataFrame:
         col("sackYardsLost").fill_null(0).sum().alias("sackYardsLost"),
 
         # AVERAGE metrics (Polars mean already excludes nulls — correct behavior).
-        col("passingEpa").mean().alias("passingEpa"),
-        col("receivingEpa").mean().alias("receivingEpa"),
-        col("rushingEpa").mean().alias("rushingEpa"),
         col("targetShare").mean().alias("targetShare"),
         col("airYardsShare").mean().alias("airYardsShare"),
         col("wopr").mean().alias("wopr"),
@@ -108,6 +110,31 @@ def _aggregate_season(df: pl.DataFrame) -> pl.DataFrame:
             .otherwise(None)
             .sum()
             .alias("_cpoe_denominator"),
+
+        # EPA-per-play components (passingEpa/attempts, rushingEpa/carries,
+        # receivingEpa/targets). Null-EPA weeks drop out of the numerator via
+        # sum-of-nulls=0, and out of the denominator via when/then null-out —
+        # same pattern as the passingCpoe components above.
+        col("passingEpa").sum().alias("_passingEpa_numerator"),
+        pl.when(col("passingEpa").is_not_null())
+            .then(col("attempts"))
+            .otherwise(None)
+            .sum()
+            .alias("_passingEpa_denominator"),
+
+        col("rushingEpa").sum().alias("_rushingEpa_numerator"),
+        pl.when(col("rushingEpa").is_not_null())
+            .then(col("carries"))
+            .otherwise(None)
+            .sum()
+            .alias("_rushingEpa_denominator"),
+
+        col("receivingEpa").sum().alias("_receivingEpa_numerator"),
+        pl.when(col("receivingEpa").is_not_null())
+            .then(col("targets"))
+            .otherwise(None)
+            .sum()
+            .alias("_receivingEpa_denominator"),
     ])
 
     # Derive RATIO metrics from the summed components. When the denominator
@@ -139,6 +166,21 @@ def _aggregate_season(df: pl.DataFrame) -> pl.DataFrame:
             .then(col("_cpoe_numerator") / col("_cpoe_denominator"))
             .otherwise(None)
             .alias("passingCpoe"),
+
+        pl.when(col("_passingEpa_denominator") > 0)
+            .then(col("_passingEpa_numerator") / col("_passingEpa_denominator"))
+            .otherwise(None)
+            .alias("passingEpa"),
+
+        pl.when(col("_rushingEpa_denominator") > 0)
+            .then(col("_rushingEpa_numerator") / col("_rushingEpa_denominator"))
+            .otherwise(None)
+            .alias("rushingEpa"),
+
+        pl.when(col("_receivingEpa_denominator") > 0)
+            .then(col("_receivingEpa_numerator") / col("_receivingEpa_denominator"))
+            .otherwise(None)
+            .alias("receivingEpa"),
     ])
 
 

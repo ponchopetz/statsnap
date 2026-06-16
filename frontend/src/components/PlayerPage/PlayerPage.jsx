@@ -4,6 +4,7 @@ import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { formatAge, formatHeight, formatDraft } from "../../utils/format.js";
 import Tabs from "../Tabs/Tabs.jsx";
 import Overview from "../Overview/Overview.jsx";
+import AdvancedPanel from "../AdvancedPanel/AdvancedPanel.jsx";
 import SeasonSelector from "../SeasonSelector/SeasonSelector.jsx";
 import "./PlayerPage.css";
 
@@ -169,12 +170,7 @@ function PlayerPage() {
               </Tabs.Panel>
 
               <Tabs.Panel id="advanced">
-                <div className="stats-placeholder">
-                  <div className="stats-placeholder-label">ADVANCED</div>
-                  <div className="stats-placeholder-text">
-                    Advanced metrics arrive in Chunk 14.
-                  </div>
-                </div>
+                <AdvancedPanel player={player} />
               </Tabs.Panel>
 
               <Tabs.Panel id="gamelog">
