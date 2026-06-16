@@ -74,6 +74,16 @@
   font-weight: 700;
   color: var(--fg);
   text-transform: uppercase;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.12s, color 0.12s;
+}
+
+.player-topbar .brand-mark:hover {
+  color: var(--accent);
+  transform: scale(1.08);
 }
 
 .player-topbar .brand-mark .slash {

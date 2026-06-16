@@ -53,9 +53,13 @@ function PlayerPage() {
           />
         </div>
 
-        <span className="brand-mark">
+        <button
+          type="button"
+          className="brand-mark"
+          onClick={() => navigate("/")}
+        >
           STAT<span className="slash">/</span>SNAP
-        </span>
+        </button>
       </header>
 
       {status === "loading" && (
