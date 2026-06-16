@@ -1,3 +1,5 @@
+import { formatNumber, formatPercent, formatSigned } from "./format.js";
+
 /**
  * Sums a numeric field across an array of weekly stat objects.
  * null/undefined values are treated as 0 so they don't break the total.
@@ -60,4 +62,316 @@ export function totalTouchdowns(weeks) {
 export function weekSeries(weeks, key) {
   if (!weeks?.length) return [];
   return weeks.map((w) => w[key] ?? null);
+}
+
+// Season-aggregate advanced helpers — mirror of the aggregation contract in etl/percentiles.py (see docs/Decisions.md ADR for 15a). Any change here must change there.
+
+/**
+ * Season-level Avg Depth of Target: ratio of total passing air yards to total
+ * attempts. Ratio of sums prevents low-attempt games from distorting the rate.
+ * Returns null (not 0) when there are no attempts — null means "no basis to
+ * compute", matching Python's null-exclusion from percentile ranking.
+ * @param {Array<Object>|null|undefined} weeks
+ * @returns {number|null}
+ */
+export function seasonAdot(weeks) {
+  const totalAttempts = sumWeeks(weeks, "attempts");
+  if (totalAttempts === 0) return null;
+  return sumWeeks(weeks, "passingAirYards") / totalAttempts;
+}
+
+/**
+ * Season-level Passing Air Conversion Ratio: passing yards earned per air yard
+ * targeted. Ratio of sums. Null when no passing air yards (QB never recorded
+ * any downfield target), which excludes the player from PACR ranking.
+ * @param {Array<Object>|null|undefined} weeks
+ * @returns {number|null}
+ */
+export function seasonPacr(weeks) {
+  const totalAirYards = sumWeeks(weeks, "passingAirYards");
+  if (totalAirYards === 0) return null;
+  return sumWeeks(weeks, "passingYards") / totalAirYards;
+}
+
+/**
+ * Season-level Receiver Air Conversion Ratio: receiving yards per air yard
+ * allocated to the receiver. Ratio of sums. Null when no receiving air yards.
+ * @param {Array<Object>|null|undefined} weeks
+ * @returns {number|null}
+ */
+export function seasonRacr(weeks) {
+  const totalAirYards = sumWeeks(weeks, "receivingAirYards");
+  if (totalAirYards === 0) return null;
+  return sumWeeks(weeks, "receivingYards") / totalAirYards;
+}
+
+/**
+ * Season-level YAC per reception: yards after catch divided by total receptions.
+ * Ratio of sums prevents weeks with one catch from inflating the rate.
+ * Null when no receptions.
+ * @param {Array<Object>|null|undefined} weeks
+ * @returns {number|null}
+ */
+export function seasonYacPerRec(weeks) {
+  const totalReceptions = sumWeeks(weeks, "receptions");
+  if (totalReceptions === 0) return null;
+  return sumWeeks(weeks, "receivingYac") / totalReceptions;
+}
+
+/**
+ * Season-level Passing EPA per dropback: sum of weekly passing EPA totals
+ * divided by sum of attempts. Ratio of sums, not an average of weekly
+ * totals — averaging per-game EPA totals would produce neither a per-play
+ * rate nor a season total. sumWeeks is not used here because its
+ * null-as-zero contract is wrong for a conditional ratio denominator: a
+ * week with null passingEpa must drop its attempts from the denominator
+ * too, not contribute them as if EPA were zero that week. Null when no
+ * eligible attempts (mirrors seasonCpoe's null-exclusion pattern).
+ * @param {Array<Object>|null|undefined} weeks
+ * @returns {number|null}
+ */
+export function seasonPassingEpa(weeks) {
+  if (!weeks?.length) return null;
+  let numerator = 0;
+  let denominator = 0;
+  for (const week of weeks) {
+    if (week.passingEpa != null) {
+      numerator += week.passingEpa;
+      denominator += week.attempts ?? 0;
+    }
+  }
+  if (denominator === 0) return null;
+  return numerator / denominator;
+}
+
+/**
+ * Season-level Rushing EPA per carry: sum of weekly rushing EPA totals
+ * divided by sum of carries. Ratio of sums — see seasonPassingEpa for why
+ * sumWeeks can't express this conditional denominator. Null when no
+ * eligible carries.
+ * @param {Array<Object>|null|undefined} weeks
+ * @returns {number|null}
+ */
+export function seasonRushingEpa(weeks) {
+  if (!weeks?.length) return null;
+  let numerator = 0;
+  let denominator = 0;
+  for (const week of weeks) {
+    if (week.rushingEpa != null) {
+      numerator += week.rushingEpa;
+      denominator += week.carries ?? 0;
+    }
+  }
+  if (denominator === 0) return null;
+  return numerator / denominator;
+}
+
+/**
+ * Season-level Receiving EPA per target: sum of weekly receiving EPA totals
+ * divided by sum of targets. Ratio of sums — see seasonPassingEpa for why
+ * sumWeeks can't express this conditional denominator. Null when no
+ * eligible targets.
+ * @param {Array<Object>|null|undefined} weeks
+ * @returns {number|null}
+ */
+export function seasonReceivingEpa(weeks) {
+  if (!weeks?.length) return null;
+  let numerator = 0;
+  let denominator = 0;
+  for (const week of weeks) {
+    if (week.receivingEpa != null) {
+      numerator += week.receivingEpa;
+      denominator += week.targets ?? 0;
+    }
+  }
+  if (denominator === 0) return null;
+  return numerator / denominator;
+}
+
+/**
+ * Season-level Completion Percentage Over Expected, attempt-weighted.
+ * Only weeks where both passingCpoe and attempts are non-null contribute —
+ * a bye or injury week must not dilute the rate (null weeks excluded from
+ * both numerator and denominator, matching the Python _cpoe_denominator logic).
+ * passingCpoe is stored in percentage points (e.g. 11.78 = +11.78 pp).
+ * @param {Array<Object>|null|undefined} weeks
+ * @returns {number|null} Weighted CPOE in percentage points, or null if no
+ *   eligible attempts
+ */
+export function seasonCpoe(weeks) {
+  if (!weeks?.length) return null;
+  let numerator = 0;
+  let denominator = 0;
+  for (const week of weeks) {
+    if (week.passingCpoe != null && week.attempts != null) {
+      numerator += week.passingCpoe * week.attempts;
+      denominator += week.attempts;
+    }
+  }
+  if (denominator === 0) return null;
+  return numerator / denominator;
+}
+
+// ── Per-position advanced row config (module-local) ───────────────────────────
+// Each entry: { key, label, rawValue(weeks) → string }
+// key    — matches player.advanced map keys and Python metric names
+// label  — must match STAT_GLOSSARY keys so the panel's glossary lookup works
+// rawValue — formatted display string for the raw season value
+
+const RECEIVER_ROWS = [
+  {
+    key: "targetShare",
+    label: "Target Share",
+    rawValue: (weeks) => formatPercent(averageWeeks(weeks, "targetShare")),
+  },
+  {
+    key: "airYardsShare",
+    label: "Air Yards Share",
+    rawValue: (weeks) => formatPercent(averageWeeks(weeks, "airYardsShare")),
+  },
+  {
+    key: "wopr",
+    label: "WOPR",
+    // wopr is a 0–2ish rating, not a percentage — plain 2-decimal display.
+    // format.js has no plain decimal formatter, so using toFixed(2) directly.
+    rawValue: (weeks) => averageWeeks(weeks, "wopr").toFixed(2),
+  },
+  {
+    key: "racr",
+    label: "RACR",
+    rawValue: (weeks) => {
+      const v = seasonRacr(weeks);
+      return v == null ? "—" : v.toFixed(2);
+    },
+  },
+  {
+    key: "receivingAirYards",
+    label: "Receiving Air Yards",
+    rawValue: (weeks) => formatNumber(sumWeeks(weeks, "receivingAirYards")),
+  },
+  {
+    key: "yacPerRec",
+    label: "YAC / Rec",
+    rawValue: (weeks) => {
+      const v = seasonYacPerRec(weeks);
+      return v == null ? "—" : v.toFixed(1);
+    },
+  },
+  {
+    key: "receivingEpa",
+    label: "Receiving EPA",
+    rawValue: (weeks) => formatSigned(seasonReceivingEpa(weeks), 2),
+  },
+];
+
+const ADVANCED_CONFIG = {
+  QB: [
+    {
+      key: "passingEpa",
+      label: "Passing EPA",
+      rawValue: (weeks) => formatSigned(seasonPassingEpa(weeks), 2),
+    },
+    {
+      key: "pacr",
+      label: "PACR",
+      rawValue: (weeks) => {
+        const v = seasonPacr(weeks);
+        return v == null ? "—" : v.toFixed(2);
+      },
+    },
+    {
+      key: "passingCpoe",
+      label: "Passing CPOE",
+      // passingCpoe is stored in percentage points (11.78 = +11.78 pp).
+      // formatPercent expects a decimal, so divide by 100. Null guard is
+      // required because null / 100 === 0 in JS, not null.
+      rawValue: (weeks) => {
+        const v = seasonCpoe(weeks);
+        return v == null ? "—" : formatPercent(v / 100);
+      },
+    },
+    {
+      key: "passingAirYards",
+      label: "Passing Air Yards",
+      rawValue: (weeks) => formatNumber(sumWeeks(weeks, "passingAirYards")),
+    },
+    {
+      key: "adot",
+      label: "Avg Depth of Target",
+      rawValue: (weeks) => {
+        const v = seasonAdot(weeks);
+        return v == null ? "—" : v.toFixed(1);
+      },
+    },
+    {
+      key: "sacksSuffered",
+      label: "Sacks Suffered",
+      rawValue: (weeks) => formatNumber(sumWeeks(weeks, "sacksSuffered")),
+    },
+    {
+      key: "sackYardsLost",
+      label: "Sack Yards Lost",
+      rawValue: (weeks) => formatNumber(sumWeeks(weeks, "sackYardsLost")),
+    },
+  ],
+  WR: RECEIVER_ROWS,
+  TE: RECEIVER_ROWS,
+  RB: [
+    {
+      key: "rushingEpa",
+      label: "Rushing EPA",
+      rawValue: (weeks) => formatSigned(seasonRushingEpa(weeks), 2),
+    },
+    {
+      key: "targetShare",
+      label: "Target Share",
+      rawValue: (weeks) => formatPercent(averageWeeks(weeks, "targetShare")),
+    },
+    {
+      key: "wopr",
+      label: "WOPR",
+      rawValue: (weeks) => averageWeeks(weeks, "wopr").toFixed(2),
+    },
+    {
+      key: "yacPerRec",
+      label: "YAC / Rec",
+      rawValue: (weeks) => {
+        const v = seasonYacPerRec(weeks);
+        return v == null ? "—" : v.toFixed(1);
+      },
+    },
+    {
+      key: "carries",
+      label: "Carries",
+      rawValue: (weeks) => formatNumber(sumWeeks(weeks, "carries")),
+    },
+    {
+      key: "receivingAirYards",
+      label: "Receiving Air Yards",
+      rawValue: (weeks) => formatNumber(sumWeeks(weeks, "receivingAirYards")),
+    },
+  ],
+};
+
+/**
+ * Builds the ordered advanced-tab rows for a player, ready for the panel to
+ * map over. Returns rows with bar:null (not an empty array) for sub-threshold
+ * players whose position is supported — the panel decides whether to show
+ * raw-only or a pure empty state (deferred 15b.2). Unknown positions return [].
+ *
+ * Each row: { k: displayLabel, bar: percentile|null, v: formattedRawValue }
+ * @param {Object} player - Player document with .position, .weeks, .advanced
+ * @returns {Array<{k: string, bar: number|null, v: string}>}
+ */
+export function buildAdvancedRows(player) {
+  const rows = ADVANCED_CONFIG[player.position];
+  if (!rows) return [];
+
+  const weeks = player.weeks ?? [];
+
+  return rows.map(({ key, label, rawValue }) => ({
+    k: label,
+    bar: player.advanced?.[key] ?? null,
+    v: rawValue(weeks),
+  }));
 }

@@ -69,6 +69,7 @@ const getPlayerById = async (req, res, next) => {
         draftRound: 1,
         draftPick: 1,
         weeks: 1,
+        advanced: 1,
       },
     ).sort({ season: -1 });
 
