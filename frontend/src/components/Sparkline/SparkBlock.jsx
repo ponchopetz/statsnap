@@ -1,7 +1,7 @@
 import Sparkline from "./Sparkline.jsx";
 import "./Sparkline.css";
 
-function SparkBlock({ label, data = [], weeks = [], formatValue = (n) => String(n) }) {
+function SparkBlock({ label, data = [], weeks = [], formatValue = (n) => String(n), avgLabel = "AVG" }) {
   const validValues = data.filter((v) => v != null);
   const peak = validValues.length > 0 ? Math.max(...validValues) : null;
   const avg =
@@ -25,7 +25,7 @@ function SparkBlock({ label, data = [], weeks = [], formatValue = (n) => String(
             </span>
           </div>
           <div>
-            <span className="sparkblock-stat-label">AVG</span>
+            <span className="sparkblock-stat-label">{avgLabel}</span>
             <span className="sparkblock-stat-value">
               {avg != null ? formatValue(avg) : "—"}
             </span>

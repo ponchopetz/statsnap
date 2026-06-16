@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import StatRow from "../StatRow/StatRow.jsx";
 import SparkBlock from "../Sparkline/SparkBlock.jsx";
 import ByWeekRail from "../ByWeekRail/ByWeekRail.jsx";
-import { sumWeeks, averageWeeks, completionPct, weekSeries } from "../../utils/stats.js";
+import { sumWeeks, completionPct, weekSeries, seasonPassingEpa } from "../../utils/stats.js";
 import { formatNumber, formatPercent, formatSigned } from "../../utils/format.js";
 
 const QB_PRIMARY_KEY = "passingYards";
@@ -17,7 +17,7 @@ function OverviewQB({ player }) {
     { key: "passingYards",  label: "PASS YDS", value: formatNumber(sumWeeks(weeks, "passingYards")),   chartable: true  },
     { key: "passingTds",    label: "PASS TD",  value: formatNumber(sumWeeks(weeks, "passingTds")),     chartable: true  },
     { key: "interceptions", label: "INT",      value: formatNumber(sumWeeks(weeks, "interceptions")),  chartable: true  },
-    { key: "passingEpa",    label: "PASS EPA", value: formatSigned(averageWeeks(weeks, "passingEpa")), chartable: true  },
+    { key: "passingEpa",    label: "PASS EPA", value: formatSigned(seasonPassingEpa(weeks)),           chartable: true  },
   ], [player]);
 
   const seriesMap = useMemo(() => ({
@@ -35,6 +35,7 @@ function OverviewQB({ player }) {
   }), [weeks]);
 
   const selectedCell = cells.find((c) => c.key === selectedKey);
+  const avgLabel = selectedKey === "passingEpa" ? "AVG/GM" : "AVG";
 
   return (
     <>
@@ -44,6 +45,7 @@ function OverviewQB({ player }) {
         data={seriesMap[selectedKey].data}
         weeks={weeks.map((w) => w.week)}
         formatValue={seriesMap[selectedKey].formatValue}
+        avgLabel={avgLabel}
       />
       <ByWeekRail player={player} />
     </>
