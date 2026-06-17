@@ -6,6 +6,7 @@ import Tabs from "../Tabs/Tabs.jsx";
 import Overview from "../Overview/Overview.jsx";
 import AdvancedPanel from "../AdvancedPanel/AdvancedPanel.jsx";
 import GameLog from "../GameLog/GameLog.jsx";
+import Career from "../Career/Career.jsx";
 import SeasonSelector from "../SeasonSelector/SeasonSelector.jsx";
 import "./PlayerPage.css";
 
@@ -27,6 +28,8 @@ function PlayerPage() {
     //   setSearchParams((prev) => { prev.set("season", String(season)); return prev; });
     setSearchParams({ season: String(season) });
   };
+
+  const [activeTab, setActiveTab] = useState("overview");
 
   const [imageFailed, setImageFailed] = useState(false);
   useEffect(() => { setImageFailed(false); }, [playerId]);
@@ -152,7 +155,7 @@ function PlayerPage() {
           </aside>
 
           <main className="stats">
-            {seasons.length > 1 && (
+            {seasons.length > 1 && activeTab !== "career" && (
               <div className="stats-header">
                 <span className="stats-header-label">SEASON</span>
                 <SeasonSelector
@@ -162,7 +165,7 @@ function PlayerPage() {
                 />
               </div>
             )}
-            <Tabs defaultTab="overview">
+            <Tabs activeTab={activeTab} onTabChange={setActiveTab}>
               <Tabs.List>
                 <Tabs.Tab id="overview">OVERVIEW</Tabs.Tab>
                 <Tabs.Tab id="advanced">ADVANCED</Tabs.Tab>
@@ -183,12 +186,7 @@ function PlayerPage() {
               </Tabs.Panel>
 
               <Tabs.Panel id="career">
-                <div className="stats-placeholder">
-                  <div className="stats-placeholder-label">CAREER</div>
-                  <div className="stats-placeholder-text">
-                    Career arrives in Chunk 16.
-                  </div>
-                </div>
+                <Career data={data} />
               </Tabs.Panel>
             </Tabs>
           </main>
