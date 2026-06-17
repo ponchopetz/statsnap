@@ -1,0 +1,84 @@
+.career-panel {
+  border: 1px solid var(--line);
+  padding: 16px;
+}
+
+.career-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.career-head-label {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.career-head-count {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+
+.career-scroll {
+  overflow-x: auto;
+}
+
+.career-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--display);
+  white-space: nowrap;
+}
+
+.career-table th {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  text-align: right;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.career-table td {
+  font-family: var(--display);
+  font-size: 13px;
+  color: var(--fg);
+  text-align: right;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.career-table th.ctx,
+.career-table td.ctx {
+  text-align: left;
+}
+
+.career-row-total td {
+  border-top: 1px solid var(--line);
+  color: var(--fg);
+  font-weight: 700;
+}
+
+.career-row-total .ctx:first-child {
+  color: var(--accent);
+}
+
+.career-empty {
+  padding: 32px 16px;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--fg-3);
+}
