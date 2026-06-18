@@ -1,0 +1,56 @@
+/* PlayerSearch wrapper — positioning context for the Typeahead dropdown */
+
+.playersearch {
+  position: relative;
+  width: 100%;
+}
+
+/* compact hook — styling deferred to 18b */
+.playersearch--compact {}
+
+/* Hero variant — 76px search box with accent focus ring */
+
+.playersearch--hero .search-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 2px solid var(--fg);
+  background: var(--bg);
+  padding: 0 18px;
+  height: 76px;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.playersearch--hero .search-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 6px color-mix(in oklch, var(--accent) 18%, transparent);
+}
+
+.playersearch--hero .search-box .caret {
+  font-family: var(--display);
+  color: var(--accent);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.playersearch--hero .search-box input {
+  flex: 1;
+  font-family: var(--display);
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.playersearch--hero .search-box input::placeholder {
+  color: var(--fg-3);
+}
+
+.playersearch--hero .search-box .kbd {
+  font-family: var(--display);
+  font-size: 11px;
+  border: 1px solid var(--line-2);
+  padding: 4px 8px;
+  color: var(--fg-2);
+  letter-spacing: 0.08em;
+}
