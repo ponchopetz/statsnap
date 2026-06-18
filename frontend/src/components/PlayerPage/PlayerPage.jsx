@@ -8,6 +8,7 @@ import AdvancedPanel from "../AdvancedPanel/AdvancedPanel.jsx";
 import GameLog from "../GameLog/GameLog.jsx";
 import Career from "../Career/Career.jsx";
 import SeasonSelector from "../SeasonSelector/SeasonSelector.jsx";
+import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
 import "./PlayerPage.css";
 
 function PlayerPage() {
@@ -49,13 +50,11 @@ function PlayerPage() {
           ← BACK
         </button>
 
-        <div className="player-topbar-search">
-          <span className="caret">&gt;</span>
-          <input
-            placeholder="Search another player..."
-            disabled
-          />
-        </div>
+        <PlayerSearch
+          variant="compact"
+          placeholder="Search another player..."
+          onSelect={(player) => navigate(`/players/${player.playerId}`)}
+        />
 
         <button
           type="button"

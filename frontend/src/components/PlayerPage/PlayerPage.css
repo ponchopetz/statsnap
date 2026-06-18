@@ -36,37 +36,6 @@
   border-color: var(--accent);
 }
 
-.player-topbar-search {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid var(--line-2);
-  padding: 0 14px;
-  height: 40px;
-  max-width: 640px;
-  opacity: 0.6;
-}
-
-.player-topbar-search .caret {
-  font-family: var(--display);
-  color: var(--accent);
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.player-topbar-search input {
-  flex: 1;
-  font-family: var(--display);
-  font-size: 13px;
-  color: var(--fg);
-  cursor: not-allowed;
-}
-
-.player-topbar-search input::placeholder {
-  color: var(--fg-3);
-}
-
 .player-topbar .brand-mark {
   font-family: var(--display);
   font-size: 11px;

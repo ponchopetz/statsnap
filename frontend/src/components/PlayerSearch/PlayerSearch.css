@@ -5,8 +5,51 @@
   width: 100%;
 }
 
-/* compact hook — styling deferred to 18b */
-.playersearch--compact {}
+/* Compact variant — 40px topbar search box, lighter 1px border treatment */
+
+.playersearch--compact {
+  flex: 1;
+  max-width: 640px;
+}
+
+.playersearch--compact .search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line-2);
+  background: var(--bg);
+  padding: 0 14px;
+  height: 40px;
+  transition: border-color 0.12s;
+}
+
+.playersearch--compact .search-box:focus-within {
+  border-color: var(--accent);
+}
+
+.playersearch--compact .search-box .caret {
+  font-family: var(--display);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.playersearch--compact .search-box input {
+  flex: 1;
+  font-family: var(--display);
+  font-size: 13px;
+  color: var(--fg);
+}
+
+.playersearch--compact .search-box input::placeholder {
+  color: var(--fg-3);
+}
+
+/* Compact dropdown — 1px var(--line-2) to match the box's lighter border */
+.playersearch--compact .typeahead {
+  border: 1px solid var(--line-2);
+  border-top: 0;
+}
 
 /* Hero variant — 76px search box with accent focus ring */
 
