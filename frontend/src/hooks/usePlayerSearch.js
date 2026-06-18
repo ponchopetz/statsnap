@@ -27,23 +27,22 @@ export function usePlayerSearch(query) {
       return;
     }
 
-    let cancelled = false;
+    const controller = new AbortController();
     setStatus("loading");
 
-    searchPlayers(trimmed)
+    searchPlayers(trimmed, controller.signal)
       .then((data) => {
-        if (cancelled) return;
         setResults(data);
         setStatus("success");
       })
       .catch((err) => {
-        if (cancelled) return;
+        if (err.name === "AbortError") return;
         setErrorMessage(err.message);
         setStatus("error");
       });
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [debouncedQuery]);
 
