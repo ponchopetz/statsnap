@@ -7,9 +7,9 @@ import { API_BASE_URL } from "./constants.js";
  * Returns: Promise<Array<{ playerId, displayName, position, team }>>
  * Throws: on network failure or non-2xx HTTP response.
  */
-export async function searchPlayers(query) {
+export async function searchPlayers(query, signal) {
   const url = `${API_BASE_URL}/players/search?q=${encodeURIComponent(query)}`;
-  const response = await fetch(url);
+  const response = await fetch(url, { signal });
 
   if (!response.ok) {
     throw new Error(`Player search failed: ${response.status}`);
