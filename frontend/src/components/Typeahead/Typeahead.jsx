@@ -5,11 +5,11 @@ import "./Typeahead.css";
  * no fetching. Renders the dropdown based on status, highlights the
  * row at activeIdx, and emits onPick(player) when a row is clicked.
  */
-function Typeahead({ status, results, errorMessage, activeIdx, onPick }) {
+function Typeahead({ status, results, errorMessage, activeIdx, onPick, listboxId, getOptionId }) {
   if (status === "idle") return null;
 
   return (
-    <div className="typeahead" role="listbox">
+    <div className="typeahead" role="listbox" id={listboxId}>
       {status === "loading" && (
         <div className="typeahead-hint">SEARCHING...</div>
       )}
@@ -32,12 +32,19 @@ function Typeahead({ status, results, errorMessage, activeIdx, onPick }) {
           {results.map((p, i) => (
             <div
               key={p.playerId}
-              className={"typeahead-item" + (i === activeIdx ? " active" : "")}
+              id={getOptionId?.(p)}
+              className={
+                "typeahead-item" +
+                (i === activeIdx ? " active" : "") +
+                (!p.position ? " typeahead-item--no-pos" : "")
+              }
               role="option"
               aria-selected={i === activeIdx}
               onClick={() => onPick(p)}
             >
-              <div className={"pos-badge " + p.position}>{p.position}</div>
+              {p.position && (
+                <div className={"pos-badge " + p.position}>{p.position}</div>
+              )}
               <div>
                 <div className="typeahead-name">{p.displayName}</div>
                 <div className="typeahead-meta">{p.team}</div>

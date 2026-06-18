@@ -123,52 +123,6 @@
 
 .search-wrap {
   width: 100%;
-  position: relative;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 2px solid var(--fg);
-  background: var(--bg);
-  padding: 0 18px;
-  height: 76px;
-  transition: border-color 0.12s, box-shadow 0.12s;
-}
-
-.search-box:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 6px color-mix(in oklch, var(--accent) 18%, transparent);
-}
-
-.search-box .caret {
-  font-family: var(--display);
-  color: var(--accent);
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.search-box input {
-  flex: 1;
-  font-family: var(--display);
-  font-size: 22px;
-  letter-spacing: -0.01em;
-  font-weight: 500;
-  color: var(--fg);
-}
-
-.search-box input::placeholder {
-  color: var(--fg-3);
-}
-
-.search-box .kbd {
-  font-family: var(--display);
-  font-size: 11px;
-  border: 1px solid var(--line-2);
-  padding: 4px 8px;
-  color: var(--fg-2);
-  letter-spacing: 0.08em;
 }
 
 .landing-help {

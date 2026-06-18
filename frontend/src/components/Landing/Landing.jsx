@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLocalStorageState } from "../../hooks/useLocalStorageState.js";
-import { usePlayerSearch } from "../../hooks/usePlayerSearch.js";
-import Typeahead from "../Typeahead/Typeahead.jsx";
+import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
 import "./Landing.css";
 
 const RECENTS_KEY = "statsnap:recents";
@@ -12,30 +11,12 @@ function Landing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [recents, setRecents] = useLocalStorageState(RECENTS_KEY, []);
-  const [activeIdx, setActiveIdx] = useState(0);
-  const inputRef = useRef(null);
   const navigate = useNavigate();
-  const { status, results, errorMessage } = usePlayerSearch(query);
 
   const updateQuery = (value) => {
     setQuery(value);
     setSearchParams(value ? { q: value } : {}, { replace: true });
   };
-
-  useEffect(() => {
-    setActiveIdx(0);
-  }, [results]);
-
-  useEffect(() => {
-    const onKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
 
   const handlePick = (player) => {
     const next = [
@@ -49,28 +30,6 @@ function Landing() {
     }
     setRecents(next);
     navigate(`/players/${player.playerId}`);
-  };
-
-  const onInputKeyDown = (e) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      if (results.length > 0) {
-        setActiveIdx((i) => Math.min(i + 1, results.length - 1));
-      }
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      if (results.length > 0) {
-        setActiveIdx((i) => Math.max(i - 1, 0));
-      }
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (results.length > 0) {
-        handlePick(results[activeIdx]);
-      }
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      updateQuery("");
-    }
   };
 
   return (
@@ -98,24 +57,12 @@ function Landing() {
         </div>
 
         <div className="search-wrap">
-          <div className="search-box">
-            <span className="caret">&gt;</span>
-            <input
-              ref={inputRef}
-              autoFocus
-              placeholder="Type a player..."
-              value={query}
-              onChange={(e) => updateQuery(e.target.value)}
-              onKeyDown={onInputKeyDown}
-            />
-            <span className="kbd">⌘K</span>
-          </div>
-          <Typeahead
-            status={status}
-            results={results}
-            errorMessage={errorMessage}
-            activeIdx={activeIdx}
-            onPick={handlePick}
+          <PlayerSearch
+            variant="hero"
+            autoFocus
+            value={query}
+            onChange={updateQuery}
+            onSelect={handlePick}
           />
         </div>
 

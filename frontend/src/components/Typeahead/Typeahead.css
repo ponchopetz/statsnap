@@ -28,6 +28,10 @@
   border-bottom: 0;
 }
 
+.typeahead-item--no-pos {
+  grid-template-columns: 1fr;
+}
+
 .typeahead-item:hover,
 .typeahead-item.active {
   background: var(--bg-2);
