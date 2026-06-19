@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLocalStorageState } from "../../hooks/useLocalStorageState.js";
 import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
+import ScheduleRail from "../ScheduleRail/ScheduleRail.jsx";
 import "./Landing.css";
 
 const RECENTS_KEY = "statsnap:recents";
@@ -46,6 +47,8 @@ function Landing() {
           <span>v0.2</span>
         </div>
       </header>
+
+      <ScheduleRail />
 
       <div className="landing-inner">
         <div className="wordmark">
