@@ -7,6 +7,7 @@ const cors = require('cors');
 require('./utils/db');
 
 const playersRouter = require('./routes/players');
+const scheduleRouter = require('./routes/schedule');
 const errorHandler = require('./middlewares/errorHandler');
 
 const PORT = process.env.PORT || 3001;
@@ -18,6 +19,7 @@ app.use(cors({
 app.use(express.json());
 
 app.use('/players', playersRouter);
+app.use('/schedule', scheduleRouter);
 
 app.get('/', (req, res) => {
   res.status(200).json({ status: 'StatSnap API is running' });
