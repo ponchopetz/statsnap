@@ -39,3 +39,23 @@ export async function getPlayerProfile(playerId) {
 
   return response.json();
 }
+
+/**
+ * Fetch the current week's NFL schedule from the cache.
+ * Always resolves to a JSON object; the backend returns the cold-start shape
+ * { season: null, week: null, games: [], fetchedAt: null } on a cache miss
+ * (200, not 404) so the rail can render its offseason state without erroring.
+ *
+ * Returns: Promise<{ season, week, games, fetchedAt }>
+ * Throws: on network failure or non-2xx HTTP response.
+ */
+export async function getSchedule(signal) {
+  const url = `${API_BASE_URL}/schedule`;
+  const response = await fetch(url, { signal });
+
+  if (!response.ok) {
+    throw new Error(`Schedule fetch failed: ${response.status}`);
+  }
+
+  return response.json();
+}

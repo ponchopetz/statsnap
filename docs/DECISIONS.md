@@ -48,26 +48,92 @@ deliberate, visible choice in code rather than a buried URL segment.
 
 ## Data sourcing & ETL
 
-### Schedule data source: nflverse, not The Odds API
+### Schedule data source: The Odds API, cached in MongoDB (supersedes nflverse)
 
-Decision: Matchup, kickoff, and scoring context come from nflverse
-(`load_schedules`), not The Odds API. The Odds API stays parked for V2 betting
-lines.
+Decision: The landing-page schedule rail reads matchup and kickoff from The Odds
+API events endpoint, cached in MongoDB. This reverses the earlier "nflverse, not
+The Odds API" decision below it.
 
-Why: The Odds API events endpoint returns only `home_team`, `away_team`, and
-`commence_time`. nflverse gives matchup, kickoff, and final scores in one pull
-with no rate limit. There is no reason to spend API credits on a thinner feed.
+Why: The Odds API is StatSnap's V1 live third-party API, satisfying the
+program's live-integration requirement (Tank01 is dropped from V1 since nflverse
+already covers identity). The free `/v4/sports/americanfootball_nfl/events`
+endpoint returns `id`, `commence_time`, `home_team`, `away_team` — exactly the
+matchup and kickoff a card shows. Critically, the events endpoint costs zero
+credits, so the honest justification for caching is NOT credit budget: it is
+resilience (user traffic never depends on upstream availability) and a clean
+seam for the V2 betting-lines integration, which will cost credits. nflverse
+schedule data is still pulled in the ETL, but only to enrich each player's weeks
+array with opponent/score/result context — it is not a standalone schedule feed.
 
-### Tank01 powers identity, nflverse powers stats
+Architecture: a `node-cron` job inside the Express process is the only caller of
+the API. It refreshes one cache document per `{ season, week }`; every user
+request is served from that cache via `GET /schedule`. API usage tracks the cron
+schedule, not user traffic.
 
-Decision: Player identity (headshot, jersey, height/weight, college, draft, age)
-is Tank01's responsibility; all stats are nflverse's. In the current state,
-identity is temporarily pulled from nflverse rosters/draft via the ETL; the
-Tank01 swap happens later to satisfy the live-third-party-API requirement.
+Tradeoff: The events endpoint returns full team names ("Dallas Cowboys"), not
+codes, and carries no network or records. A name-to-code map handles the former;
+network and records are out of V1 scope. Validated live against the real 2026
+Week 1 slate (16 games, all correctly mapped and bucketed, zero credits).
 
-Why: Tank01's free tier does not expose target share, air yards, snap %, or
-route participation, and nflverse does not aim to be an identity source.
-Splitting sources by responsibility prevents ambiguity in the data layer.
+### NFL week derivation: Tuesday-noon-ET boundary
+
+Decision: A game's NFL week is derived from its `commence_time` by bucketing
+against a per-season boundary anchored at Tuesday noon Eastern (stored UTC),
+striding forward in exact 7-day intervals. Weeks outside 1–18 return null. The
+season is resolved the same way via `seasonForDate` off the same boundary table,
+so a January game maps to the prior season with no separate constant. Boundaries
+are hand-maintained config: 2025 at `2025-09-02T16:00:00Z`, 2026 at
+`2026-09-08T16:00:00Z`.
+
+Why: The Odds API gives kickoff timestamps, never week numbers. A naive
+Thursday-anchored calculation breaks on the 2026 season, which opens on a
+Wednesday — only the second Wednesday opener in NFL history. Tuesday is the one
+slot the league effectively never schedules (about four Tuesday games since
+1948), so a boundary placed in that dead zone buckets Wednesday openers, Monday
+and Thursday night games, late-season Saturdays, and Friday/Sunday-morning
+international kickoffs into the correct week with no per-game special cases.
+
+Validation: the real 2026 Week 1 slate — Wednesday opener (NE @ SEA) through
+Monday night (DEN @ KC) — all 16 games landed in Week 1.
+
+Tradeoff: the per-season boundary is hand-maintained; a wrong anchor shifts every
+week by one, so it is verified against the official schedule each season. Anything
+outside the table returns null and falls back to the offseason empty state.
+
+### Schedule cache refresh: defensive, cron-fed, refresh-on-boot
+
+Decision: `refreshSchedule` anchors the current slate to the earliest upcoming
+game, derives its season/week, and upserts that one `{ season, week }` document.
+It writes nothing on an empty upstream or a null week. The cron refreshes daily
+at 08:00 UTC and also runs once on server boot.
+
+Why: Anchoring to the earliest real game rather than to "now" sidesteps the
+Tuesday dead zone and makes the rail advance on its own as a week's games finish.
+The empty/null-skip is the defensive rule that stops an offseason or error
+response from overwriting a good cache. Refresh-on-boot repopulates within
+seconds of a deploy or a restart (relevant on a sleep-prone free host) rather
+than waiting for the next daily tick. The cron callback swallows and logs its own
+errors, since a scheduler tick has no downstream error handler and an unhandled
+rejection could crash the process.
+
+Scope: only games that have not kicked off appear (the events endpoint omits
+started games), so mid-week the slate shrinks — no full-week archive in V1.
+Postseason is not shown: weeks past 18 derive null. Both are V2 considerations.
+The `node-cron` scheduler serves the schedule cache only; the Python ETL remains
+a separate process with its own (still undecided) scheduling mechanism.
+
+### nflverse powers both stats and identity; Tank01 deferred to V2
+
+Decision: All stats and all player identity (headshot, jersey, height/weight,
+college, draft, age) come from nflverse via the ETL. Tank01 is deferred to V2.
+
+Why: The live-third-party-API requirement is satisfied by The Odds API schedule,
+so there is no need to introduce a live identity fetch in V1. nflverse
+rosters/draft already supply every identity field the player page needs, pulled
+through the same ETL as the stats. This supersedes the earlier plan to have
+Tank01 own identity; that plan existed only to satisfy the live-API requirement,
+which the schedule now covers. Tank01 stays parked as a possible V2 enrichment
+source.
 
 ### Per-week game context via load_schedules pivot join
 
