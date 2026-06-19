@@ -9,6 +9,7 @@ require('./utils/db');
 const playersRouter = require('./routes/players');
 const scheduleRouter = require('./routes/schedule');
 const errorHandler = require('./middlewares/errorHandler');
+const { startScheduleCron } = require('./utils/scheduleCron');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -26,6 +27,8 @@ app.get('/', (req, res) => {
 });
 
 app.use(errorHandler);
+
+startScheduleCron();
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
