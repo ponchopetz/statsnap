@@ -23,4 +23,21 @@ function deriveNflWeek(commenceTimeIso, season) {
   return week >= 1 && week <= WEEKS_IN_SEASON ? week : null;
 }
 
-module.exports = { deriveNflWeek, SEASON_BOUNDARIES };
+// Returns the greatest season key whose boundary is <= kickoff,
+// or null if kickoff precedes all boundaries or is unparseable.
+function seasonForDate(commenceTimeIso) {
+  const t = Date.parse(commenceTimeIso);
+  if (isNaN(t)) return null;
+
+  let result = null;
+  for (const key of Object.keys(SEASON_BOUNDARIES)) {
+    const boundary = Date.parse(SEASON_BOUNDARIES[key]);
+    if (t >= boundary) {
+      const season = Number(key);
+      if (result === null || season > result) result = season;
+    }
+  }
+  return result;
+}
+
+module.exports = { deriveNflWeek, seasonForDate, SEASON_BOUNDARIES };
