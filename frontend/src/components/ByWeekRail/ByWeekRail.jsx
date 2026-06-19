@@ -1,4 +1,5 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import useOffscreenCount from "../../hooks/useOffscreenCount.js";
 import { formatNumber } from "../../utils/format.js";
 import WeekDetail from "./WeekDetail.jsx";
 import "./ByWeekRail.css";
@@ -42,6 +43,8 @@ function MiniCard({ wk, index, selectedIndex, position, onClick }) {
 function ByWeekRail({ player }) {
   const weeks = player.weeks ?? [];
   const displayWeeks = useMemo(() => [...weeks].reverse(), [weeks]);
+  const stripRef = useRef(null);
+  const offscreen = useOffscreenCount(stripRef, [displayWeeks]);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
@@ -57,7 +60,7 @@ function ByWeekRail({ player }) {
         <div className="byweek-count">{weeks.length} GAMES</div>
       </div>
       <div className="byweek-strip-wrap">
-        <div className="byweek-strip">
+        <div className="byweek-strip" ref={stripRef}>
           {displayWeeks.map((wk, i) => (
             <MiniCard
               key={wk.week}
@@ -69,7 +72,11 @@ function ByWeekRail({ player }) {
             />
           ))}
         </div>
-        <div className="byweek-strip-fade" aria-hidden="true" />
+        <div className="byweek-strip-fade" aria-hidden="true">
+          {offscreen > 0 && (
+            <span className="byweek-strip-more">+{offscreen} MORE →</span>
+          )}
+        </div>
       </div>
       <WeekDetail week={displayWeeks[selectedIndex]} position={player.position} />
     </div>
