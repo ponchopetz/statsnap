@@ -15,6 +15,7 @@ function PlayerSearch({
   const [internalQuery, setInternalQuery] = useState("");
   const query = isControlled ? controlledValue : internalQuery;
 
+  const [isOpen, setIsOpen] = useState(true);
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef(null);
   const listboxId = useId();
@@ -58,16 +59,19 @@ function PlayerSearch({
       e.preventDefault();
       if (results.length > 0) {
         onSelect(results[activeIdx]);
+        setInternalQuery("");
+        setIsOpen(false);
       }
     } else if (e.key === "Escape") {
       e.preventDefault();
       updateQuery("");
+      setIsOpen(false);
     }
   };
 
   const getOptionId = (player) => `${listboxId}-opt-${player.playerId}`;
 
-  const isExpanded = status !== "idle";
+  const isExpanded = status !== "idle" && isOpen;
   const activeOptionId =
     status === "success" && results.length > 0
       ? getOptionId(results[activeIdx])
@@ -82,7 +86,7 @@ function PlayerSearch({
           autoFocus={autoFocus}
           placeholder={placeholder}
           value={query}
-          onChange={(e) => updateQuery(e.target.value)}
+          onChange={(e) => { updateQuery(e.target.value); setIsOpen(true); }}
           onKeyDown={onInputKeyDown}
           role="combobox"
           aria-expanded={isExpanded}
@@ -92,15 +96,17 @@ function PlayerSearch({
         />
         {variant === "hero" && <span className="kbd">⌘K</span>}
       </div>
-      <Typeahead
-        status={status}
-        results={results}
-        errorMessage={errorMessage}
-        activeIdx={activeIdx}
-        onPick={onSelect}
-        listboxId={listboxId}
-        getOptionId={getOptionId}
-      />
+      {isOpen && (
+        <Typeahead
+          status={status}
+          results={results}
+          errorMessage={errorMessage}
+          activeIdx={activeIdx}
+          onPick={(player) => { onSelect(player); setInternalQuery(""); setIsOpen(false); }}
+          listboxId={listboxId}
+          getOptionId={getOptionId}
+        />
+      )}
     </div>
   );
 }
