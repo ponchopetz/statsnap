@@ -44,9 +44,22 @@
 .byweek-strip-fade {
   position: absolute;
   top: 0; right: 0; bottom: 0;
-  width: 56px;
+  width: 88px;
   pointer-events: none;
-  background: linear-gradient(to right, transparent, var(--bg));
+  background: linear-gradient(to right, transparent, var(--bg) 55%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+.byweek-strip-more {
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+  white-space: nowrap;
 }
 
 .byweek-mini {
