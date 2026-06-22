@@ -311,6 +311,59 @@ lives outside the Tabs panel tree and cannot read the active tab from context,
 so the active tab is lifted into PlayerPage. Clean use of the primitive's
 existing controlled API.
 
+### Responsive pass: desktop-down queries, hardcoded rem breakpoint legend
+
+Decision (Chunk 20): The responsive pass uses max-width (desktop-down) media
+queries, keeping the existing desktop CSS as the base layer and overriding only
+at narrow widths. Breakpoint values are hardcoded per component in `rem`,
+governed by a single canonical comment legend in `styles.css`, rather than
+tokenized through a preprocessor. Two breakpoints: `lg` at 64rem (1024px), where
+the player page's two-column identity/stats layout stacks, and `sm` at 30rem
+(480px), the phone-polish tier where oversized numerals and identity type scale
+down, padding tightens, and the keyboard-help strip hides.
+
+Why desktop-down: The site was built desktop-first and is feature-complete on
+desktop with zero mobile CSS. Mobile-first (min-width) would mean rewriting the
+working base styles into the mobile layout and re-deriving the desktop layout
+inside min-width queries — a large rewrite of CSS that already works, for no
+user-facing gain. Max-width queries are the lowest-diff, lowest-regression path
+for retrofitting responsiveness onto a complete build. Mobile-first remains the
+right default for a greenfield build; this is the defensible exception for a
+retrofit.
+
+Why hardcode over a preprocessor: Vanilla CSS cannot use a custom property
+inside a media query condition. `@media (max-width: var(--bp-lg))` is invalid,
+because custom properties resolve per-element while a media query is evaluated
+earlier, against the viewport, before any element exists. True breakpoint
+tokenization is therefore impossible in vanilla CSS. Two approaches were weighed:
+
+- Hardcoded legend (chosen): one comment block in `styles.css` documents the
+  scale as the single source of truth; each component's media query repeats the
+  matching `rem` value with a comment pointing back at the legend. Zero
+  dependencies, zero build steps.
+- PostCSS `@custom-media` (rejected): the draft Media Queries Level 5 syntax
+  gives genuine single-source breakpoints, but needs `postcss-custom-media` plus
+  `@csstools/postcss-global-data` (so definitions in `styles.css` are visible in
+  component files) plus a `postcss.config.js` — two devDependencies and a config
+  file to tokenize two values.
+
+With only two breakpoints in a solo project, adding a preprocessor layer to
+deduplicate two numbers is premature abstraction (YAGNI). The documented legend
+bounds the drift risk to a single source of truth without the dependency cost.
+Custom-media earns its place at a dozen breakpoints across a team, not here.
+
+Why rem: A breakpoint in `rem` scales with the user's root font size, so a
+reader who has increased their browser font gets the narrow-width layout at the
+correct effective width. A px breakpoint ignores that preference. The
+accessibility gain is free.
+
+Tradeoff: The breakpoint value is physically repeated in each component's media
+query rather than defined once. Accepted because the legend is the documented
+source of truth and the value changes rarely. A centralized `responsive.css`
+holding every query was rejected separately: it would co-locate the values but
+split each component's styles across two files, breaking the per-component
+folder convention.
+
 ---
 
 ## Minor / historical
