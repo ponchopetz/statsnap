@@ -16,22 +16,21 @@
   --sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* ── Breakpoint scale — desktop-down, max-width, rem-based ─────────────────
-   Vanilla CSS cannot use a custom property in a media query condition:
-   @media (max-width: var(...)) is invalid, because custom properties resolve
-   per-element, after media queries are evaluated against the viewport. So
-   breakpoints are NOT tokens. Each component hardcodes the rem value below in
-   its own max-width query, with a comment pointing back here. This legend is
-   the single source of truth.
-
-     lg  →  64rem  (1024px)   player page two-column layout stacks below this
-     sm  →  30rem  (480px)    phone polish: numerals and type scale down,
-                              padding tightens, keyboard-help strip hides
+/* ── Breakpoint scale — desktop-down, max-width, rem-based ──
+   Custom properties can't be used in media query conditions, so these
+   values are hardcoded per component. This legend is the source of truth.
+     64rem (1024px)  stat row reflows six-across → three   (StatRow.css)
+     52rem  (832px)  player page two-column layout stacks  (PlayerPage.css)
+     30rem  (480px)  phone polish: stat row → two-across, type/padding
+                     shrink, keyboard-help strip hides
 */
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background: var(--bg);
@@ -68,6 +67,11 @@ input {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.35; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
 }
