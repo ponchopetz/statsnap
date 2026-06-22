@@ -5,9 +5,19 @@
 .season-selector {
   display: flex;
   gap: 0;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2px;
+  margin-bottom: -2px;
 }
 
+.season-selector::-webkit-scrollbar { display: none; }
+
 .season-btn {
+  flex: 0 0 auto;
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
