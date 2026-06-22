@@ -47,7 +47,9 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: transform 0.12s, color 0.12s;
+  transition:
+    transform 0.12s,
+    color 0.12s;
 }
 
 .player-topbar .brand-mark:hover {
@@ -230,6 +232,7 @@
 .stats {
   flex: 1;
   padding: 28px;
+  min-width: 0;
 }
 
 .stats-placeholder {
@@ -293,4 +296,52 @@
   height: 100%;
   object-fit: cover;
   object-position: top center;
+}
+
+/* ── lg — 64rem (1024px). Two-column identity/stats layout stacks. ── */
+@media (max-width: 64rem) {
+  .player-content {
+    flex-direction: column;
+  }
+  .identity {
+    width: 100%;
+    max-width: 360px;
+    margin-inline: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+/* ── sm — 30rem (480px). Phone polish. ── */
+@media (max-width: 30rem) {
+  .player-topbar {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .player-topbar .brand-mark {
+    display: none;
+  }
+  .back-btn {
+    padding: 11px 16px;
+  }
+  .identity {
+    padding: 18px;
+    gap: 16px;
+  }
+
+  .id-photo {
+    aspect-ratio: 3 / 2;
+  }
+  .id-firstname {
+    font-size: 18px;
+  }
+  .id-lastname {
+    font-size: 28px;
+  }
+  .id-photo-jersey {
+    font-size: 120px;
+  }
+  .stats {
+    padding: 18px;
+  }
 }
