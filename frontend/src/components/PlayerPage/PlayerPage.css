@@ -299,7 +299,7 @@
 }
 
 /* ── lg — 64rem (1024px). Two-column identity/stats layout stacks. ── */
-@media (max-width: 64rem) {
+@media (max-width: 52rem) {
   .player-content {
     flex-direction: column;
   }
@@ -309,6 +309,10 @@
     margin-inline: auto;
     border-right: none;
     border-bottom: 1px solid var(--line);
+  }
+
+  .id-photo {
+    aspect-ratio: 3 / 2;
   }
 }
 
