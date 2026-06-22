@@ -42,7 +42,7 @@ function Landing() {
         </span>
         <div className="meta">
           <span>
-            <span className="live-dot" /> LIVE · SKILL POSITIONS ONLY
+            <span className="live-dot" /> LIVE<span className="meta-detail"> · SKILL POSITIONS ONLY</span>
           </span>
           <span>v0.2</span>
         </div>
@@ -56,7 +56,7 @@ function Landing() {
         </div>
 
         <div className="tagline">
-          NFL SKILL POSITIONS &nbsp;·&nbsp; <b>INSTANT LOOKUP</b> &nbsp;·&nbsp; QB · RB · WR · TE
+          NFL SKILL POSITIONS &nbsp;·&nbsp; <b>INSTANT LOOKUP</b><span className="tagline-tail"> &nbsp;·&nbsp; QB · RB · WR · TE</span>
         </div>
 
         <div className="search-wrap">

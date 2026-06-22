@@ -88,7 +88,7 @@
 .wordmark {
   font-family: var(--display);
   font-weight: 800;
-  font-size: clamp(56px, 10vw, 128px);
+  font-size: clamp(46px, 10vw, 128px);
   letter-spacing: -0.03em;
   line-height: 0.88;
   text-align: center;
@@ -176,7 +176,9 @@
   background: transparent;
   color: var(--fg-3);
   cursor: pointer;
-  transition: color 0.12s, border-color 0.12s;
+  transition:
+    color 0.12s,
+    border-color 0.12s;
   position: relative;
   z-index: 1;
 }
@@ -184,4 +186,43 @@
 .recent-chip:hover {
   color: var(--accent);
   border-color: var(--accent);
+}
+
+/* ── sm — 30rem (480px). Phone polish. See breakpoint legend in styles.css. ── */
+@media (max-width: 30rem) {
+  .landing-topbar {
+    padding: 14px 16px;
+  }
+  .landing-topbar .meta {
+    gap: 14px;
+  }
+  .landing-topbar .meta .meta-detail {
+    display: none;
+  }
+  .tagline {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    padding: 8px 12px;
+  }
+  .tagline-tail {
+    display: none;
+  }
+
+  .landing-inner {
+    justify-content: flex-start;
+    gap: 22px;
+    padding-top: 40px;
+  }
+
+  .kbd {
+    display: none;
+  }
+
+  .recent-chip {
+    padding: 11px 16px;
+  }
+
+  .landing-help {
+    display: none;
+  }
 }
