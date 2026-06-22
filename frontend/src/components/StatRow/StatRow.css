@@ -53,3 +53,23 @@
   line-height: 1;
   color: var(--fg);
 }
+
+/* ── lg — 64rem (1024px). Six across is too tight once the column narrows. ── */
+@media (max-width: 64rem) {
+  .stat-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ── sm — 30rem (480px). Two wide, three tall; preserve oversized numerals. ── */
+@media (max-width: 30rem) {
+  .stat-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stat-cell {
+    padding: 12px 12px;
+  }
+  .stat-cell-value {
+    font-size: 26px;
+  }
+}
