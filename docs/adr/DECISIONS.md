@@ -364,6 +364,52 @@ holding every query was rejected separately: it would co-locate the values but
 split each component's styles across two files, breaking the per-component
 folder convention.
 
+### Responsive pass: desktop-down, hardcoded rem breakpoints, staggered reflow
+
+Decision (Chunk 20): The site was made responsive with max-width (desktop-down)
+queries, keeping the desktop CSS as the base layer and overriding only at
+narrower widths. Three breakpoints, hardcoded per component in rem, governed by
+a single comment legend in styles.css: 64rem (stat-row reflows six-across to
+three), 52rem (player-page two-column layout stacks), 30rem (phone polish —
+stat-row to two-across, type and padding shrink, keyboard-help strip hides).
+
+Why desktop-down: The site was built and shipped desktop-first with zero mobile
+CSS. Mobile-first would mean rewriting working base styles into the mobile
+layout and re-deriving desktop inside min-width queries — a large rewrite of
+working CSS for no user-facing gain. Max-width is the lowest-diff, lowest-
+regression path for a retrofit. Mobile-first stays the right greenfield default.
+
+Why hardcode over PostCSS custom-media: Vanilla CSS cannot use a custom property
+in a media query condition (custom properties resolve per-element, after queries
+are evaluated against the viewport), so breakpoints cannot be true tokens. The
+preprocessor path needs two devDependencies plus a config file to tokenize two-
+to-three values — premature abstraction. A documented legend bounds the drift
+risk to one source of truth without the dependency cost. Breakpoints are in rem,
+not px, so they scale with the user's root font size.
+
+Why the breakpoints are staggered, not synced: The stat-row reflow (64rem) sits
+deliberately wider than the page stack point (52rem). The stat-row lives inside
+the stats column, which is narrowed by the 360px identity beside it while the
+page is still two-column. It therefore runs out of horizontal room before the
+viewport reaches the page's stack point. Briefly synced at 52rem mid-chunk, this
+clipped the six-across row in the 832–960px band — two-column page, un-reflowed
+row, no room. The fix was to let the row reflow earlier (wider) than the page
+stacks.
+
+Tradeoff and deferral: The staggered values are hand-coordinated; a component's
+reflow point and the page's stack point must be reasoned about together. Container
+queries (container-type: inline-size on .stats, @container on the stat-row) are
+the architecturally correct fix — the row would respond to its own container
+width and stop caring whether the page is two-column or stacked. Deferred as its
+own sub-chunk with an explicit concept waiver rather than mixed into this pass,
+since it introduces a second responsive mechanism alongside the max-width
+convention.
+
+Sparkline scaling: Changed from preserveAspectRatio="none" to a fixed
+aspect-ratio box matching the viewBox, so the chart scales uniformly at every
+width instead of stretching one axis. Distortion (flat on wide screens, spiky on
+narrow) was the symptom; non-uniform stretching of a fixed canvas was the cause.
+
 ---
 
 ## Minor / historical

@@ -200,3 +200,10 @@
   color: var(--fg);
   letter-spacing: -0.01em;
 }
+
+/* ── sm — 30rem (480px). Widen mini-cards so they read square, not tall. ── */
+@media (max-width: 30rem) {
+  .byweek-mini {
+    flex-basis: calc((100% - 28px) / 3.5);
+  }
+}
