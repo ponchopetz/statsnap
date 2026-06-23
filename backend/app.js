@@ -1,6 +1,7 @@
 // app.js — entry point
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 
@@ -12,10 +13,11 @@ const errorHandler = require('./middlewares/errorHandler');
 const { startScheduleCron } = require('./utils/scheduleCron');
 
 const PORT = process.env.PORT || 3001;
+const CLIENT_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: CLIENT_ORIGIN,
 }));
 app.use(express.json());
 

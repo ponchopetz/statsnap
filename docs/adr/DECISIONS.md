@@ -122,6 +122,38 @@ Postseason is not shown: weeks past 18 derive null. Both are V2 considerations.
 The `node-cron` scheduler serves the schedule cache only; the Python ETL remains
 a separate process with its own (still undecided) scheduling mechanism.
 
+### Schedule cache retention: accumulate, no pruning (V1)
+
+Decision: The `schedules` collection is never pruned. Old `{ season, week }`
+documents accumulate — roughly one per week, ~18 per regular season — and no TTL
+index or delete step removes them.
+
+Why: The accumulation is inert. `refreshSchedule` upserts keyed on
+`{ season, week }`, so the daily cron overwrites the current week's single
+document all week (no within-week growth); a new document is created only at the
+week rollover, when the events endpoint stops returning the finished week's
+games and the earliest upcoming game resolves to the next week. `GET /schedule`
+serves `findOne().sort({ fetchedAt: -1 }).limit(1)` — exactly one document, the
+freshest — and because every daily tick refreshes the current week's `fetchedAt`,
+the current week always wins that sort. Stale prior-week documents never win the
+read and never affect correctness. Each document is tiny (16 games, four short
+fields each), so a full season is a few kilobytes against ~1,800 player-stat
+documents on the M0 free tier — negligible.
+
+Tradeoff: The collection grows unbounded across seasons. Accepted for V1: a
+pruning job is more failure surface than the storage justifies, and a bug in
+delete logic could remove the current week — a risk the inert-accumulation
+design does not carry. Per scope discipline (no preemptive edge-case handling),
+deletion is not built.
+
+Bound, if ever needed: a MongoDB TTL index on `fetchedAt` (e.g. 14 days, longer
+than a week so the live slate never expires mid-week) auto-deletes old documents
+with zero application code. Caveat: a TTL keyed on `fetchedAt` also empties the
+collection during the offseason, since nothing refreshes for months and every
+document ages out — at which point the rail correctly shows the offseason empty
+state. The heavier alternative is a prune step inside `refreshSchedule` that
+deletes earlier weeks of the same season after upserting the current one.
+
 ### nflverse powers both stats and identity; Tank01 deferred to V2
 
 Decision: All stats and all player identity (headshot, jersey, height/weight,
