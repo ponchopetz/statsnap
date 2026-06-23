@@ -11,7 +11,7 @@ from transform import transform
 
 load_dotenv()  # reads MONGODB_URI from etl/.env into os.environ
 
-MONGODB_URI        = os.environ.get("MONGODB_URI")
+MONGO_URI        = os.environ.get("MONGODB_URI")
 DB_NAME            = "statsnap"
 COLLECTION_NAME    = "playerstats"
 
