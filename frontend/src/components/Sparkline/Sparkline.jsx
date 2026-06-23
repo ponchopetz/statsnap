@@ -55,7 +55,6 @@ function Sparkline({ data = [], height = 60, width = 600 }) {
     <svg
       className="sparkline"
       viewBox={`0 0 ${width} ${height}`}
-      preserveAspectRatio="none"
     >
       {fillPoints && <polygon className="sparkline-fill" points={fillPoints} />}
       {avgY != null && computed.length >= 2 && (
