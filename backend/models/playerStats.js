@@ -32,6 +32,41 @@ const weekSchema = new mongoose.Schema(
     // RB metrics
     rushingEpa: { type: Number },
     carries:    { type: Number },
+
+    // QB counting stats
+    passingYards:            { type: Number },
+    passingTds:              { type: Number },
+    interceptions:           { type: Number },
+    passingFirstDowns:       { type: Number },
+    passingTwoPtConversions: { type: Number },
+
+    // WR / TE / RB counting stats
+    receivingYards:            { type: Number },
+    receivingTds:              { type: Number },
+    receivingFirstDowns:       { type: Number },
+    receivingFumblesLost:      { type: Number },
+    receivingTwoPtConversions: { type: Number },
+
+    // RB counting stats
+    rushingYards:            { type: Number },
+    rushingTds:              { type: Number },
+    rushingFirstDowns:       { type: Number },
+    rushingFumblesLost:      { type: Number },
+    rushingTwoPtConversions: { type: Number },
+
+    // Other
+    specialTeamsTds:  { type: Number },
+    fantasyPoints:    { type: Number },
+    fantasyPointsPpr: { type: Number },
+
+    // Game context (Chunk 14c)
+    opponent:      { type: String },
+    homeAway:      { type: String },
+    teamScore:     { type: Number },
+    opponentScore: { type: Number },
+    gameday:       { type: String },
+    overtime:      { type: Number },
+    result:        { type: String },
   },
   { _id: false }
 );

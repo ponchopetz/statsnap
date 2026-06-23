@@ -63,6 +63,23 @@ component's own state: empties the uncontrolled topbar input, no-op on the
 controlled landing mount (which unmounts anyway). No parent round-trip, no
 URL mutation, no branch on controlled-ness.
 
-INTERVIEW ONE-LINER
-A reused component isn't one thing — it's the same code living two
-different lives. A fix is only finished when checked against both.
+## "Trust, but verify" — the schema audit story
+
+While prepping StatSnap for deployment, I had an AI assistant run a deep audit
+of my data pipeline. It came back with a confident, detailed finding: 14 fields
+were being silently dropped before they ever reached the frontend, with a clean
+technical explanation for why. It was convincing — it even lined up with a note
+in my own decision log, so the story hung together.
+
+Before changing a single line, I ran one command against my actual running API
+to see what the endpoint really returned. Every one of those 14 fields was
+there. The audit was simply wrong. Its entire conclusion rested on an assumption
+about how my database library behaves when reading data, and that assumption
+didn't hold for my setup.
+
+The takeaway I kept: AI is a real force multiplier — it surfaces things worth
+looking at fast, and it's great at producing a thorough, organized analysis. But
+its conclusions are only as good as the assumptions underneath them, and a
+confident, well-written answer can still be flatly wrong. A two-second check
+against the real system beat the elaborate analysis. So I verify against reality
+before I act — especially before "fixing" something that might not be broken.
