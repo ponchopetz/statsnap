@@ -9,9 +9,9 @@ from transform import transform
 
 # ── Environment ───────────────────────────────────────────────────────────────
 
-load_dotenv()  # reads MONGODB_URI from etl/.env into os.environ
+load_dotenv()  # reads MONGO_URI from etl/.env into os.environ
 
-MONGO_URI        = os.environ.get("MONGODB_URI")
+MONGO_URI        = os.environ.get("MONGO_URI")
 DB_NAME            = "statsnap"
 COLLECTION_NAME    = "playerstats"
 
@@ -194,10 +194,10 @@ def upsert_documents(collection, docs):
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def load():
-    if not MONGODB_URI:
+    if not MONGO_URI:
         raise EnvironmentError(
-            "MONGODB_URI not found. Make sure etl/.env exists and contains "
-            "MONGODB_URI=your_connection_string"
+            "MONGO_URI not found. Make sure etl/.env exists and contains "
+            "MONGO_URI=your_connection_string"
         )
 
     # Step 1: run the full transform pipeline
@@ -225,7 +225,7 @@ def load():
 
     # Step 3: connect to MongoDB and write
     print("\nConnecting to MongoDB...")
-    client     = MongoClient(MONGODB_URI, tlsCAFile=certifi.where())
+    client     = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
     db         = client[DB_NAME]
     collection = db[COLLECTION_NAME]
 
