@@ -83,3 +83,29 @@ its conclusions are only as good as the assumptions underneath them, and a
 confident, well-written answer can still be flatly wrong. A two-second check
 against the real system beat the elaborate analysis. So I verify against reality
 before I act — especially before "fixing" something that might not be broken.
+
+## Deploy note: how the API gets hit on Render free tier (and what it means for the cron)
+
+Two separate request layers, worth keeping straight:
+
+1. Visitor → StatSnap backend (Render Web Service). On the free tier the backend
+   sleeps after 15 minutes with no traffic. The next request wakes it, which takes
+   about 30 to 60 seconds (the "loading" screen Render shows). After that it serves
+   normally until it goes idle again. The static frontend never sleeps, since it is
+   just files on a CDN with no process to spin down.
+
+2. StatSnap backend → The Odds API (upstream). Visitors never trigger this. The only
+   callers are the node-cron job and the on-boot refresh. Every visitor request reads
+   the schedule from the MongoDB cache, not from The Odds API.
+
+What sleep means for the cron: the daily 08:00 UTC tick only fires if the process
+happens to be awake at 08:00, and on free tier it usually is not, so that tick is
+best-effort, not guaranteed. The thing that actually keeps the cache fresh is the
+on-boot refresh: every time the service cold-starts (because a visitor woke it), it
+re-fetches the current week and upserts the cache. So freshness tracks "someone
+visited," not the clock.
+
+Caveat I accept: if nobody visits for a long stretch, nothing wakes the service, so
+the cache can sit stale. That is fine here because the schedule only matters when
+someone is actually looking at the page, and the first visit refreshes it within a
+minute. Correctness comes from the idempotent on-boot refresh, not the scheduled tick.

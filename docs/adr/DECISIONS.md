@@ -472,6 +472,32 @@ observability need.
 Principle: the threat model of a public, read-only, no-auth API drove the scope, rather than
 installing a standard hardening checklist wholesale.
 
+### Atlas network access: allow from anywhere (0.0.0.0/0)
+
+Decision: The MongoDB Atlas cluster's Network Access list is set to `0.0.0.0/0`
+(allow connections from any IP). The security boundary is the database credential
+in `MONGO_URI` plus Atlas's required authentication, not the IP allowlist.
+
+Why: Render's free Web Service tier provides no static outbound IP — a free
+instance's egress can originate from any address in Render's shared pool, and
+that pool changes. There is therefore no fixed address to allowlist, and
+`0.0.0.0/0` is the documented connection path for hosts without a dedicated
+egress IP. Opening the allowlist does not bypass auth; it only permits a
+connection attempt. Every connection still has to authenticate with the user
+and password in the URI.
+
+Tradeoff and threat model: any IP can attempt to connect, so security rests
+entirely on the credential and Atlas auth rather than on a network perimeter.
+Accepted for a public, read-only, no-auth portfolio app on M0 where the stored
+data is public NFL stats — there is no PII, and users have no write path to the
+database. The hardened alternative is a Render dedicated egress IP allowlisted
+narrowly on Atlas, which is a paid Render feature and out of V1 scope.
+
+Mitigations available at no cost if ever wanted: scope the Atlas database user
+to read and write only the `statsnap` database rather than cluster-wide admin,
+and rotate the credential if the URI is ever exposed. Both shrink the blast
+radius without reintroducing a network perimeter the free tier cannot provide.
+
 ---
 
 ## Minor / historical
