@@ -187,7 +187,7 @@ is recoverable as `teamScore - opponentScore`, so storing it separately would
 duplicate data.
 
 Validation: A sanity check compares the schedules-derived opponent against
-`opponent_team` and warns on any mismatch. Zero mismatches across 2022 to 2024.
+`opponent_team` and warns on any mismatch. Zero mismatches across 2016 to 2025.
 Spot-checked against pro-football-reference: Purdy 2024 W1, Barkley 2024 W6
 (plus correct bye-week skip at W5), Flowers 2023 W12 — all correct.
 
@@ -441,6 +441,36 @@ Sparkline scaling: Changed from preserveAspectRatio="none" to a fixed
 aspect-ratio box matching the viewBox, so the chart scales uniformly at every
 width instead of stretching one axis. Distortion (flat on wide screens, spiky on
 narrow) was the symptom; non-uniform stretching of a fixed canvas was the cause.
+
+## Security & deployment
+
+### Backend hardening scope: helmet + rate limiting only
+
+Decision: V1 hardening is helmet (security response headers) plus express-rate-limit
+(100 requests/minute/IP, with trust proxy set for Render). Request validation libraries
+and structured logging are deliberately NOT added.
+
+Why helmet and rate limiting: helmet is a one-line, zero-behavior-risk set of security
+headers and the baseline a reviewer expects on a deployed Express app. The rate limiter's
+job here is narrow and honest — it is NOT cost protection (API spend is already decoupled
+from user traffic, since the node-cron job is the only caller of The Odds API), it is abuse
+protection for a single free-tier dyno and its 750 monthly instance-hours. 100/min is far
+above any real user's click rate but caps a runaway scraper. trust proxy is required because
+Render terminates TLS at a proxy; without it every request appears to share one IP and the
+limiter misbehaves.
+
+Why NOT request validation: the only user inputs are a search string and a player ID. The
+controllers already guard the empty-query case and let Mongoose handle the lookup. A
+validation library (joi/zod) for two simple string params is premature abstraction against
+this project's YAGNI discipline. Revisit if a write endpoint or auth is ever added.
+
+Why NOT structured logging: with no users and no dashboards, console plus Render's built-in
+log capture is sufficient. A logging library (pino/winston) earns its place with real traffic
+and log aggregation, neither of which a V1 portfolio deploy has. Revisit alongside any future
+observability need.
+
+Principle: the threat model of a public, read-only, no-auth API drove the scope, rather than
+installing a standard hardening checklist wholesale.
 
 ---
 
