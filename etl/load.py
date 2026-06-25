@@ -175,6 +175,14 @@ def upsert_documents(collection, docs):
       - update: { $set: doc } — replace all fields with fresh data
       - upsert=True — create the document if the filter finds nothing
     """
+    if not docs:
+        print(
+            "No documents to upsert; transform produced zero rows "
+            "(season with no data yet). Skipping write so an empty "
+            "batch never reaches MongoDB."
+        )
+        return
+
     operations = [
         UpdateOne(
             { "playerId": doc["playerId"], "season": doc["season"] },

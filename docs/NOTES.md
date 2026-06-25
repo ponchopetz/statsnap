@@ -5,6 +5,54 @@ required. Settled decisions graduate to docs/Decisions.md.
 
 ---
 
+## START-OF-SEASON CHECKLIST (every year, around Week 1)
+
+Two hand-maintained season values, in two places. Both are deliberate annual
+edits, each verified against the official NFL schedule. Same discipline as any
+config that drifts: change once, verify once.
+
+### 1. Backend — frontend-week boundary in nflWeek.js
+WHEN: as soon as the new season's schedule is released (usually May). No need to
+wait for kickoff; this only needs the Week 1 date, which is known months ahead.
+
+WHAT: add one line to SEASON_BOUNDARIES. The value is the Tuesday-noon-ET moment
+just before that season's Week 1, written in UTC.
+  - Find the date: the Tuesday two days before the Thursday-night opener.
+  - Convert to UTC: noon ET in September is EDT (UTC minus 4), so noon ET is
+    always 16:00 UTC. Only the DATE changes each year; the time is always
+    T16:00:00Z.
+
+EXACT SYNTAX (adding 2027 as the example — the date shown is a PLACEHOLDER,
+look up the real Tuesday before 2027 Week 1 and verify it):
+
+    const SEASON_BOUNDARIES = {
+      2025: "2025-09-02T16:00:00Z",
+      2026: "2026-09-08T16:00:00Z",
+      2027: "2027-09-07T16:00:00Z",   // PLACEHOLDER date — verify vs schedule
+    };
+
+Note the trailing comma and the quotes. Without this line, deriveNflWeek and
+seasonForDate return null for the new season and the schedule rail shows the
+offseason empty state.
+
+### 2. ETL — SEASON in .github/workflows/etl.yml
+WHEN: a few days after Week 1's Monday night game, ideally before the Week 2
+Thursday cron (14:17 UTC Thursday), so the first new-season load already carries
+Week 1's corrected stats.
+
+WHAT: change the one SEASON line:
+
+    env:
+      SEASON: "2027"
+
+SAFE TO FLIP EARLY: the empty-load guard in load.py makes any run before
+nflverse has data a clean no-op, so flipping a few days before kickoff will not
+crash. It just no-ops until data exists, then starts populating the new season.
+
+DON'T FORGET: if you never flip it, the cron keeps refreshing the prior season
+forever and the new season never appears on the site. Set a mid-September
+reminder.
+
 ## Open: ETL scheduling mechanism (undecided)
 
 The Python ETL (transform.py / load.py) is run by hand today. The brief and
