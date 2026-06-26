@@ -50,14 +50,14 @@ function Landing() {
 
       <ScheduleRail />
 
-      <div className="landing-inner">
-        <div className="wordmark">
+      <main className="landing-inner">
+        <h1 className="wordmark">
           STAT<span className="slash">/</span>SNAP
-        </div>
+        </h1>
 
-        <div className="tagline">
+        <p className="tagline">
           NFL SKILL POSITIONS &nbsp;·&nbsp; <b>INSTANT LOOKUP</b><span className="tagline-tail"> &nbsp;·&nbsp; QB · RB · WR · TE</span>
-        </div>
+        </p>
 
         <div className="search-wrap">
           <PlayerSearch
@@ -70,20 +70,21 @@ function Landing() {
         </div>
 
         {recents.length > 0 && (
-          <div className="recent-row">
+          <ul className="recent-row">
             {recents.map((p) => (
-              <button
-                key={p.playerId}
-                type="button"
-                className="recent-chip"
-                onClick={() => handlePick(p)}
-              >
-                ← {p.displayName.toUpperCase()}
-              </button>
+              <li key={p.playerId} className="recent-item">
+                <button
+                  type="button"
+                  className="recent-chip"
+                  onClick={() => handlePick(p)}
+                >
+                  ← {p.displayName.toUpperCase()}
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </div>
+      </main>
 
       <div className="landing-help">
         <span><b>↑↓</b> NAVIGATE</span>

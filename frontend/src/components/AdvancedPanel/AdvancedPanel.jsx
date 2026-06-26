@@ -70,11 +70,12 @@ function AdvancedPanel({ player }) {
             Percentile ranks are pending — not enough games played yet this season.
           </div>
         )}
-        {rows.map((row) => {
+        <ul className="adv-list">
+          {rows.map((row) => {
           const isOpen = openKey === "__all" || openKey === row.k;
           const clickable = Boolean(STAT_GLOSSARY[row.k]);
           return (
-            <div key={row.k} className={"adv-row" + (isOpen ? " adv-row-open" : "")}>
+            <li key={row.k} className={"adv-row" + (isOpen ? " adv-row-open" : "")}>
               <div
                 className={"adv-row-main" + (clickable ? " adv-row-clickable" : "")}
                 role={clickable ? "button" : undefined}
@@ -99,17 +100,18 @@ function AdvancedPanel({ player }) {
                   {STAT_GLOSSARY[row.k]}
                 </div>
               )}
-            </div>
+            </li>
           );
         })}
+        </ul>
       </>
     );
   }
 
   return (
-    <div className="adv-panel">
+    <section className="adv-panel">
       <div className="panel-head">
-        <span className="panel-head-label">ADVANCED</span>
+        <h2 className="panel-head-label">ADVANCED</h2>
         <div className="panel-head-right">
           <span className="panel-head-season">{headerLabel}</span>
           {rows.length > 0 && (
@@ -121,7 +123,7 @@ function AdvancedPanel({ player }) {
       </div>
       {body}
       <div className="adv-footnote">{FOOTNOTE}</div>
-    </div>
+    </section>
   );
 }
 

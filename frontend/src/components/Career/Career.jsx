@@ -60,9 +60,9 @@ function Career({ data }) {
   const rows = data.length > 1 ? [...seasonRows, careerRow] : seasonRows;
 
   return (
-    <div className="career-panel">
+    <section className="career-panel">
       <div className="career-head">
-        <span className="career-head-label">CAREER</span>
+        <h2 className="career-head-label">CAREER</h2>
         <span className="career-head-count">{data.length} {data.length === 1 ? "SEASON" : "SEASONS"}</span>
       </div>
       <div className="career-scroll">
@@ -88,7 +88,7 @@ function Career({ data }) {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 }
 

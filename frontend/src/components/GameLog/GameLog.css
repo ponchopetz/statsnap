@@ -12,6 +12,7 @@
 }
 
 .gamelog-head-label {
+  margin: 0;
   font-family: var(--display);
   font-size: 10px;
   font-weight: 600;

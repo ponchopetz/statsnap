@@ -127,6 +127,8 @@
 /* Name and meta */
 
 .id-name {
+  margin: 0;
+  font-weight: inherit;
   display: flex;
   flex-direction: column;
   gap: 2px;
