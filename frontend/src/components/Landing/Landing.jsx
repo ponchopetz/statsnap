@@ -36,17 +36,6 @@ function Landing() {
   return (
     <div className="landing">
       <div className="landing-grid" />
-      <header className="landing-topbar">
-        <span className="brand-mark">
-          <span className="dot" /> STAT<span className="slash">/</span>SNAP
-        </span>
-        <div className="meta">
-          <span>
-            <span className="live-dot" /> LIVE<span className="meta-detail"> · SKILL POSITIONS ONLY</span>
-          </span>
-          <span>v0.2</span>
-        </div>
-      </header>
 
       <ScheduleRail />
 

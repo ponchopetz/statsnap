@@ -36,31 +36,6 @@
   border-color: var(--accent);
 }
 
-.player-topbar .brand-mark {
-  font-family: var(--display);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  font-weight: 700;
-  color: var(--fg);
-  text-transform: uppercase;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition:
-    transform 0.12s,
-    color 0.12s;
-}
-
-.player-topbar .brand-mark:hover {
-  color: var(--accent);
-  transform: scale(1.08);
-}
-
-.player-topbar .brand-mark .slash {
-  color: var(--accent);
-}
-
 /* ───── Two-column content area ───── */
 
 .player-content {
@@ -321,14 +296,11 @@
 /* ── sm — 30rem (480px). Phone polish. ── */
 @media (max-width: 30rem) {
   .player-topbar {
-    padding: 14px 16px;
+    padding: 10px 16px;
     gap: 12px;
   }
-  .player-topbar .brand-mark {
-    display: none;
-  }
   .back-btn {
-    height: 40px;
+    height: 36px;
     padding: 0 14px;
     display: inline-flex;
     align-items: center;

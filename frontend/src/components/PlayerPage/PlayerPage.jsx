@@ -61,14 +61,6 @@ function PlayerPage() {
           placeholder={searchPlaceholder}
           onSelect={(player) => navigate(`/players/${player.playerId}`)}
         />
-
-        <button
-          type="button"
-          className="brand-mark"
-          onClick={() => navigate("/")}
-        >
-          STAT<span className="slash">/</span>SNAP
-        </button>
       </header>
 
       {status === "loading" && (
