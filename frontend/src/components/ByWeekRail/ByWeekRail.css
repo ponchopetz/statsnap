@@ -41,16 +41,14 @@
 }
 .byweek-strip::-webkit-scrollbar { display: none; }
 
+/* "Scroll for more" hint. No gradient overlay — the "+N MORE →" label is a
+   clearer affordance, and the old fade only obscured the rightmost card. The
+   hint flows below the strip (it's the strip-wrap's last child). */
 .byweek-strip-fade {
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 88px;
   pointer-events: none;
-  background: linear-gradient(to right, transparent, var(--bg) 55%);
   display: flex;
-  align-items: center;
   justify-content: flex-end;
-  padding-right: 10px;
+  padding: 8px 2px 0 0;
 }
 .byweek-strip-more {
   font-family: var(--display);
