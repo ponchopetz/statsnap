@@ -36,6 +36,7 @@
 
 .playersearch--compact .search-box input {
   flex: 1;
+  min-width: 0;
   font-family: var(--display);
   font-size: 13px;
   color: var(--fg);
@@ -78,6 +79,7 @@
 
 .playersearch--hero .search-box input {
   flex: 1;
+  min-width: 0;
   font-family: var(--display);
   font-size: 22px;
   letter-spacing: -0.01em;
