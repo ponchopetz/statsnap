@@ -79,7 +79,9 @@
   position: relative;
 }
 .byweek-mini:last-child { margin-right: 0; }
-.byweek-mini:hover { background: var(--bg-2); z-index: 1; }
+@media (hover: hover) {
+  .byweek-mini:hover { background: var(--bg-2); z-index: 1; }
+}
 .byweek-mini.active {
   background: var(--accent);
   border-color: var(--accent);

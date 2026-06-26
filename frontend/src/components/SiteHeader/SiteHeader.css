@@ -25,9 +25,13 @@
     transform 0.12s;
 }
 
-.site-header .brand-mark:hover {
-  color: var(--accent);
-  transform: scale(1.06);
+/* hover: hover guards against sticky :hover on touch — the persistent header
+   means a tapped logo would otherwise stay lit after navigating to landing. */
+@media (hover: hover) {
+  .site-header .brand-mark:hover {
+    color: var(--accent);
+    transform: scale(1.06);
+  }
 }
 
 .site-header .brand-mark:focus-visible {

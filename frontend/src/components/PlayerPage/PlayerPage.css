@@ -31,9 +31,11 @@
     border-color 0.12s;
 }
 
-.back-btn:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+@media (hover: hover) {
+  .back-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
 }
 
 /* ───── Two-column content area ───── */
