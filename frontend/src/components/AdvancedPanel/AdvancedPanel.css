@@ -175,3 +175,23 @@
   padding-top: 10px;
   border-top: 1px solid var(--line);
 }
+
+/* ── sm — 30rem (480px). The fixed 160px label + 72px value leave no room
+   for the bar (it collapses to 0) and push the value past the panel edge.
+   Let the label flex so it absorbs the deficit, and shrink the bar/value
+   to fixed visible widths so the bar shows and values stay inside. ── */
+@media (max-width: 30rem) {
+  .adv-row-main {
+    gap: 10px;
+  }
+  .adv-row .k {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .adv-row .bar {
+    flex: 0 0 56px;
+  }
+  .adv-row .v {
+    flex: 0 0 52px;
+  }
+}
