@@ -1,0 +1,80 @@
+/* SiteHeader — persistent global header across all routes */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.site-header .brand-mark {
+  color: var(--fg);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  transition:
+    color 0.12s,
+    transform 0.12s;
+}
+
+.site-header .brand-mark:hover {
+  color: var(--accent);
+  transform: scale(1.06);
+}
+
+.site-header .brand-mark:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.site-header .brand-mark .dot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  display: inline-block;
+}
+
+.site-header .brand-mark .slash {
+  color: var(--accent);
+}
+
+.site-header .meta {
+  display: flex;
+  gap: 22px;
+}
+
+.site-header .meta span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.site-header .meta .live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: pulse 1.8s infinite;
+}
+
+/* ── sm — 30rem (480px). Slim the header so stacked chrome stays cheap on phones. ── */
+@media (max-width: 30rem) {
+  .site-header {
+    padding: 9px 16px;
+  }
+  .site-header .meta {
+    gap: 14px;
+  }
+  .site-header .meta .meta-detail {
+    display: none;
+  }
+}
