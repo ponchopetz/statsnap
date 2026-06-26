@@ -29,7 +29,6 @@
 }
 .sched-week-label .local {
   color: var(--fg-3);
-  opacity: 0.7;
 }
 .sched-fade {
   position: absolute;
