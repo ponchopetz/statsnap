@@ -125,7 +125,9 @@
    scroll fade so more of the first game card is visible on phones. ── */
 @media (max-width: 30rem) {
   .sched-week-label {
-    padding: 0 10px 0 14px;
+    padding: 0 8px 0 14px;
+    font-size: 8px;
+    letter-spacing: 0.05em;
   }
   .sched-fade {
     width: 48px;
