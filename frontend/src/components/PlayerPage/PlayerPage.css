@@ -6,7 +6,7 @@
   flex-direction: column;
 }
 
-/* ───── Variant topbar — back button left, compact search center, wordmark right ───── */
+/* ───── Player topbar — back button left, compact search fills the rest ───── */
 
 .player-topbar {
   display: flex;
