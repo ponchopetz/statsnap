@@ -120,3 +120,14 @@
   align-items: center;
   min-height: 56px;
 }
+
+/* ── sm — 30rem (480px). Tighten the week label (pull it left) and shrink the
+   scroll fade so more of the first game card is visible on phones. ── */
+@media (max-width: 30rem) {
+  .sched-week-label {
+    padding: 0 10px 0 14px;
+  }
+  .sched-fade {
+    width: 48px;
+  }
+}
