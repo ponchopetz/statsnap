@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
+import { useMediaQuery } from "../../hooks/useMediaQuery.js";
 import { formatAge, formatHeight, formatDraft } from "../../utils/format.js";
 import Tabs from "../Tabs/Tabs.jsx";
 import Overview from "../Overview/Overview.jsx";
@@ -17,6 +18,11 @@ function PlayerPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { status, data, errorMessage } = usePlayerProfile(playerId);
+
+  // The full placeholder clips inside the compact field at 320px, so shorten
+  // it at the smallest breakpoint (matches the 30rem legend in styles.css).
+  const isNarrow = useMediaQuery("(max-width: 30rem)");
+  const searchPlaceholder = isNarrow ? "Search..." : "Search another player...";
 
   const seasons = data?.map((d) => d.season) ?? [];
   const paramSeason = Number(searchParams.get("season"));
@@ -52,7 +58,7 @@ function PlayerPage() {
 
         <PlayerSearch
           variant="compact"
-          placeholder="Search another player..."
+          placeholder={searchPlaceholder}
           onSelect={(player) => navigate(`/players/${player.playerId}`)}
         />
 
