@@ -65,18 +65,18 @@ function ScheduleRail() {
   }
 
   return (
-    <div className="sched-rail">
+    <section className="sched-rail">
       <div className="sched-scroll-wrap">
         <div className="sched-week-label">
           <span>WK {data.week}</span>
           <span>{data.games.length} GAMES</span>
           <span className="local">LOCAL TIME</span>
         </div>
-        <div className="sched-scroll" ref={scrollRef}>
+        <ul className="sched-scroll" ref={scrollRef}>
           {data.games.map((g) => {
             const { day, time } = formatKickoff(g.kickoff);
             return (
-              <div key={g.id} className="sched-card">
+              <li key={g.id} className="sched-card">
                 <div className="sched-card-time">
                   {day} {time}
                 </div>
@@ -85,17 +85,17 @@ function ScheduleRail() {
                   <span className="sched-at">@</span>
                   <span className="sched-team">{g.home}</span>
                 </div>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
         <div className="sched-fade">
           {offscreen > 0 && (
             <span className="sched-more">+{offscreen} MORE →</span>
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

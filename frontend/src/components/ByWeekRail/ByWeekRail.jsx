@@ -54,12 +54,15 @@ function ByWeekRail({ player }) {
   if (weeks.length === 0) return null;
 
   return (
-    <div className="byweek">
+    <section className="byweek">
       <div className="byweek-head">
-        <div className="byweek-title">BY WEEK</div>
+        <h2 className="byweek-title">BY WEEK</h2>
         <div className="byweek-count">{weeks.length} GAMES</div>
       </div>
       <div className="byweek-strip-wrap">
+        {/* Kept as a <div> of <button> cards rather than <ul>/<li>: this is an
+            interactive scroller whose offscreen-count hook measures the strip's
+            direct children, which a display:contents <li> wrapper would break. */}
         <div className="byweek-strip" ref={stripRef}>
           {displayWeeks.map((wk, i) => (
             <MiniCard
@@ -79,7 +82,7 @@ function ByWeekRail({ player }) {
         </div>
       </div>
       <WeekDetail week={displayWeeks[selectedIndex]} position={player.position} />
-    </div>
+    </section>
   );
 }
 

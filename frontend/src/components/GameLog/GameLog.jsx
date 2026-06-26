@@ -57,9 +57,9 @@ export default function GameLog({ player }) {
   }
 
   return (
-    <div className="gamelog-panel">
+    <section className="gamelog-panel">
       <div className="gamelog-head">
-        <span className="gamelog-head-label">GAME LOG</span>
+        <h2 className="gamelog-head-label">GAME LOG</h2>
         <span className="gamelog-head-count">{weeks.length} GAMES</span>
       </div>
       <div className="gamelog-scroll">
@@ -89,6 +89,6 @@ export default function GameLog({ player }) {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 }

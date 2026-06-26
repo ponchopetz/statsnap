@@ -101,10 +101,10 @@ function PlayerPage() {
               )}
             </div>
 
-            <div className="id-name">
-              <div className="id-firstname">{firstName}</div>
-              <div className="id-lastname">{lastName.toUpperCase()}</div>
-            </div>
+            <h1 className="id-name">
+              <span className="id-firstname">{firstName}</span>
+              <span className="id-lastname">{lastName.toUpperCase()}</span>
+            </h1>
 
             <div className="id-meta">
               <span className={"pos-badge " + player.position}>

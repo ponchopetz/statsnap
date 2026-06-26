@@ -14,9 +14,9 @@ function SparkBlock({ label, data = [], weeks = [], formatValue = (n) => String(
   const axisLabels = weeks.map((w, i) => (i % stride === 0 ? w : null));
 
   return (
-    <div className="sparkblock">
+    <section className="sparkblock">
       <div className="sparkblock-header">
-        <div className="sparkblock-label">{label}</div>
+        <h2 className="sparkblock-label">{label}</h2>
         <div className="sparkblock-stats">
           <div>
             <span className="sparkblock-stat-label">PEAK</span>
@@ -40,7 +40,7 @@ function SparkBlock({ label, data = [], weeks = [], formatValue = (n) => String(
           <span key={i}>{w == null ? "" : `W${w}`}</span>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 

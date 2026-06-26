@@ -15,12 +15,22 @@
 }
 
 .panel-head-label {
+  margin: 0;
   font-family: var(--display);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.14em;
   color: var(--accent);
   text-transform: uppercase;
+}
+
+/* The stat rows are an <li> list; keep them as direct flex children of the
+   panel (preserving the column gap) and drop default list chrome. */
+.adv-list {
+  display: contents;
+}
+.adv-row {
+  list-style: none;
 }
 
 .panel-head-right {
