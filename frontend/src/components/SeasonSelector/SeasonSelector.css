@@ -35,8 +35,10 @@
     border-color 0.12s;
 }
 
-.season-btn:hover {
-  color: var(--fg-2);
+@media (hover: hover) {
+  .season-btn:hover {
+    color: var(--fg-2);
+  }
 }
 
 .season-btn:focus {

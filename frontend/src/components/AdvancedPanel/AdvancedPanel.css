@@ -96,8 +96,10 @@
   cursor: pointer;
 }
 
-.adv-row-clickable:hover .k {
-  color: var(--fg);
+@media (hover: hover) {
+  .adv-row-clickable:hover .k {
+    color: var(--fg);
+  }
 }
 
 .adv-row-clickable:focus-visible {
@@ -148,9 +150,11 @@
   transition: color 0.12s, border-color 0.12s;
 }
 
-.key-toggle:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+@media (hover: hover) {
+  .key-toggle:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
 }
 
 .key-toggle:active {

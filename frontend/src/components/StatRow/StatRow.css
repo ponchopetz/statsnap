@@ -32,8 +32,10 @@
   cursor: pointer;
 }
 
-.stat-cell--chartable:hover {
-  background: var(--bg-2);
+@media (hover: hover) {
+  .stat-cell--chartable:hover {
+    background: var(--bg-2);
+  }
 }
 
 .stat-cell-label {

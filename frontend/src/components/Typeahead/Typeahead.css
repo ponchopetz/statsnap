@@ -32,9 +32,16 @@
   grid-template-columns: 1fr;
 }
 
-.typeahead-item:hover,
 .typeahead-item.active {
   background: var(--bg-2);
+}
+
+/* Hover gated so a tapped item doesn't stay highlighted on touch; the
+   keyboard/selection .active state above is unaffected. */
+@media (hover: hover) {
+  .typeahead-item:hover {
+    background: var(--bg-2);
+  }
 }
 
 .typeahead-item.active {

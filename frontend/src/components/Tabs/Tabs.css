@@ -36,8 +36,10 @@
     border-color 0.12s;
 }
 
-.tabs-tab:hover {
-  color: var(--fg-2);
+@media (hover: hover) {
+  .tabs-tab:hover {
+    color: var(--fg-2);
+  }
 }
 
 .tabs-tab:focus {

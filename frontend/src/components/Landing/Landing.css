@@ -139,9 +139,11 @@
   z-index: 1;
 }
 
-.recent-chip:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+@media (hover: hover) {
+  .recent-chip:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
 }
 
 /* ── sm — 30rem (480px). Phone polish. See breakpoint legend in styles.css. ── */
