@@ -20,7 +20,7 @@ function Typeahead({ status, results, errorMessage, activeIdx, onPick, listboxId
 
       {status === "success" && results.length === 0 && (
         <div className="typeahead-empty">
-          NO PLAYER FOUND — TRY "JEFFERSON" OR "MAHOMES"
+          NO PLAYER FOUND — TRY &quot;JEFFERSON&quot; OR &quot;MAHOMES&quot;
         </div>
       )}
 

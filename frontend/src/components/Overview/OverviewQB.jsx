@@ -8,7 +8,7 @@ import { formatNumber, formatPercent, formatSigned } from "../../utils/format.js
 const QB_PRIMARY_KEY = "passingYards";
 
 function OverviewQB({ player }) {
-  const weeks = player.weeks ?? [];
+  const weeks = useMemo(() => player.weeks ?? [], [player.weeks]);
   const [selectedKey, setSelectedKey] = useState(QB_PRIMARY_KEY);
 
   const cells = useMemo(() => [
@@ -18,7 +18,7 @@ function OverviewQB({ player }) {
     { key: "passingTds",    label: "PASS TD",  value: formatNumber(sumWeeks(weeks, "passingTds")),     chartable: true  },
     { key: "interceptions", label: "INT",      value: formatNumber(sumWeeks(weeks, "interceptions")),  chartable: true  },
     { key: "passingEpa",    label: "PASS EPA", value: formatSigned(seasonPassingEpa(weeks)),           chartable: true  },
-  ], [player]);
+  ], [player, weeks]);
 
   const seriesMap = useMemo(() => ({
     completionPct: {

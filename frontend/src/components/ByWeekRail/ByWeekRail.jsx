@@ -41,7 +41,7 @@ function MiniCard({ wk, index, selectedIndex, position, onClick }) {
 }
 
 function ByWeekRail({ player }) {
-  const weeks = player.weeks ?? [];
+  const weeks = useMemo(() => player.weeks ?? [], [player.weeks]);
   const displayWeeks = useMemo(() => [...weeks].reverse(), [weeks]);
   const stripRef = useRef(null);
   const offscreen = useOffscreenCount(stripRef, [displayWeeks]);

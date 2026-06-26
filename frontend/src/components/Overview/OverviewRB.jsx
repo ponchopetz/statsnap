@@ -8,7 +8,7 @@ import { formatNumber } from "../../utils/format.js";
 const RB_PRIMARY_KEY = "rushingYards";
 
 function OverviewRB({ player }) {
-  const weeks = player.weeks ?? [];
+  const weeks = useMemo(() => player.weeks ?? [], [player.weeks]);
   const [selectedKey, setSelectedKey] = useState(RB_PRIMARY_KEY);
 
   const cells = useMemo(() => [
@@ -18,7 +18,7 @@ function OverviewRB({ player }) {
     { key: "totalTds",       label: "TOTAL TD", value: formatNumber(totalTouchdowns(weeks)),            chartable: true  },
     { key: "receptions",     label: "REC",      value: formatNumber(sumWeeks(weeks, "receptions")),     chartable: true  },
     { key: "receivingYards", label: "REC YDS",  value: formatNumber(sumWeeks(weeks, "receivingYards")), chartable: true  },
-  ], [player]);
+  ], [player, weeks]);
 
   const seriesMap = useMemo(() => ({
     carries:        { data: weekSeries(weeks, "carries"),        formatValue: formatNumber },

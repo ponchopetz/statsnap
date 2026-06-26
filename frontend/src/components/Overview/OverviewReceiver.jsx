@@ -8,7 +8,7 @@ import { formatNumber, formatPercent } from "../../utils/format.js";
 const RECEIVER_PRIMARY_KEY = "receivingYards";
 
 function OverviewReceiver({ player }) {
-  const weeks = player.weeks ?? [];
+  const weeks = useMemo(() => player.weeks ?? [], [player.weeks]);
   const [selectedKey, setSelectedKey] = useState(RECEIVER_PRIMARY_KEY);
 
   const cells = useMemo(() => [
@@ -18,7 +18,7 @@ function OverviewReceiver({ player }) {
     { key: "receivingYards", label: "REC YDS",   value: formatNumber(sumWeeks(weeks, "receivingYards")),      chartable: true  },
     { key: "totalTds",       label: "TOTAL TD",  value: formatNumber(totalTouchdowns(weeks)),                 chartable: true  },
     { key: "targetShare",    label: "TGT SHARE", value: formatPercent(averageWeeks(weeks, "targetShare")),    chartable: true  },
-  ], [player]);
+  ], [player, weeks]);
 
   const seriesMap = useMemo(() => ({
     targets:        { data: weekSeries(weeks, "targets"),        formatValue: formatNumber },
