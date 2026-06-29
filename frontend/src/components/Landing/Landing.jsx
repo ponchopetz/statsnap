@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLocalStorageState } from "../../hooks/useLocalStorageState.js";
 import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
 import ScheduleRail from "../ScheduleRail/ScheduleRail.jsx";
+import TweaksPanel from "../TweaksPanel/TweaksPanel.jsx";
 import "./Landing.css";
 
 const RECENTS_KEY = "statsnap:recents";
@@ -81,6 +82,8 @@ function Landing() {
         <span><b>ESC</b> CLEAR</span>
         <span><b>⌘K</b> FOCUS</span>
       </div>
+
+      <TweaksPanel />
     </div>
   );
 }

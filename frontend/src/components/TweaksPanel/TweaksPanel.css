@@ -1,0 +1,154 @@
+/* TweaksPanel — floating accent-colour picker, fixed bottom-right corner.
+   Consumes design tokens from styles.css (:root). No external dependencies.
+   Drop-in path: frontend/src/components/TweaksPanel/TweaksPanel.css        */
+
+/* ── Wrapper — stacks trigger and panel vertically, right-aligned ── */
+.theme-picker {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  z-index: 200;
+}
+
+/* ── Trigger: labelled pill so it reads as a control, not decoration ── */
+.theme-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 18px;
+  background: var(--bg);
+  border: 2px solid var(--fg);
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg);
+  box-shadow: 0 6px 22px color-mix(in oklch, #000 55%, transparent);
+  transition:
+    transform 0.12s,
+    border-color 0.12s;
+}
+
+@media (hover: hover) {
+  .theme-trigger:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+}
+
+.theme-trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.theme-trigger-dot {
+  width: 16px;
+  height: 16px;
+  background: var(--c, var(--accent));
+  box-shadow: 0 0 10px var(--c, var(--accent));
+}
+
+.theme-trigger-text {
+  line-height: 1;
+}
+
+/* ── Panel: 2×2 grid of labelled swatch rows, animates in above trigger ── */
+.theme-picker-panel {
+  background: var(--bg);
+  border: 2px solid var(--fg);
+  padding: 16px;
+  min-width: 232px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 10px 34px color-mix(in oklch, #000 50%, transparent);
+  animation: theme-panel-in 0.14s ease;
+}
+
+@keyframes theme-panel-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+.theme-picker-label {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.theme-picker-swatches {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ── Swatch button: colour chip + label ── */
+.theme-swatch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+  transition:
+    border-color 0.1s,
+    background 0.1s,
+    color 0.1s;
+}
+
+@media (hover: hover) {
+  .theme-swatch:hover {
+    background: var(--bg-2);
+    color: var(--fg);
+  }
+}
+
+.theme-swatch.active {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+
+.theme-swatch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.theme-swatch-chip {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  background: var(--c);
+}
+
+.theme-swatch.active .theme-swatch-chip {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.theme-swatch-name {
+  line-height: 1;
+}
+
+/* ── sm — 30rem (480px). Nudge in from the edge on phone. ── */
+@media (max-width: 30rem) {
+  .theme-picker {
+    bottom: 20px;
+    right: 16px;
+  }
+}
