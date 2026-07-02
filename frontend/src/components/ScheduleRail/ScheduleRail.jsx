@@ -93,11 +93,14 @@ function ScheduleRail() {
             );
           })}
         </ul>
-        <div className="sched-fade">
-          {offscreen > 0 && (
-            <span className="sched-more">+{offscreen} MORE →</span>
-          )}
-        </div>
+      </div>
+      {/* Overflow hint flows below the rail (mirrors ByWeekRail) — an overlay
+          fade only obscured the rightmost card. Disappears once the strip is
+          scrolled to the end. */}
+      <div className="sched-more-hint" aria-hidden="true">
+        {offscreen > 0 && (
+          <span className="sched-more">+{offscreen} MORE →</span>
+        )}
       </div>
     </section>
   );
