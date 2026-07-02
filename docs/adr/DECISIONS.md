@@ -237,6 +237,25 @@ The JS season helpers in `frontend/src/utils/stats.js` are a deliberate mirror
 of the Python aggregation in `etl/percentiles.py`. A change in one must change
 the other.
 
+### Golden-file test enforces the JS/Python mirror
+
+Decision: the mirrored contract above is pinned by a generated golden file.
+`etl/generate_golden.py` runs synthetic per-week rows (null-EPA weeks,
+null-CPOE weeks, zero-air-yards ratios, skipped weeks) through the Python
+aggregation and writes inputs plus expected outputs to
+`frontend/src/utils/__tests__/golden-season-aggregates.json`. A Vitest
+suite (`npm test` in `frontend/`) asserts every JS season helper
+reproduces the Python numbers, including the null-means-no-basis
+convention. Regenerate the golden file whenever the contract changes.
+
+Why a golden file rather than duplicate hand-written tests: hand-written
+expectations in both languages can drift exactly the way the
+implementations can. Generating the expectations from one side and
+asserting the other against them makes Python the single source of truth
+for what the numbers should be, and any unilateral change to either side
+fails the suite. Vitest is the project's first test dependency —
+chosen because it is the standard runner for Vite projects.
+
 ### Per-week helpers are distinct from season aggregators
 
 Decision (Chunk 16): The per-game derived helpers (`gameCompletionPct`,
@@ -471,6 +490,44 @@ observability need.
 
 Principle: the threat model of a public, read-only, no-auth API drove the scope, rather than
 installing a standard hardening checklist wholesale.
+
+### Search input hardening: regex escaping + word-boundary anchor
+
+Decision: `GET /players/search` escapes regex metacharacters in the query
+before it reaches `$regex`, and anchors the pattern to a word boundary
+(`\b`). The error handler only forwards `err.message` to the client for
+errors carrying an explicit 4xx status; everything else returns a generic
+"Internal server error".
+
+Why: raw user input in `$regex` meant `(` crashed the query into a 500
+whose body leaked the MongoDB driver's error message, and `.*` matched
+every player. Escaping makes user input always literal. The `\b` anchor
+was chosen over a strict prefix (`^`) because the primary search pattern
+is a last name — `^mahomes` would not match "Patrick Mahomes" — and over
+no anchor because mid-word matches ("aho" → Mahomes) are noise in a
+typeahead.
+
+Tradeoff: an unanchored substring search occasionally surfaced a player
+from a mid-word fragment; that behavior is gone deliberately. The scan is
+still COLLSCAN — index-backed search (Atlas Search autocomplete) is the
+V2 upgrade path.
+
+### seasonComplete: ETL-written flag for in-progress seasons
+
+Decision: the ETL computes a boolean `seasonComplete` per load (league
+max week loaded ≥ 18, or 17 pre-2021) and stores it on every
+player-season document. The Advanced tab uses `seasonComplete === false`
+to show "percentile ranks are pending" instead of the qualifying-threshold
+message during a partial season.
+
+Why: the frontend had always read the field, but nothing wrote it — the
+in-progress state was dead code, and a mid-season player below the
+qualifier gate was wrongly told they didn't reach the threshold. Writing
+the flag in the ETL keeps the domain judgment ("is this season over?")
+next to the data load that defines it, rather than having the UI guess
+from dates. Documents from older loads lack the field and render as
+complete; the next loader re-run backfills it (idempotent upsert — no
+migration needed).
 
 ### Atlas network access: allow from anywhere (0.0.0.0/0)
 
