@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { useMediaQuery } from "../../hooks/useMediaQuery.js";
+import { useSlowLoading } from "../../hooks/useSlowLoading.js";
 import { formatAge, formatHeight, formatDraft } from "../../utils/format.js";
 import Tabs from "../Tabs/Tabs.jsx";
 import Overview from "../Overview/Overview.jsx";
@@ -18,6 +19,7 @@ function PlayerPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { status, data, errorMessage } = usePlayerProfile(playerId);
+  const slowLoad = useSlowLoading(status === "loading");
 
   // The full placeholder clips inside the compact field at 320px, so shorten
   // it at the smallest breakpoint (matches the 30rem legend in styles.css).
@@ -64,7 +66,11 @@ function PlayerPage() {
       </header>
 
       {status === "loading" && (
-        <div className="player-status">LOADING PLAYER...</div>
+        <div className="player-status">
+          {slowLoad
+            ? "LOADING PLAYER... WAKING FREE SERVER — CAN TAKE ~20S"
+            : "LOADING PLAYER..."}
+        </div>
       )}
 
       {status === "error" && (

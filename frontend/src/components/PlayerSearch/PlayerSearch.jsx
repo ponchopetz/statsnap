@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useId } from "react";
 import { usePlayerSearch } from "../../hooks/usePlayerSearch.js";
+import { useSlowLoading } from "../../hooks/useSlowLoading.js";
 import Typeahead from "../Typeahead/Typeahead.jsx";
 import "./PlayerSearch.css";
 
@@ -21,6 +22,7 @@ function PlayerSearch({
   const listboxId = useId();
 
   const { status, results, errorMessage } = usePlayerSearch(query);
+  const slow = useSlowLoading(status === "loading");
 
   const updateQuery = (next) => {
     if (!isControlled) setInternalQuery(next);
@@ -101,6 +103,7 @@ function PlayerSearch({
           status={status}
           results={results}
           errorMessage={errorMessage}
+          slow={slow}
           activeIdx={activeIdx}
           onPick={(player) => { onSelect(player); setInternalQuery(""); setIsOpen(false); }}
           listboxId={listboxId}
