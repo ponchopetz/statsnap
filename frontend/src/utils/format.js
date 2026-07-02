@@ -5,7 +5,12 @@
  */
 export function formatAge(birthDate) {
   if (!birthDate) return null;
-  const parsed = new Date(birthDate);
+  // Construct from date parts: new Date("1995-09-17") parses as UTC
+  // midnight, but the getMonth/getDate comparisons below are local — in
+  // timezones west of UTC that shifts the birthday a day early.
+  const [year, month, day] = birthDate.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  const parsed = new Date(year, month - 1, day);
   if (Number.isNaN(parsed.getTime())) return null;
 
   const today = new Date();

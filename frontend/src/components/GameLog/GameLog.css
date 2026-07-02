@@ -70,6 +70,11 @@
 .gamelog-result.loss { color: var(--fg-3); }
 .gamelog-result.tie  { color: var(--fg-2); }
 
+/* DNP marker rows (bye / inactive) — dimmed so real games dominate */
+.gamelog-dnp td {
+  color: var(--fg-3);
+}
+
 .gamelog-empty {
   padding: 32px 16px;
   text-align: center;
