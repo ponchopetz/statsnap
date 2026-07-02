@@ -30,14 +30,17 @@
 .sched-week-label .local {
   color: var(--fg-3);
 }
+/* The gradient must be fully opaque under the whole +N MORE label — the
+   fade, not the label, supplies the solid backdrop that keeps the count
+   legible over the last card. Solid zone: rightmost 50% of the width. */
 .sched-fade {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  width: 96px;
+  width: 200px;
   pointer-events: none;
-  background: linear-gradient(to right, transparent, var(--bg) 55%);
+  background: linear-gradient(to right, transparent, var(--bg) 50%);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -49,7 +52,7 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--fg-2);
+  color: var(--fg);
   white-space: nowrap;
 }
 .sched-scroll {
@@ -132,6 +135,10 @@
     letter-spacing: 0.05em;
   }
   .sched-fade {
-    width: 48px;
+    width: 130px;
+  }
+  .sched-more {
+    font-size: 10px;
+    letter-spacing: 0.1em;
   }
 }
