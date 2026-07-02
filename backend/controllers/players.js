@@ -55,6 +55,7 @@ const getPlayerById = async (req, res, next) => {
         team: 1,
         season: 1,
         gamesPlayed: 1,
+        seasonComplete: 1,
         // Roster fields (nflverse load_rosters)
         birthDate: 1,
         college: 1,
