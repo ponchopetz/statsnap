@@ -79,6 +79,10 @@ const playerStatsSchema = new mongoose.Schema(
     team:        { type: String, required: true },
     season:      { type: Number, required: true },
     gamesPlayed: { type: Number },
+    // False while the ETL has loaded a partial season (league max week not
+    // yet reached); absent on documents written before this field existed,
+    // which the frontend treats the same as complete.
+    seasonComplete: { type: Boolean },
 
     // Roster fields (nflverse load_rosters)
     birthDate:    { type: String },

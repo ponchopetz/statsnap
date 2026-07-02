@@ -284,10 +284,13 @@ const ADVANCED_CONFIG = {
       label: "Passing CPOE",
       // passingCpoe is stored in percentage points (11.78 = +11.78 pp).
       // formatPercent expects a decimal, so divide by 100. Null guard is
-      // required because null / 100 === 0 in JS, not null.
+      // required because null / 100 === 0 in JS, not null. Explicit + sign
+      // because CPOE is an over/under-expected stat — the sign is the story.
       rawValue: (weeks) => {
         const v = seasonCpoe(weeks);
-        return v == null ? "—" : formatPercent(v / 100);
+        if (v == null) return "—";
+        const pct = formatPercent(v / 100);
+        return v >= 0 ? `+${pct}` : pct;
       },
     },
     {
@@ -311,7 +314,9 @@ const ADVANCED_CONFIG = {
     {
       key: "sackYardsLost",
       label: "Sack Yards Lost",
-      rawValue: (weeks) => formatNumber(sumWeeks(weeks, "sackYardsLost")),
+      // nflverse stores sack yardage as negative. The label already says
+      // "lost", so show the magnitude — "-193 lost" reads as a double negative.
+      rawValue: (weeks) => formatNumber(Math.abs(sumWeeks(weeks, "sackYardsLost"))),
     },
   ],
   WR: RECEIVER_ROWS,

@@ -24,6 +24,7 @@ TOP_LEVEL_FIELDS = [
     "position",
     "team",
     "gamesPlayed",
+    "seasonComplete",
     "jerseyNumber",
     "birthDate",
     "heightInches",

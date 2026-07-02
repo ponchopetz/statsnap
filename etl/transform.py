@@ -318,19 +318,31 @@ def rename_columns(df):
 
 def compute_derived(df):
     """
-    Add three fields that don't exist in nflverse directly.
+    Add four fields that don't exist in nflverse directly.
 
     yacPerRec  — efficiency metric: how much YAC a receiver generates per catch
     adot       — depth-of-target proxy: how far downfield a QB's throws travel
     gamesPlayed — how many weeks a player appeared in, written back onto every
                   row for that player via a window function (.over())
+    seasonComplete — whether the league's final regular-season week is present
+                  in this load. Mid-season runs mark False, which lets the
+                  frontend say "percentiles pending" instead of implying a
+                  player missed the qualifying threshold.
     """
+    # 18-week regular season since 2021; 17 weeks before that.
+    final_week = 18 if SEASON >= 2021 else 17
+    max_week_loaded = df.select(col("week").max()).item()
+    season_complete = (
+        max_week_loaded is not None and max_week_loaded >= final_week
+    )
+
     return (
         df
         .with_columns([
             (col("receivingYac") / col("receptions")).alias("yacPerRec"),
             (col("passingAirYards") / col("attempts")).alias("adot"),
             pl.len().over(["playerId", "season"]).alias("gamesPlayed"),
+            pl.lit(season_complete).alias("seasonComplete"),
         ])
         # Division by zero produces NaN, not null. NaN survives into pymongo
         # as float('nan'), which causes write errors. fill_nan converts NaN
