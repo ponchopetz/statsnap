@@ -92,6 +92,9 @@ function AdvancedPanel({ player }) {
                     <span className="fill" style={{ width: `${row.bar * 100}%` }} />
                   )}
                 </span>
+                <span className="pct">
+                  {row.bar !== null ? `P${Math.round(row.bar * 100)}` : "—"}
+                </span>
                 <span className="v">{row.v}</span>
               </div>
               {isOpen && clickable && (
