@@ -41,6 +41,16 @@ function PlayerPage() {
   const [imageFailed, setImageFailed] = useState(false);
   useEffect(() => { setImageFailed(false); }, [playerId]);
 
+  // Tab title / shared-link label follows the player; reset on unmount so
+  // the landing page goes back to the plain wordmark.
+  const displayName = player?.displayName;
+  useEffect(() => {
+    if (displayName) document.title = `${displayName} · StatSnap`;
+    return () => {
+      document.title = "StatSnap";
+    };
+  }, [displayName]);
+
   const nameParts = player?.displayName?.split(" ") ?? [];
   const firstName = nameParts.slice(0, -1).join(" ");
   const lastName = nameParts[nameParts.length - 1] ?? "";
