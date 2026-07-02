@@ -2,6 +2,10 @@
 
 const PlayerStats = require("../models/playerStats");
 
+// User input goes into $regex, so metacharacters must be neutralized —
+// otherwise "(" crashes the query and ".*" matches every player.
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const searchPlayers = async (req, res, next) => {
   const { q } = req.query;
 
@@ -9,9 +13,13 @@ const searchPlayers = async (req, res, next) => {
     return res.status(400).json({ message: "Query parameter q is required" });
   }
 
+  // \b anchors the match to the start of a word, so "mah" finds Mahomes
+  // but "aho" no longer matches mid-name.
+  const pattern = "\\b" + escapeRegex(q.trim());
+
   try {
     const results = await PlayerStats.aggregate([
-      { $match: { displayName: { $regex: q, $options: "i" } } },
+      { $match: { displayName: { $regex: pattern, $options: "i" } } },
       { $sort: { season: -1 } },
       {
         $group: {
