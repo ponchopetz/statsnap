@@ -46,6 +46,9 @@
   color: var(--fg-2);
   white-space: nowrap;
 }
+.sched-more--hidden {
+  visibility: hidden;
+}
 .sched-scroll {
   list-style: none;
   margin: 0;
