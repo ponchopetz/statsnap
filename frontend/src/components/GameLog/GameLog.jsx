@@ -56,6 +56,20 @@ export default function GameLog({ player }) {
     return <div className="gamelog-empty">No game log available.</div>;
   }
 
+  // Fill interior gaps (bye, inactive, injured) with DNP marker rows so a
+  // jump from W9 to W11 reads as intentional rather than missing data.
+  // Only gaps BETWEEN played games are filled — the data can't distinguish
+  // why a season ended early, so trailing weeks aren't speculated about.
+  const rows = [];
+  weeks.forEach((w, i) => {
+    if (i > 0) {
+      for (let missed = weeks[i - 1].week + 1; missed < w.week; missed += 1) {
+        rows.push({ dnp: true, week: missed });
+      }
+    }
+    rows.push(w);
+  });
+
   return (
     <section className="gamelog-panel">
       <div className="gamelog-head">
@@ -73,7 +87,17 @@ export default function GameLog({ player }) {
             </tr>
           </thead>
           <tbody>
-            {weeks.map((w) => {
+            {rows.map((w) => {
+              if (w.dnp) {
+                return (
+                  <tr key={w.week} className="gamelog-dnp">
+                    <td className="ctx">{w.week}</td>
+                    <td className="ctx">—</td>
+                    <td className="ctx">DNP</td>
+                    {columns.map((c) => <td key={c.k}>—</td>)}
+                  </tr>
+                );
+              }
               const oppPrefix = w.homeAway === "away" ? "@ " : "vs ";
               const cls = resultClass(w.result);
               const score = `${w.result} ${w.teamScore}-${w.opponentScore}${w.overtime ? " OT" : ""}`;
