@@ -48,6 +48,16 @@ async function refreshSchedule() {
 
   // If the anchor has no valid season/week (e.g. playoff game past Week 18), bail
   if (!anchor || anchor.season === null || anchor.week === null) {
+    // A null season/week on a real upstream game usually means SEASON_BOUNDARIES
+    // in utils/nflWeek.js hasn't been updated for the new season. Without this
+    // log the failure is silent: the refresh bails forever and the rail serves
+    // a stale cache.
+    console.error(
+      "[scheduleRefresh] could not derive season/week for the earliest " +
+        `upstream game (kickoff ${anchor ? anchor.kickoff : "n/a"}). ` +
+        "If a new NFL season has started, add its Tuesday-noon-ET boundary " +
+        "to SEASON_BOUNDARIES in utils/nflWeek.js.",
+    );
     return { status: "no-current-week" };
   }
 
