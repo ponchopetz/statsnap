@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import useOffscreenCount from "../../hooks/useOffscreenCount.js";
+import { useSlowLoading } from "../../hooks/useSlowLoading.js";
 import { getSchedule } from "../../utils/api.js";
 import "./ScheduleRail.css";
 
@@ -39,11 +40,14 @@ function ScheduleRail() {
 
   const scrollRef = useRef(null);
   const offscreen = useOffscreenCount(scrollRef, [data]);
+  const slow = useSlowLoading(status === "loading");
 
   if (status === "loading") {
     return (
       <div className="sched-rail">
-        <div className="sched-message">SCHEDULE · LOADING</div>
+        <div className="sched-message">
+          {slow ? "SCHEDULE · WAKING FREE SERVER (~20S)" : "SCHEDULE · LOADING"}
+        </div>
       </div>
     );
   }

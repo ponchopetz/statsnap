@@ -5,13 +5,15 @@ import "./Typeahead.css";
  * no fetching. Renders the dropdown based on status, highlights the
  * row at activeIdx, and emits onPick(player) when a row is clicked.
  */
-function Typeahead({ status, results, errorMessage, activeIdx, onPick, listboxId, getOptionId }) {
+function Typeahead({ status, results, errorMessage, activeIdx, onPick, listboxId, getOptionId, slow = false }) {
   if (status === "idle") return null;
 
   return (
     <div className="typeahead" role="listbox" id={listboxId}>
       {status === "loading" && (
-        <div className="typeahead-hint">SEARCHING...</div>
+        <div className="typeahead-hint">
+          {slow ? "WAKING FREE SERVER — FIRST LOAD CAN TAKE ~20S" : "SEARCHING..."}
+        </div>
       )}
 
       {status === "error" && (
