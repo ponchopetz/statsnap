@@ -35,14 +35,17 @@
   top: 0;
   right: 0;
   bottom: 0;
-  width: 96px;
+  width: 120px;
   pointer-events: none;
-  background: linear-gradient(to right, transparent, var(--bg) 55%);
+  background: linear-gradient(to right, transparent, var(--bg) 70%);
   display: flex;
   align-items: center;
   justify-content: flex-end;
   padding-right: 10px;
 }
+/* Solid pill: the count must stay legible even when it sits over the
+   translucent part of the fade (the text is wider than the gradient's
+   fully-opaque zone). */
 .sched-more {
   font-family: var(--display);
   font-size: 12px;
@@ -51,6 +54,9 @@
   text-transform: uppercase;
   color: var(--fg-2);
   white-space: nowrap;
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  padding: 5px 10px;
 }
 .sched-scroll {
   list-style: none;
