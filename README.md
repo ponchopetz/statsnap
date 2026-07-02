@@ -79,10 +79,15 @@ A few choices a reviewer might find worth discussing (each is expanded in the AD
 
 - **One stat, one definition — ratio-of-sums aggregation.** Season rates are
   computed as ratio-of-sums (e.g. completion % is `sum(completions) /
-  sum(attempts)`), never as the mean of per-week rates. This came out of a real
+  sum(attempts)`), not as the mean of per-week rates. This came out of a real
   bug where passing EPA drifted between two tabs; the JS season helpers in
   `frontend/src/utils/stats.js` are now a deliberate mirror of the Python
-  aggregation in `etl/percentiles.py`.
+  aggregation in `etl/percentiles.py`, enforced by a golden-file test
+  (`npm test` in `frontend/`) generated from the Python side.
+  One documented exception: target share, air-yards share, and WOPR are
+  averaged across weeks, because a true ratio-of-sums for a share metric
+  needs per-week *team* totals that aren't stored. Known limitation,
+  slated for V2 alongside team-level data.
 
 - **Idempotent bulk upsert in the ETL.** `load.py` writes with `UpdateOne` +
   `$set` + `upsert=True` keyed on `{ playerId, season }`, so a re-run replaces
