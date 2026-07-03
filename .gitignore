@@ -156,6 +156,8 @@ dist-ssr/
 CLAUDE.md
 AGENTS.md
 StatSnap_Brief.md
+docs/AUDIT_2026-07.md
+docs/FIXES.md
 
 .claude/
 .playwright-mcp/
