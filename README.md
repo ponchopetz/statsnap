@@ -4,6 +4,8 @@ Free, fast advanced NFL skill-position metrics — instant player lookup with no
 
 **Live app:** https://statsnap-frontend-4cxi.onrender.com
 
+**Project Overview Video** https://www.loom.com/share/b30220f822044dfd8bf310789f21960e
+
 StatSnap is a full-stack web app for looking up advanced NFL skill-position
 stats (QB, RB, WR, TE) the way paid services present them — target share, air
 yards share, WOPR, RACR, EPA, CPOE, aDOT — alongside the counting stats and
