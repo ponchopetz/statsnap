@@ -1,0 +1,138 @@
+.sched-rail {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 10px 0;
+}
+.sched-scroll-wrap {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+}
+.sched-week-label {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 14px 0 24px;
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  line-height: 1.4;
+  border-right: 1px solid var(--line);
+}
+.sched-week-label .local {
+  color: var(--fg-3);
+}
+/* Overflow hint flows below the strip, right-aligned — same pattern as
+   ByWeekRail: an overlay fade only obscured the rightmost card, and the
+   scroll-updating count is the clearer affordance. */
+.sched-more-hint {
+  pointer-events: none;
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 24px 0 0;
+}
+.sched-more {
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+.sched-more--hidden {
+  visibility: hidden;
+}
+.sched-scroll {
+  list-style: none;
+  margin: 0;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  padding: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex: 1;
+}
+.sched-scroll::-webkit-scrollbar {
+  display: none;
+}
+.sched-card {
+  flex: 0 0 130px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  margin-right: -1px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: border-color 0.12s;
+  cursor: default;
+}
+@media (hover: hover) {
+  .sched-card:hover {
+    border-color: var(--accent);
+    z-index: 1;
+    position: relative;
+  }
+}
+.sched-card-time {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.sched-matchup {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.sched-team {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+.sched-at {
+  font-family: var(--display);
+  font-size: 10px;
+  color: var(--fg-3);
+  letter-spacing: 0.08em;
+}
+.sched-message {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+}
+
+/* ── sm — 30rem (480px). Tighten the week label (pull it left) so more of
+   the first game card is visible on phones. ── */
+@media (max-width: 30rem) {
+  .sched-week-label {
+    padding: 0 8px 0 14px;
+    font-size: 8px;
+    letter-spacing: 0.05em;
+  }
+  .sched-more-hint {
+    padding-right: 14px;
+  }
+  .sched-more {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+}

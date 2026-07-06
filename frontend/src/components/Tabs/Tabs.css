@@ -1,0 +1,78 @@
+/* Tabs — compound primitive. Brutalist styling matches the rest of StatSnap:
+   90° corners, 1px rules, JetBrains Mono labels, lime active indicator. */
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* The list is a horizontal row with a thin bottom rule. Individual tabs sit on
+   top of that rule and the active tab visually overlaps it with a lime stripe. */
+.tabs-list {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 24px;
+}
+
+.tabs-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  /* The -2px margin pulls the tab down so its 2px bottom border sits exactly on
+     top of the list's 1px bottom rule. Active tab "covers" the rule with lime. */
+  margin-bottom: -2px;
+  padding: 14px 20px;
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 0.12s,
+    border-color 0.12s;
+}
+
+@media (hover: hover) {
+  .tabs-tab:hover {
+    color: var(--fg-2);
+  }
+}
+
+.tabs-tab:focus {
+  outline: none;
+}
+
+/* focus-visible only — keyboard focus shows the ring, mouse clicks don't.
+   Outline inset by -3px keeps it inside the tab's footprint. */
+.tabs-tab:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.tabs-tab-active {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
+
+.tabs-panel {
+  flex: 1;
+}
+
+.tabs-panel:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── sm — 30rem (480px). Fit all four tabs on one line at phone widths. ── */
+@media (max-width: 30rem) {
+  .tabs-tab {
+    padding: 14px 8px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+}

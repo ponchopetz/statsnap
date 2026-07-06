@@ -1,0 +1,102 @@
+/* Typeahead dropdown — anchored to .search-wrap, two-column row layout */
+
+.typeahead {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg);
+  border: 2px solid var(--fg);
+  border-top: 0;
+  max-height: 440px;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.typeahead-item {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.typeahead-item:last-child {
+  border-bottom: 0;
+}
+
+.typeahead-item--no-pos {
+  grid-template-columns: 1fr;
+}
+
+.typeahead-item.active {
+  background: var(--bg-2);
+}
+
+/* Hover gated so a tapped item doesn't stay highlighted on touch; the
+   keyboard/selection .active state above is unaffected. */
+@media (hover: hover) {
+  .typeahead-item:hover {
+    background: var(--bg-2);
+  }
+}
+
+.typeahead-item.active {
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+}
+
+.pos-badge {
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--fg);
+  color: var(--bg);
+  padding: 6px 0;
+  text-align: center;
+  letter-spacing: 0.06em;
+  width: 44px;
+}
+
+.pos-badge.QB { background: var(--accent); color: var(--accent-ink); }
+.pos-badge.RB { background: var(--fg); color: var(--bg); }
+.pos-badge.WR { background: var(--bg-3); color: var(--fg); border: 1px solid var(--line-2); }
+.pos-badge.TE { background: var(--fg-2); color: var(--bg); }
+
+.typeahead-name {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+.typeahead-meta {
+  font-family: var(--display);
+  color: var(--fg-3);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.typeahead-empty,
+.typeahead-hint {
+  padding: 16px 18px;
+  font-family: var(--display);
+  font-size: 12px;
+  color: var(--fg-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.typeahead-hint {
+  border-bottom: 1px solid var(--line);
+}
+
+.typeahead-hint b {
+  color: var(--fg-2);
+  font-weight: 500;
+}

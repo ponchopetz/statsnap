@@ -1,0 +1,8 @@
+/* App shell — pages render their own topbars */
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}

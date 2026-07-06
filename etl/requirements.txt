@@ -1,0 +1,5 @@
+nflreadpy==0.1.5
+polars==1.40.1
+pymongo==4.17.0
+python-dotenv==1.2.2
+certifi==2026.4.22

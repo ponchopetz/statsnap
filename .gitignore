@@ -138,12 +138,26 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# macOS specific 
+# macOS specific
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# Python cache
+__pycache__/
+*.pyc
 
 # Vite specific
 dist/
 dist-ssr/
 *.local
+
+# AI help
+CLAUDE.md
+AGENTS.md
+StatSnap_Brief.md
+docs/AUDIT_2026-07.md
+docs/FIXES.md
+
+.claude/
+.playwright-mcp/

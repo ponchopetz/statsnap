@@ -1,0 +1,77 @@
+/* StatSnap — design tokens and global resets */
+:root {
+  --bg: oklch(0.14 0 0);
+  --bg-2: oklch(0.18 0 0);
+  --bg-3: oklch(0.22 0 0);
+  --fg: oklch(0.97 0 0);
+  --fg-2: oklch(0.78 0 0);
+  --fg-3: oklch(0.56 0 0);
+  --line: oklch(0.28 0 0);
+  --line-2: oklch(0.36 0 0);
+  --accent: oklch(0.88 0.22 128);
+  --accent-ink: oklch(0.18 0.04 128);
+  --danger: oklch(0.7 0.18 28);
+  --density: 1;
+  --display: "JetBrains Mono", ui-monospace, monospace;
+  --sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── Breakpoint scale — desktop-down, max-width, rem-based ──
+   Custom properties can't be used in media query conditions, so these
+   values are hardcoded per component. This legend is the source of truth.
+     64rem (1024px)  stat row reflows six-across → three   (StatRow.css)
+     52rem  (832px)  player page two-column layout stacks  (PlayerPage.css)
+     30rem  (480px)  phone polish: stat row → two-across, type/padding
+                     shrink, keyboard-help strip hides
+*/
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  font-family: var(--sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+input {
+  font-family: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}

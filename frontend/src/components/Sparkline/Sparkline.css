@@ -1,0 +1,94 @@
+/* Shared styles for Sparkline and SparkBlock */
+
+.sparkline {
+  display: block;
+  width: 100%;
+  aspect-ratio: 10 / 1;
+}
+
+.sparkline-fill {
+  fill: var(--accent);
+  fill-opacity: 0.08;
+}
+
+.sparkline-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.sparkline-dot {
+  fill: var(--bg);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.sparkline-dot-extreme {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.sparkline-avg {
+  stroke: var(--fg-3);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  opacity: 0.6;
+}
+
+.sparkblock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--line);
+  padding: 16px;
+}
+
+.sparkblock-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.sparkblock-label {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.sparkblock-stats {
+  display: flex;
+  gap: 16px;
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+
+.sparkblock-stat-label {
+  color: var(--fg-3);
+  margin-right: 4px;
+}
+
+.sparkblock-stat-value {
+  color: var(--fg-2);
+  font-weight: 600;
+}
+
+.sparkblock-chart {
+  border-bottom: 1px solid var(--line);
+}
+
+.sparkblock-axis {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--display);
+  font-size: 10px;
+  color: var(--fg-3);
+  letter-spacing: 0.05em;
+}

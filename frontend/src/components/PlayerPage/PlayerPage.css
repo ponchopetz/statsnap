@@ -1,0 +1,331 @@
+/* PlayerPage — full-page layout for a single player profile */
+
+.player-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ───── Player topbar — back button left, compact search fills the rest ───── */
+
+.player-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--display);
+}
+
+.back-btn {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--fg-2);
+  border: 1px solid var(--line-2);
+  padding: 8px 14px;
+  text-transform: uppercase;
+  transition:
+    color 0.12s,
+    border-color 0.12s;
+}
+
+@media (hover: hover) {
+  .back-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+/* ───── Two-column content area ───── */
+
+.player-content {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+}
+
+/* ───── Identity block (left column) ───── */
+
+.identity {
+  width: 360px;
+  flex-shrink: 0;
+  padding: 28px;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Photo placeholder: diagonal hatch + lime stripe + jersey watermark */
+.id-photo {
+  position: relative;
+  aspect-ratio: 1 / 1.2;
+  background-color: var(--bg-2);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    var(--line) 8px,
+    var(--line) 9px
+  );
+  border-left: 4px solid var(--accent);
+  overflow: hidden;
+}
+
+.id-photo-label {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  border: 1px solid var(--line-2);
+  padding: 4px 8px;
+  background: var(--bg);
+}
+
+.id-photo-jersey {
+  position: absolute;
+  bottom: -20px;
+  right: 16px;
+  font-family: var(--display);
+  font-size: 200px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--bg-3);
+  letter-spacing: -0.04em;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Name and meta */
+
+.id-name {
+  margin: 0;
+  font-weight: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.id-firstname {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--fg-2);
+  letter-spacing: -0.01em;
+}
+
+.id-lastname {
+  font-family: var(--display);
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--fg);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.id-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.id-meta .id-team {
+  color: var(--fg-2);
+  font-weight: 600;
+}
+
+.id-meta .id-sep {
+  color: var(--fg-3);
+}
+
+/* Bio grid: 2-column grid with full-width cells for college and draft */
+
+.bio-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.bio-cell {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+}
+
+.bio-cell-wide {
+  grid-column: 1 / -1;
+}
+
+.bio-label {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.bio-value {
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+/* Stats column header — season selector sits above the tabs, right-aligned.
+   Its bottom rule lets the active season's lime stripe sit on it, mirroring
+   the tablist treatment one row below. */
+.stats-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+
+.stats-header-label {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  padding-bottom: 10px;
+}
+
+/* ───── Stats column placeholder (right) ───── */
+
+.stats {
+  flex: 1;
+  padding: 28px;
+  min-width: 0;
+}
+
+.stats-placeholder {
+  border: 1px dashed var(--line-2);
+  padding: 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.stats-placeholder-label {
+  font-family: var(--display);
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.stats-placeholder-text {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--fg-3);
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+.stats-placeholder-id {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--fg-3);
+  border: 1px solid var(--line);
+  padding: 6px 12px;
+}
+
+/* Status states — loading, error, not_found */
+
+.player-status {
+  flex: 1;
+  min-height: 40vh; /* reserve space so the page doesn't jump when data lands */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  padding: 40px;
+  text-align: center;
+}
+
+.id-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* ── lg — 64rem (1024px). Two-column identity/stats layout stacks. ── */
+@media (max-width: 52rem) {
+  .player-content {
+    flex-direction: column;
+  }
+  .identity {
+    width: 100%;
+    max-width: 360px;
+    margin-inline: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .id-photo {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+/* ── sm — 30rem (480px). Phone polish. ── */
+@media (max-width: 30rem) {
+  .player-topbar {
+    padding: 10px 16px;
+    gap: 12px;
+  }
+  .back-btn {
+    height: 36px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .identity {
+    padding: 18px;
+    gap: 16px;
+  }
+
+  .id-photo {
+    aspect-ratio: 3 / 2;
+  }
+  .id-firstname {
+    font-size: 18px;
+  }
+  .id-lastname {
+    font-size: 28px;
+  }
+  .id-photo-jersey {
+    font-size: 120px;
+  }
+  .stats {
+    padding: 18px;
+  }
+}

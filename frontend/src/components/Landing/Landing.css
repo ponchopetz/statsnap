@@ -1,0 +1,177 @@
+/* Landing page — static layout */
+
+.landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.landing-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
+.landing-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  width: min(780px, 100%);
+  margin: 0 auto;
+  padding: 28px 24px;
+}
+
+.wordmark {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(46px, 10vw, 128px);
+  letter-spacing: -0.03em;
+  line-height: 0.88;
+  text-align: center;
+  text-transform: uppercase;
+  position: relative;
+  background: var(--bg);
+  padding: 12px 24px;
+}
+
+.wordmark .slash {
+  color: var(--accent);
+}
+
+.tagline {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  text-align: center;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 18px;
+  position: relative;
+  background: var(--bg);
+}
+
+.tagline b {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+.search-wrap {
+  width: 100%;
+}
+
+.landing-help {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 24px 24px 32px;
+  margin-top: auto;
+}
+
+.landing-help span b {
+  color: var(--fg-2);
+  font-weight: 500;
+}
+
+/* Recent searches — chips below the search-wrap, persisted to localStorage */
+
+.recent-row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: relative;
+}
+
+/* The chip <button> stays the flex item; the <li> is structural only. */
+.recent-item {
+  display: contents;
+}
+
+.recent-row::before {
+  content: "";
+  position: absolute;
+  inset: -10px -18px;
+  background: radial-gradient(
+    ellipse at center,
+    var(--bg) 0%,
+    color-mix(in oklch, var(--bg) 92%, transparent) 62%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.recent-chip {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--line-2);
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--fg-3);
+  cursor: pointer;
+  transition:
+    color 0.12s,
+    border-color 0.12s;
+  position: relative;
+  z-index: 1;
+}
+
+@media (hover: hover) {
+  .recent-chip:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+/* ── sm — 30rem (480px). Phone polish. See breakpoint legend in styles.css. ── */
+@media (max-width: 30rem) {
+  .tagline {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    padding: 8px 12px;
+  }
+  .tagline-tail {
+    display: none;
+  }
+
+  .landing-inner {
+    justify-content: flex-start;
+    gap: 22px;
+    padding-top: 40px;
+  }
+
+  .kbd {
+    display: none;
+  }
+
+  .recent-chip {
+    padding: 11px 16px;
+  }
+
+  .landing-help {
+    display: none;
+  }
+}

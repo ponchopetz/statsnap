@@ -1,0 +1,37 @@
+name: ETL weekly load
+
+on:
+  schedule:
+    - cron: "17 14 * * 4"   # 14:17 UTC every Thursday
+  workflow_dispatch:          # manual run button in the Actions tab
+
+# Hand-maintained, one edit per year. Set this to the season you want loaded.
+# Bump it to the new year in early September, once that season's Week 1 has
+# actually been played (so nflverse has regular-season rows to pull). Same
+# per-season-config pattern as the schedule week-boundary anchors in the
+# backend; verify against the official schedule each year.
+env:
+  SEASON: "2025"
+
+jobs:
+  load:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: etl
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run the loader
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: python load.py
