@@ -11,7 +11,7 @@ on:
 # per-season-config pattern as the schedule week-boundary anchors in the
 # backend; verify against the official schedule each year.
 env:
-  SEASON: "2025"
+  SEASON: "2026"
 
 jobs:
   load:
