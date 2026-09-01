@@ -557,6 +557,32 @@ radius without reintroducing a network perimeter the free tier cannot provide.
 
 ---
 
+## Process & tooling
+
+### App versioning: semver starting at 1.0.0, sourced from frontend/package.json
+
+Decision: The version shown in the site header (top-right of `SiteHeader.jsx`)
+follows semantic versioning (`MAJOR.MINOR.PATCH`). `frontend/package.json`'s
+`version` field is the single source of truth; `SiteHeader.jsx` imports it
+directly (Vite supports named imports from JSON) rather than hardcoding a
+string. Bumping the version is a one-line edit in one file. `backend/package.json`
+is left at its unused npm-init default since nothing reads or displays it.
+
+The version is deliberately a separate axis from the "Chunk N" counter used
+elsewhere in this project's docs to track dev-session progress — chunks
+measure learning/work sessions, the version measures what's actually live.
+
+Why: The header previously showed a hardcoded `v0.2` with no connection to
+anything, an arbitrary leftover. There are no git tags and no prior changelog
+to anchor a more "precise" historical version, so 1.0.0 was chosen as the
+starting point on the same reasoning the capstone review used: the app is
+live, feature-complete for V1, and has passed instructor review. Going
+forward: patch (`1.0.x`) for bug fixes, minor (`1.x.0`) for new features,
+major (`x.0.0`) for breaking or ground-up redesigns. See `docs/CHANGELOG.md`
+for the running log of what shipped in each version.
+
+---
+
 ## Minor / historical
 
 - **Dakota dropped:** not exposed in the player stats endpoint; replaced with
