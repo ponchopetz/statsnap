@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { version } from "../../../package.json";
 import "./SiteHeader.css";
 
 // Persistent global header rendered above every route (App.jsx). The wordmark
@@ -13,7 +14,7 @@ function SiteHeader() {
         <span>
           <span className="live-dot" /> LIVE<span className="meta-detail"> · SKILL POSITIONS ONLY</span>
         </span>
-        <span>v0.2</span>
+        <span>v{version}</span>
       </div>
     </header>
   );
