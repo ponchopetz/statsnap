@@ -5,7 +5,7 @@ import certifi
 from pymongo import MongoClient, UpdateOne, ASCENDING, DESCENDING
 from dotenv import load_dotenv
 
-from transform import transform
+from transform import transform, SEASON
 
 # ── Environment ───────────────────────────────────────────────────────────────
 
@@ -211,7 +211,24 @@ def load():
 
     # Step 1: run the full transform pipeline
     print("Running transform...")
-    clean_df, advanced_map = transform()
+    try:
+        clean_df, advanced_map = transform()
+    except ConnectionError as e:
+        # nflverse 404s a season's file rather than returning an empty one
+        # until that season's data pipeline creates it, so a pull for a
+        # season that hasn't started yet raises here instead of reaching
+        # the empty-docs guard below. Only swallow a clean 404 — any other
+        # connection failure (real outage, timeout) still surfaces as a
+        # failed run, which is what we want.
+        status = getattr(getattr(e.__cause__, "response", None), "status_code", None)
+        if status == 404:
+            print(
+                f"nflverse has no player-stats file for season {SEASON} yet "
+                "(season hasn't started). Skipping load; this is a clean "
+                "no-op, not a failure."
+            )
+            return
+        raise
     print(f"Transform complete: {len(clean_df)} rows")
 
     # Step 2: reshape flat DataFrame → list of player-season dicts
