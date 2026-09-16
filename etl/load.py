@@ -17,8 +17,9 @@ COLLECTION_NAME    = "playerstats"
 
 # ── Column lists ──────────────────────────────────────────────────────────────
 
-# These stay at the top level of the document — same value on every week
-# row for a given player, so we hoist them up once with pl.first().
+# These stay at the top level of the document. Hoisted once per document
+# with pl.last() so team/teamCity reflect the latest loaded week (see
+# reshape); the roster-derived fields are identical on every row anyway.
 TOP_LEVEL_FIELDS = [
     "displayName",
     "position",
@@ -43,6 +44,9 @@ TOP_LEVEL_FIELDS = [
 # transform.py, so it carries no information worth storing.
 WEEK_FIELDS = [
     "week",
+    # The team the player was on THAT week. Differs from the top-level team
+    # only for players traded or claimed mid-season.
+    "team",
     # QB
     "attempts",
     "completions",
@@ -107,8 +111,12 @@ def reshape(df):
          through week 17). group_by makes no ordering guarantee on its own.
       2. group_by playerId + season — each unique combination becomes one
          document.
-      3. agg pulls identity fields up to the top level (pl.first) and
+      3. agg pulls identity fields up to the top level (pl.last) and
          packages week-level stats into a list of structs (pl.struct + list).
+         pl.last, not pl.first: after the week sort it is the LATEST week's
+         value, so a player traded mid-season is stamped with the team he
+         finished the season on. Roster-derived fields are identical on every
+         row, so first/last only matters for team and teamCity.
       4. to_dicts() converts the Polars DataFrame into plain Python dicts
          that pymongo knows how to write.
     """
@@ -119,7 +127,7 @@ def reshape(df):
         .group_by(["playerId", "season"])
         .agg(
             # Identity fields — hoist to top level, same value every week
-            [pl.first(f) for f in TOP_LEVEL_FIELDS]
+            [pl.last(f) for f in TOP_LEVEL_FIELDS]
             +
             # Week-level stats — package each row as an object, collect into list
             [pl.struct(WEEK_FIELDS).alias("weeks")]

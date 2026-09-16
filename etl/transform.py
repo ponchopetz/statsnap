@@ -201,18 +201,32 @@ def enrich_with_identity(stats_df, rosters_df, draft_df):
     derived via lookup from the NFL_TEAM_CITIES dict; unknown
     abbreviations pass through unchanged.
     """
-    rosters_slim = rosters_df.select([
-        "gsis_id", "jersey_number", "birth_date", "height",
-        "weight", "college", "years_exp", "headshot_url",
-    ]).rename({"gsis_id": "player_id"})
-    draft_slim = draft_df.select([
-        "gsis_id", "season", "round", "pick",
-    ]).rename({
-        "gsis_id": "player_id",
-        "season": "draft_year",
-        "round":  "draft_round",
-        "pick":   "draft_pick",
-    })
+    # A player can appear on more than one roster row in a season (seen in
+    # the 2025 file). A LEFT join on a duplicated key would duplicate every
+    # one of that player's weekly rows, inflating gamesPlayed and every sum.
+    # Keep the last row per player: the most recent roster entry.
+    rosters_slim = (
+        rosters_df.select([
+            "gsis_id", "jersey_number", "birth_date", "height",
+            "weight", "college", "years_exp", "headshot_url",
+        ])
+        .rename({"gsis_id": "player_id"})
+        .unique(subset=["player_id"], keep="last", maintain_order=True)
+    )
+    # Draft picks are one row per pick, but guard the join key the same way.
+    draft_slim = (
+        draft_df.select([
+            "gsis_id", "season", "round", "pick",
+        ])
+        .rename({
+            "gsis_id": "player_id",
+            "season": "draft_year",
+            "round":  "draft_round",
+            "pick":   "draft_pick",
+        })
+        .filter(col("player_id").is_not_null())
+        .unique(subset=["player_id"], keep="first", maintain_order=True)
+    )
     enriched = (
         stats_df
         .join(rosters_slim, on="player_id", how="left")

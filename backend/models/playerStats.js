@@ -5,6 +5,9 @@ const mongoose = require('mongoose');
 const weekSchema = new mongoose.Schema(
   {
     week: { type: Number, required: true },
+    // Team that week; differs from the document's team only after a trade.
+    // Absent on documents loaded before this field existed.
+    team: { type: String },
 
     // QB metrics
     attempts:        { type: Number },

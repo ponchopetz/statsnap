@@ -39,3 +39,27 @@ describe("GameLog", () => {
     expect(c[5]).toBe("—"); // CMP% with no attempts
   });
 });
+
+
+describe("GameLog for a traded player", () => {
+  it("adds a TEAM column only when the season spans more than one team", () => {
+    const traded = qbSeason({
+      weeks: [
+        week({ week: 1, team: "NYG", opponent: "DAL", attempts: 30, completions: 20 }),
+        week({ week: 8, team: "PHI", opponent: "DAL", attempts: 30, completions: 20 }),
+      ],
+    });
+    render(<GameLog player={traded} />);
+    expect(screen.getByRole("columnheader", { name: "TEAM" })).toBeInTheDocument();
+    const r = rows(); // week 1, six DNP gap rows, week 8
+    expect(r).toHaveLength(8);
+    expect(cells(r[0]).slice(0, 3)).toEqual(["1", "NYG", "vs DAL"]);
+    expect(cells(r[1]).slice(0, 4)).toEqual(["2", "—", "—", "DNP"]);
+    expect(cells(r[7]).slice(0, 2)).toEqual(["8", "PHI"]);
+  });
+
+  it("omits the TEAM column for a one-team season, including legacy weeks without a team", () => {
+    render(<GameLog player={qbSeason()} />);
+    expect(screen.queryByRole("columnheader", { name: "TEAM" })).not.toBeInTheDocument();
+  });
+});

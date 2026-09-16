@@ -56,6 +56,11 @@ export default function GameLog({ player }) {
     return <div className="gamelog-empty">No game log available.</div>;
   }
 
+  // A traded player's weeks carry two team codes. Show the team column only
+  // then; for everyone else it would repeat the identity block.
+  const teams = new Set(weeks.map((w) => w.team).filter(Boolean));
+  const showTeam = teams.size > 1;
+
   // Fill interior gaps (bye, inactive, injured) with DNP marker rows so a
   // jump from W9 to W11 reads as intentional rather than missing data.
   // Only gaps BETWEEN played games are filled — the data can't distinguish
@@ -81,6 +86,7 @@ export default function GameLog({ player }) {
           <thead>
             <tr>
               <th className="ctx">WK</th>
+              {showTeam && <th className="ctx">TEAM</th>}
               <th className="ctx">OPP</th>
               <th className="ctx">RESULT</th>
               {columns.map((c) => <th key={c.k}>{c.k}</th>)}
@@ -92,6 +98,7 @@ export default function GameLog({ player }) {
                 return (
                   <tr key={w.week} className="gamelog-dnp">
                     <td className="ctx">{w.week}</td>
+                    {showTeam && <td className="ctx">—</td>}
                     <td className="ctx">—</td>
                     <td className="ctx">DNP</td>
                     {columns.map((c) => <td key={c.k}>—</td>)}
@@ -104,6 +111,7 @@ export default function GameLog({ player }) {
               return (
                 <tr key={w.week}>
                   <td className="ctx">{w.week}</td>
+                  {showTeam && <td className="ctx">{w.team}</td>}
                   <td className="ctx">{oppPrefix}{w.opponent}</td>
                   <td className={`ctx gamelog-result ${cls}`}>{score}</td>
                   {columns.map((c) => <td key={c.k}>{c.value(w)}</td>)}
