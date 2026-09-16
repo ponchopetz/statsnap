@@ -39,6 +39,7 @@ app.use('/schedule', scheduleRouter);
 // to the 404 handler like any unknown path.
 if (process.env.FEATURE_LEADERBOARDS === 'true') {
   app.use('/leaderboards', require('./routes/leaderboards'));
+  app.use('/seasons', require('./routes/seasons'));
 }
 
 app.get('/', (req, res) => {

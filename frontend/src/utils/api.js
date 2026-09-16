@@ -61,7 +61,7 @@ export async function getSchedule(signal) {
 }
 
 /**
- * PROTOTYPE (flag: leaderboards). Fetch the top qualified players for one
+ * Fetch the top qualified players for one
  * season, position, and advanced metric. The backend ranks by the ETL's
  * stored percentile map, so ordering has exactly one definition; the rows
  * carry weeks so the client can format the raw value with stats.js.
@@ -79,5 +79,19 @@ export async function getLeaderboard({ season, position, metric, limit = 25 }, s
     throw err;
   }
 
+  return response.json();
+}
+
+/**
+ * Fetch the seasons present in the stats collection, newest first.
+ * Returns: Promise<{ seasons: number[] }>
+ */
+export async function getSeasons(signal) {
+  const response = await fetch(`${API_BASE_URL}/seasons`, { signal });
+  if (!response.ok) {
+    const err = new Error(`Seasons fetch failed: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
   return response.json();
 }
