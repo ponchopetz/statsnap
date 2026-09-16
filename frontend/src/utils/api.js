@@ -59,3 +59,25 @@ export async function getSchedule(signal) {
 
   return response.json();
 }
+
+/**
+ * PROTOTYPE (flag: leaderboards). Fetch the top qualified players for one
+ * season, position, and advanced metric. The backend ranks by the ETL's
+ * stored percentile map, so ordering has exactly one definition; the rows
+ * carry weeks so the client can format the raw value with stats.js.
+ *
+ * Returns: Promise<{ season, position, metric, count, rows }>
+ * Throws:  Error with .status on non-2xx (404 when the backend flag is off).
+ */
+export async function getLeaderboard({ season, position, metric, limit = 25 }, signal) {
+  const params = new URLSearchParams({ season, position, metric, limit });
+  const response = await fetch(`${API_BASE_URL}/leaderboards?${params}`, { signal });
+
+  if (!response.ok) {
+    const err = new Error(`Leaderboard fetch failed: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+
+  return response.json();
+}

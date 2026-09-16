@@ -1,0 +1,278 @@
+/* Leaderboards — PROTOTYPE (flag: leaderboards). */
+
+.lb-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.lb-topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--display);
+}
+
+.lb-topbar .back-btn {
+  text-decoration: none;
+}
+
+.lb-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lb-title-main {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.lb-title-sub {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+}
+
+.lb-controls {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--display);
+}
+
+.lb-positions {
+  display: flex;
+  border: 1px solid var(--line-2);
+}
+
+.lb-pos-btn {
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  padding: 8px 14px;
+  border-right: 1px solid var(--line-2);
+}
+
+.lb-pos-btn:last-child {
+  border-right: 0;
+}
+
+.lb-pos-btn--active {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+@media (hover: hover) {
+  .lb-pos-btn:not(.lb-pos-btn--active):hover {
+    color: var(--accent);
+  }
+}
+
+.lb-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+}
+
+.lb-select {
+  font-family: var(--display);
+  font-size: 12px;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  padding: 6px 10px;
+}
+
+.lb-body {
+  padding: 28px;
+}
+
+.lb-panel {
+  border: 1px solid var(--line);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lb-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.lb-head-label {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.lb-head-season {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+
+.lb-status {
+  padding: 32px 16px;
+  text-align: center;
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+}
+
+.lb-scroll {
+  overflow-x: auto;
+}
+
+.lb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--display);
+  white-space: nowrap;
+}
+
+.lb-table th {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  text-align: right;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.lb-table td {
+  font-size: 13px;
+  color: var(--fg);
+  text-align: right;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.lb-table th.ctx,
+.lb-table td.ctx {
+  text-align: left;
+}
+
+.lb-rank {
+  width: 36px;
+  color: var(--fg-3);
+}
+
+.lb-table tbody tr:nth-child(-n + 3) .lb-rank {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.lb-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.lb-name {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .lb-player:hover .lb-name {
+    color: var(--accent);
+  }
+}
+
+.lb-team {
+  color: var(--fg-2);
+}
+
+.lb-value {
+  font-weight: 700;
+}
+
+.lb-pct-head {
+  min-width: 160px;
+}
+
+.lb-pct {
+  min-width: 160px;
+}
+
+.lb-bar {
+  display: inline-block;
+  vertical-align: middle;
+  width: 100px;
+  height: 6px;
+  background: var(--line-2);
+  margin-right: 10px;
+  position: relative;
+}
+
+.lb-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+}
+
+.lb-pct-num {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--fg-3);
+  display: inline-block;
+  width: 32px;
+  text-align: right;
+}
+
+.lb-footnote {
+  font-family: var(--display);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+/* ── sm — 30rem (480px). ── */
+@media (max-width: 30rem) {
+  .lb-topbar,
+  .lb-controls {
+    padding: 10px 16px;
+    gap: 12px;
+  }
+  .lb-body {
+    padding: 16px;
+  }
+  .lb-bar {
+    width: 56px;
+  }
+  .lb-pct,
+  .lb-pct-head {
+    min-width: 0;
+  }
+}
