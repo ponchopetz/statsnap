@@ -14,6 +14,18 @@ function mean(values) {
   return v.reduce((a, b) => a + b, 0) / v.length;
 }
 
+function record(weeks) {
+  const tally = { W: 0, L: 0, T: 0 };
+  for (const w of weeks) if (w.result in tally) tally[w.result] += 1;
+  return tally.T ? `${tally.W}-${tally.L}-${tally.T}` : `${tally.W}-${tally.L}`;
+}
+
+/** Team record over the last N games and the season, from the stored results. */
+export function formRecord(player) {
+  const weeks = player.weeks ?? [];
+  return { recent: record(weeks.slice(-FORM_WINDOW)), season: record(weeks) };
+}
+
 /**
  * @returns {Array<{ key, label, recent: number|null, season: number|null,
  *   delta: number|null, trend: "hot"|"cold"|"even"|null, format }>}

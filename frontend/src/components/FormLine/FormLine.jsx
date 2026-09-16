@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { buildForm, FORM_WINDOW } from "../../utils/form.js";
+import { buildForm, formRecord, FORM_WINDOW } from "../../utils/form.js";
 import "./FormLine.css";
 
 // LABS (flag: form) — the last four games against the season, one cell per
@@ -11,6 +11,9 @@ function FormLine({ player }) {
 
   const games = player.weeks?.length ?? 0;
   const window = Math.min(FORM_WINDOW, games);
+  // A sixth cell (team record) keeps this grid the same shape as the
+  // six-cell stat row above it at every breakpoint.
+  const rec = formRecord(player);
 
   return (
     <section className="form-line" aria-label="Recent form">
@@ -19,6 +22,14 @@ function FormLine({ player }) {
         <span className="form-line-sub">LAST {window} VS SEASON AVG · PER GAME · LABS</span>
       </div>
       <div className="form-line-grid">
+        <div className="form-cell">
+          <span className="form-cell-label">RECORD</span>
+          <span className="form-cell-value">{rec.recent}</span>
+          <span className="form-cell-meta">
+            <span>SZN {rec.season}</span>
+            <span className="form-cell-tag">TEAM W-L</span>
+          </span>
+        </div>
         {rows.map((r) => (
           <div key={r.key} className={"form-cell" + (r.trend ? ` form-cell--${r.trend}` : "")}>
             <span className="form-cell-label">{r.label}</span>

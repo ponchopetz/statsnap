@@ -40,7 +40,9 @@ export function CardSvg({ player, svgRef }) {
 
   const cellW = 640 / rows.length;
   const advX = 720;
-  const advW = 420;
+  const advW = 440;
+  const barX = advX + 190;
+  const barW = 150;
 
   return (
     <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`${player.displayName} ${player.season} stat card`} xmlns="http://www.w3.org/2000/svg">
@@ -54,7 +56,8 @@ export function CardSvg({ player, svgRef }) {
       </text>
       <line x1={40} y1={72} x2={W - 40} y2={72} stroke={line} />
 
-      <text x={W - 40} y={H - 40} fill={line} fontFamily={MONO} fontSize={260} fontWeight={800} textAnchor="end" opacity={0.6}>
+      {/* Jersey watermark in the otherwise empty lower-left quadrant */}
+      <text x={660} y={H - 60} fill={line} fontFamily={MONO} fontSize={230} fontWeight={800} textAnchor="end" opacity={0.55}>
         {player.jerseyNumber ?? ""}
       </text>
 
@@ -67,7 +70,7 @@ export function CardSvg({ player, svgRef }) {
         return (
           <g key={r.key}>
             <text x={x} y={262} fill={fg3} fontFamily={MONO} fontSize={11} letterSpacing={2}>{r.label}</text>
-            <text x={x} y={306} fill={fg} fontFamily={MONO} fontSize={36} fontWeight={800}>{r.format(r.value(weeks, player))}</text>
+            <text x={x} y={302} fill={fg} fontFamily={MONO} fontSize={26} fontWeight={800} letterSpacing={-1}>{r.format(r.value(weeks, player))}</text>
             {i > 0 && <line x1={x - 12} y1={240} x2={x - 12} y2={320} stroke={line} />}
           </g>
         );
@@ -83,10 +86,10 @@ export function CardSvg({ player, svgRef }) {
         return (
           <g key={row.k}>
             <text x={advX} y={y + 4} fill={fg2} fontFamily={MONO} fontSize={12}>{row.k}</text>
-            <rect x={advX + 190} y={y - 4} width={advW - 260} height={8} fill={line} />
-            {pct != null && <rect x={advX + 190} y={y - 4} width={(advW - 260) * pct} height={8} fill={accent} />}
+            <rect x={barX} y={y - 4} width={barW} height={8} fill={line} />
+            {pct != null && <rect x={barX} y={y - 4} width={barW * pct} height={8} fill={accent} />}
+            <text x={barX + barW + 40} y={y + 4} fill={fg3} fontFamily={MONO} fontSize={10} textAnchor="end">{pct != null ? `P${Math.round(pct * 100)}` : "—"}</text>
             <text x={advX + advW} y={y + 4} fill={fg} fontFamily={MONO} fontSize={14} fontWeight={700} textAnchor="end">{row.v}</text>
-            <text x={advX + advW - 90} y={y + 4} fill={fg3} fontFamily={MONO} fontSize={10} textAnchor="end">{pct != null ? `P${Math.round(pct * 100)}` : "—"}</text>
           </g>
         );
       })}

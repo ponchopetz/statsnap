@@ -18,7 +18,9 @@ describe("FormLine", () => {
   it("renders one cell per chartable headline stat with a trend tag", () => {
     render(<FormLine player={qbSeason({ weeks: qbWeeks([100, 100, 100, 100, 200, 200, 200, 200]) })} />);
     const cells = document.querySelectorAll(".form-cell");
-    expect(cells).toHaveLength(5);
+    expect(cells).toHaveLength(6); // record + five chartable stats, matching the stat row
+    expect(cells[0]).toHaveTextContent("RECORD");
+    expect(cells[0]).toHaveTextContent("4-0");
     const yds = [...cells].find((c) => c.textContent.includes("PASS YDS"));
     expect(yds).toHaveClass("form-cell--hot");
     expect(yds).toHaveTextContent("200");

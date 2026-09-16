@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildForm, FORM_WINDOW } from "../form.js";
+import { buildForm, formRecord, FORM_WINDOW } from "../form.js";
 import { ageInSeason, arcOptions, buildCareerArc } from "../careerArc.js";
 import { qbSeason, week } from "../../test/fixtures.js";
 
@@ -33,6 +33,13 @@ describe("buildForm", () => {
 
   it("returns [] for an unsupported position", () => {
     expect(buildForm({ position: "K", weeks: [] })).toEqual([]);
+  });
+
+  it("formRecord tallies the last window and the season, showing ties only when present", () => {
+    const weeks = ["W", "L", "W", "W", "T", "L"].map((result, i) => week({ week: i + 1, result }));
+    expect(formRecord({ weeks })).toEqual({ recent: "2-1-1", season: "3-2-1" });
+    expect(formRecord({ weeks: weeks.slice(0, 4) })).toEqual({ recent: "3-1", season: "3-1" });
+    expect(formRecord({})).toEqual({ recent: "0-0", season: "0-0" });
   });
 });
 

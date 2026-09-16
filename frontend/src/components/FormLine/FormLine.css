@@ -35,7 +35,7 @@
 
 .form-line-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .form-cell {
@@ -49,6 +49,10 @@
 
 .form-cell:last-child {
   border-right: 0;
+}
+
+.form-cell {
+  border-bottom: 1px solid var(--line);
 }
 
 .form-cell--hot {
@@ -99,9 +103,6 @@
 @media (max-width: 64rem) {
   .form-line-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .form-cell {
-    border-bottom: 1px solid var(--line);
   }
 }
 
