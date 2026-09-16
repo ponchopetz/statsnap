@@ -29,7 +29,7 @@ describe("season sums and averages", () => {
     expect(sumWeeks([], "attempts")).toBe(0);
     expect(sumWeeks(null, "attempts")).toBe(0);
     expect(sumWeeks(undefined, "attempts")).toBe(0);
-    expect(averageWeeks([], "targetShare")).toBe(0);
+    expect(averageWeeks([], "targetShare")).toBeNull();
     expect(weekSeries(null, "x")).toEqual([]);
   });
 
@@ -39,8 +39,9 @@ describe("season sums and averages", () => {
     expect(averageWeeks(weeks, "x")).toBe(6);
   });
 
-  it("average returns 0 (not NaN) when every week is null", () => {
-    expect(averageWeeks([{ x: null }, {}], "x")).toBe(0);
+  it("average returns null (not 0 or NaN) when every week is null", () => {
+    // Mirrors Polars mean(): no basis to average means no value.
+    expect(averageWeeks([{ x: null }, {}], "x")).toBeNull();
   });
 
   it("weekSeries keeps nulls so a DNP week is not drawn as zero", () => {
@@ -84,6 +85,12 @@ describe("ratio-of-sums helpers", () => {
     const weeks = [{ attempts: 12, passingAirYards: 0, passingYards: 70 }];
     expect(seasonAdot(weeks)).toBe(0);
     expect(seasonPacr(weeks)).toBeNull();
+  });
+
+  it("negative season air yards: aDOT stays a real number, PACR/RACR are null", () => {
+    expect(seasonAdot([{ attempts: 10, passingAirYards: -12, passingYards: 50 }])).toBeCloseTo(-1.2, 10);
+    expect(seasonPacr([{ attempts: 10, passingAirYards: -12, passingYards: 50 }])).toBeNull();
+    expect(seasonRacr([{ receivingAirYards: -5, receivingYards: 40 }, { receivingAirYards: -8, receivingYards: 20 }])).toBeNull();
   });
 
   it("a null-EPA week drops its attempts from the denominator", () => {
@@ -157,7 +164,8 @@ describe("buildAdvancedRows", () => {
 
   it("tolerates a document with no weeks array at all", () => {
     const rows = buildAdvancedRows({ position: "WR", advanced: { targetShare: 0.5 } });
-    expect(rows.find((r) => r.k === "Target Share")).toEqual({ k: "Target Share", bar: 0.5, v: "0.0%" });
+    expect(rows.find((r) => r.k === "Target Share")).toEqual({ k: "Target Share", bar: 0.5, v: "—" });
+    expect(rows.find((r) => r.k === "WOPR").v).toBe("—");
     expect(rows.find((r) => r.k === "RACR").v).toBe("—");
   });
 
