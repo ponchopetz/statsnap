@@ -46,13 +46,13 @@ describe("Leaderboards", () => {
     expect(await screen.findAllByRole("row")).toHaveLength(2); // header + Alpha
   });
 
-  it("tells the user when the backend flag is off", async () => {
+  it("tells the user when the API has no leaderboards route", async () => {
     getSeasons.mockResolvedValue({ seasons: [2025] });
     const err = new Error("Leaderboard fetch failed: 404");
     err.status = 404;
     getLeaderboard.mockRejectedValue(err);
     renderPage();
-    expect(await screen.findByText(/SWITCHED OFF ON THIS API/)).toBeInTheDocument();
+    expect(await screen.findByText(/NOT AVAILABLE ON THIS API/)).toBeInTheDocument();
   });
 
   it("switching position resets the metric to that position's first ranked metric", async () => {

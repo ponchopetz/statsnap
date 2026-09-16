@@ -176,7 +176,35 @@
   }
 }
 
-/* Labs row — PROTOTYPE entry points, rendered only when a flag is on */
+/* Tools nav — Compare and Leaderboards, always present under the search */
+
+.landing-nav {
+  display: flex;
+  gap: 8px;
+  position: relative;
+  background: var(--bg);
+  padding: 0 10px;
+}
+
+.landing-nav-link {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--fg-2);
+  text-decoration: none;
+  border: 1px solid var(--line-2);
+  padding: 8px 14px;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+@media (hover: hover) {
+  .landing-nav-link:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+/* Labs row — flagged prototypes, rendered only when a flag is on */
 
 .labs-row {
   display: flex;

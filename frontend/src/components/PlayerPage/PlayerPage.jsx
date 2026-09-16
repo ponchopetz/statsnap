@@ -12,7 +12,6 @@ import Career from "../Career/Career.jsx";
 import SeasonSelector from "../SeasonSelector/SeasonSelector.jsx";
 import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
 import Splits from "../Splits/Splits.jsx";
-import { isFlagEnabled } from "../../utils/flags.js";
 import "./PlayerPage.css";
 
 function PlayerPage() {
@@ -76,14 +75,12 @@ function PlayerPage() {
           onSelect={(player) => navigate(`/players/${player.playerId}`)}
         />
 
-        {isFlagEnabled("compare") && (
-          <Link
-            className="back-btn compare-btn"
-            to={`/compare?a=${encodeURIComponent(playerId)}${selectedSeason ? `&season=${selectedSeason}` : ""}`}
-          >
-            COMPARE
-          </Link>
-        )}
+        <Link
+          className="back-btn compare-btn"
+          to={`/compare?a=${encodeURIComponent(playerId)}${selectedSeason ? `&season=${selectedSeason}` : ""}`}
+        >
+          COMPARE
+        </Link>
       </header>
 
       {status === "loading" && (
@@ -194,7 +191,7 @@ function PlayerPage() {
                 <Tabs.Tab id="overview">OVERVIEW</Tabs.Tab>
                 <Tabs.Tab id="advanced">ADVANCED</Tabs.Tab>
                 <Tabs.Tab id="gamelog">GAME LOG</Tabs.Tab>
-                {isFlagEnabled("splits") && <Tabs.Tab id="splits">SPLITS</Tabs.Tab>}
+                <Tabs.Tab id="splits">SPLITS</Tabs.Tab>
                 <Tabs.Tab id="career">CAREER</Tabs.Tab>
               </Tabs.List>
 
@@ -210,11 +207,9 @@ function PlayerPage() {
                 <GameLog player={player} />
               </Tabs.Panel>
 
-              {isFlagEnabled("splits") && (
-                <Tabs.Panel id="splits">
-                  <Splits player={player} />
-                </Tabs.Panel>
-              )}
+              <Tabs.Panel id="splits">
+                <Splits player={player} />
+              </Tabs.Panel>
 
               <Tabs.Panel id="career">
                 <Career data={data} />

@@ -2,10 +2,10 @@ import { buildSplits, SPLIT_COLUMNS } from "../../utils/splits.js";
 import "./Splits.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PROTOTYPE (flag: splits) — situational splits for the selected season.
-// Home/away, wins/losses, first/second half. Purely derived from the stored
-// weeks; no new data, no new endpoint. Every cell is the season definition
-// applied to a filtered weeks array (see utils/splits.js).
+// Splits — situational splits for the selected season: home/away,
+// wins/losses, in/out of division, first/second half. Purely derived from
+// the stored weeks; no new data, no new endpoint. Every cell is the season
+// definition applied to a filtered weeks array (see utils/splits.js).
 // ─────────────────────────────────────────────────────────────────────────────
 
 function Splits({ player }) {

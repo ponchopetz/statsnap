@@ -1,4 +1,4 @@
-/* Splits — PROTOTYPE (flag: splits). Table grammar borrowed from Career. */
+/* Splits — table grammar shared with Career. */
 
 .splits-panel {
   border: 1px solid var(--line);

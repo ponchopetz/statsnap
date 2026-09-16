@@ -95,9 +95,7 @@ function Leaderboards() {
   } else if (status === "error") {
     body = (
       <div className="lb-status">
-        {errorStatus === 404
-          ? "LEADERBOARDS ARE SWITCHED OFF ON THIS API (FEATURE_LEADERBOARDS)"
-          : "FAILED TO LOAD LEADERBOARD"}
+        {errorStatus === 404 ? "LEADERBOARDS ARE NOT AVAILABLE ON THIS API" : "FAILED TO LOAD LEADERBOARD"}
       </div>
     );
   } else if (!visibleRows.length) {

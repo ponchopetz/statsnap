@@ -4,11 +4,6 @@ import request from "supertest";
 import { startMongo, stopMongo, clearCollections } from "./helpers/mongo.js";
 import { makePlayer, makeWeek } from "./helpers/fixtures.js";
 
-// The routes are mounted behind FEATURE_LEADERBOARDS; setup.js does not set
-// it, so this file sets it before app.js loads (module-level require below
-// runs after the top-level statements in this file).
-process.env.FEATURE_LEADERBOARDS = "true";
-
 const require = createRequire(import.meta.url);
 const app = require("../app.js");
 const PlayerStats = require("../models/playerStats.js");

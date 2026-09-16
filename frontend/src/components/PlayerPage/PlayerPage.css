@@ -38,7 +38,7 @@
   }
 }
 
-/* COMPARE link (PROTOTYPE, flag: compare) shares the back-button treatment */
+/* COMPARE link shares the back-button treatment */
 .compare-btn {
   text-decoration: none;
   flex-shrink: 0;

@@ -1,24 +1,23 @@
-// Feature flags for prototype features. Everything defaults OFF so the
-// production build behaves exactly as before. A flag is on when the first
-// of these says so:
+// Feature flags for LABS prototypes. Everything defaults OFF so the
+// production build behaves exactly as before. Compare, Splits, and
+// Leaderboards graduated out of this file in 1.1.0 and are always on.
+// A flag is on when the first of these says so:
 //
 //   1. localStorage "statsnap:flags"  → {"compare": true}   (per browser)
 //   2. Vite env  VITE_FLAG_COMPARE=true                       (per build)
 //   3. the default below
 //
 // A demo link can switch flags on for a browser without a rebuild:
-//   /?labs=compare,splits,leaderboards    (persisted, see applyFlagsFromUrl)
+//   /?labs=<name>,<name>                  (persisted, see applyFlagsFromUrl)
 //   /?labs=off                            (clears every override)
 //
 // Flags are read at render time, not subscribed to, so a change needs a
 // page load to take effect. That is deliberate: prototypes should never
 // pop into an existing session.
 
-export const FLAG_DEFAULTS = {
-  compare: false,
-  splits: false,
-  leaderboards: false,
-};
+// Human labels double as the LABS row on the landing page.
+export const FLAG_DEFAULTS = {};
+export const FLAG_LABELS = {};
 
 export const FLAGS_STORAGE_KEY = "statsnap:flags";
 

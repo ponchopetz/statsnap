@@ -34,13 +34,8 @@ app.use(limiter);
 app.use('/players', playersRouter);
 app.use('/schedule', scheduleRouter);
 
-// PROTOTYPE routes are mounted only behind an explicit env flag so a default
-// deployment exposes exactly the V1 surface. Unmounted routes fall through
-// to the 404 handler like any unknown path.
-if (process.env.FEATURE_LEADERBOARDS === 'true') {
-  app.use('/leaderboards', require('./routes/leaderboards'));
-  app.use('/seasons', require('./routes/seasons'));
-}
+app.use('/leaderboards', require('./routes/leaderboards'));
+app.use('/seasons', require('./routes/seasons'));
 
 app.get('/', (req, res) => {
   res.status(200).json({ status: 'StatSnap API is running' });

@@ -374,16 +374,54 @@ can observe tab changes even when not owning the state.
 
 ### Panel dispatch: three components vs config-map
 
-Decision: Choose the dispatch shape by the axis of variation. Overview uses
-three sub-components (`OverviewQB`/`OverviewRB`/`OverviewReceiver`) because the
-layouts genuinely differ. Advanced, Game Log, and Career each use a single
-component plus a position-keyed config map, because only the column/row list
-varies and the structure is one table.
+Decision: Choose the dispatch shape by the axis of variation. Advanced, Game
+Log, Career, and Splits each use a single component plus a position-keyed
+config map, because only the column/row list varies and the structure is one
+table. Overview started as three sub-components (`OverviewQB`/`OverviewRB`/
+`OverviewReceiver`) on the theory that its layouts differed; by 1.1.0 they had
+converged to the same structure, so Overview is now one `OverviewPanel` driven
+by the headline list in `utils/headline.js`.
 
 Why: When the variation is "what structure," separate components are clearest.
 When the variation is "which columns," a config map is lighter and keeps one
 rendering path. Picking the pattern to match the axis of variation is the
-explainable choice.
+explainable choice, and re-checking the axis when the code converges is how
+the three Overview files were retired without a behaviour change (the Overview
+render test pins each position's cells against the config).
+
+### Headline stats have one list
+
+Decision (1.1.0): The six headline cells per position live in
+`frontend/src/utils/headline.js` (value, display format, sparkline series,
+comparison direction). Overview, Compare, and any future surface read that
+list. It joins `stats.js` (season math) and `format.js` (display) as the third
+piece of the one-definition rule: the math, the formatting, and the list of
+which stats are headline stats each have exactly one home.
+
+### Compare, Splits, Leaderboards
+
+Decision (1.1.0): Three features promoted from flagged prototypes. Compare
+builds its rows from `headline.js` and `buildAdvancedRows`, so nothing on
+that page has its own stat definition; each slot has its own season, so two
+seasons can be compared. Splits filters the stored weeks and applies the
+season definition to the subset, the Career pseudo-document idea one level
+down. Leaderboards rank by the ETL-stored percentile through a new
+`GET /leaderboards` so ordering is defined once in `percentiles.py`; the raw
+value column is formatted client-side by the same config row the Advanced
+panel uses. `GET /seasons` reports what is loaded so the page never hardcodes
+years. Tradeoff accepted for now: leaderboard rows carry `weeks` (a few
+hundred KB for 60 rows) rather than a third, Mongo-side definition of the
+season aggregates; ETL-written season aggregates on the document would
+remove that.
+
+### Feature flags for labs prototypes
+
+Decision (1.1.0): Experimental features ship behind `frontend/src/utils/flags.js`,
+default off, switchable per browser with `/?labs=<name>` or per build with
+`VITE_FLAG_<NAME>=true`. Enabled prototypes appear in a LABS row on the
+landing page. Anything with a backend route is mounted behind an explicit env
+flag until promoted. Graduating a feature means deleting its flag, not
+flipping a default, so `develop` never carries a half-on feature.
 
 ### Season switching via URL param
 

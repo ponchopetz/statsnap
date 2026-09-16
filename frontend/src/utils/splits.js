@@ -1,4 +1,4 @@
-// PROTOTYPE (flag: splits). Situational splits computed from the stored
+// Situational splits computed from the stored
 // weeks of one player-season. Every value runs through the same stats.js
 // helpers the rest of the app uses, so a split row is just the season
 // definition applied to a filtered weeks array (the Career pseudo-document
