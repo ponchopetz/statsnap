@@ -9,7 +9,9 @@ const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const searchPlayers = async (req, res, next) => {
   const { q } = req.query;
 
-  if (!q || q.trim().length === 0) {
+  // Express parses a repeated key (?q=a&q=b) into an array; anything that is
+  // not a single non-blank string is a bad request, not a server error.
+  if (typeof q !== "string" || q.trim().length === 0) {
     return res.status(400).json({ message: "Query parameter q is required" });
   }
 
