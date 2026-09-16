@@ -239,3 +239,16 @@
     border-color: var(--accent);
   }
 }
+
+.labs-link--tag {
+  color: var(--fg-3);
+  border-style: dashed;
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .labs-link--tag:hover {
+    color: var(--fg-3);
+    border-color: var(--line-2);
+  }
+}

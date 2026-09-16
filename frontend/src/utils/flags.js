@@ -15,9 +15,21 @@
 // page load to take effect. That is deliberate: prototypes should never
 // pop into an existing session.
 
-// Human labels double as the LABS row on the landing page.
-export const FLAG_DEFAULTS = {};
-export const FLAG_LABELS = {};
+export const FLAG_DEFAULTS = {
+  similar: false,    // "plays like" comps under the Advanced panel (needs FEATURE_SIMILAR on the API)
+  form: false,       // last-4-games form strip on Overview
+  careerArc: false,  // one stat across every season, with age, on Career
+  shareCard: false,  // exportable SVG/PNG player card
+};
+
+// Human labels for the LABS row on the landing page. `to` makes a link;
+// without it the flag is listed as a tag (the feature lives on the player page).
+export const FLAG_LABELS = {
+  similar: { label: "SIMILAR PLAYERS" },
+  form: { label: "FORM LINE" },
+  careerArc: { label: "CAREER ARC" },
+  shareCard: { label: "SHARE CARD" },
+};
 
 export const FLAGS_STORAGE_KEY = "statsnap:flags";
 

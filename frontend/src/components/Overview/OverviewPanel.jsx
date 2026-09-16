@@ -2,7 +2,9 @@ import { useState, useMemo } from "react";
 import StatRow from "../StatRow/StatRow.jsx";
 import SparkBlock from "../Sparkline/SparkBlock.jsx";
 import ByWeekRail from "../ByWeekRail/ByWeekRail.jsx";
+import FormLine from "../FormLine/FormLine.jsx";
 import { HEADLINE_CONFIG, primaryKey } from "../../utils/headline.js";
+import { isFlagEnabled } from "../../utils/flags.js";
 
 // One Overview panel for every position. The six headline cells and their
 // sparkline series come from utils/headline.js, so the same list feeds the
@@ -29,6 +31,7 @@ function OverviewPanel({ player }) {
   return (
     <>
       <StatRow cells={cells} selectedKey={selectedRow.key} onSelectStat={setSelectedKey} />
+      {isFlagEnabled("form") && <FormLine player={player} />}
       <SparkBlock
         label={selectedRow.label}
         data={series}

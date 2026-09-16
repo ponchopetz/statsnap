@@ -12,6 +12,9 @@ import Career from "../Career/Career.jsx";
 import SeasonSelector from "../SeasonSelector/SeasonSelector.jsx";
 import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
 import Splits from "../Splits/Splits.jsx";
+import SimilarPlayers from "../SimilarPlayers/SimilarPlayers.jsx";
+import CareerArc from "../CareerArc/CareerArc.jsx";
+import { isFlagEnabled } from "../../utils/flags.js";
 import "./PlayerPage.css";
 
 function PlayerPage() {
@@ -81,6 +84,15 @@ function PlayerPage() {
         >
           COMPARE
         </Link>
+
+        {isFlagEnabled("shareCard") && (
+          <Link
+            className="back-btn compare-btn"
+            to={`/players/${encodeURIComponent(playerId)}/card${selectedSeason ? `?season=${selectedSeason}` : ""}`}
+          >
+            CARD
+          </Link>
+        )}
       </header>
 
       {status === "loading" && (
@@ -201,6 +213,7 @@ function PlayerPage() {
 
               <Tabs.Panel id="advanced">
                 <AdvancedPanel player={player} />
+                {isFlagEnabled("similar") && <SimilarPlayers player={player} />}
               </Tabs.Panel>
 
               <Tabs.Panel id="gamelog">
@@ -213,6 +226,7 @@ function PlayerPage() {
 
               <Tabs.Panel id="career">
                 <Career data={data} />
+                {isFlagEnabled("careerArc") && <CareerArc data={data} />}
               </Tabs.Panel>
             </Tabs>
           </main>
