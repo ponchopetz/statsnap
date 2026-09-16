@@ -154,13 +154,24 @@ describe("refreshSchedule: healthy upstream", () => {
   });
 
   it("week rollover creates a new document and it becomes the freshest", async () => {
-    stubUpstream({ body: WEEK1 });
-    await refreshSchedule();
-    stubUpstream({ body: WEEK2 });
-    await refreshSchedule();
+    // Fake only Date (not timers, which the Mongo driver relies on) so the
+    // two fetchedAt stamps are a week apart instead of racing within one ms.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(new Date("2026-09-09T08:00:00Z"));
+      stubUpstream({ body: WEEK1 });
+      await refreshSchedule();
+
+      vi.setSystemTime(new Date("2026-09-16T08:00:00Z"));
+      stubUpstream({ body: WEEK2 });
+      await refreshSchedule();
+    } finally {
+      vi.useRealTimers();
+    }
 
     const docs = await Schedule.find({}).sort({ fetchedAt: -1 }).lean();
     expect(docs).toHaveLength(2);
     expect(docs[0].week).toBe(2);
+    expect(docs[0].fetchedAt.toISOString()).toBe("2026-09-16T08:00:00.000Z");
   });
 });
