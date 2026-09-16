@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildForm, formRecord, FORM_WINDOW } from "../form.js";
+import { buildForm, formRecord, FORM_WINDOW, FORM_WINDOWS } from "../form.js";
+import { inlineFontUrls, embeddedFontCss, resetFontCache } from "../embedFonts.js";
 import { ageInSeason, arcOptions, buildCareerArc } from "../careerArc.js";
 import { ADVANCED_CONFIG } from "../stats.js";
 import { qbSeason, week } from "../../test/fixtures.js";
@@ -34,6 +35,17 @@ describe("buildForm", () => {
 
   it("returns [] for an unsupported position", () => {
     expect(buildForm({ position: "K", weeks: [] })).toEqual([]);
+  });
+
+  it("window size changes what counts as recent and the minimum games", () => {
+    expect(FORM_WINDOWS).toEqual([3, 4, 6]);
+    const player = qbSeason({ weeks: qbWeeks([100, 100, 100, 100, 100, 200, 200, 200]) });
+    const l3 = buildForm(player, 3).find((r) => r.key === "passingYards");
+    const l6 = buildForm(player, 6).find((r) => r.key === "passingYards");
+    expect(l3.recent).toBe(200);
+    expect(l6.recent).toBe(150);
+    expect(buildForm(qbSeason({ weeks: qbWeeks([1, 1, 1, 1, 1, 1]) }), 6).every((r) => r.trend === null)).toBe(true);
+    expect(formRecord(player, 3).recent).toBe("3-0");
   });
 
   it("formRecord tallies the last window and the season, showing ties only when present", () => {

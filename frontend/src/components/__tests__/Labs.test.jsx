@@ -28,6 +28,14 @@ describe("FormLine", () => {
     expect(screen.getByText("LAST 4 VS SEASON AVG · PER GAME · LABS")).toBeInTheDocument();
   });
 
+  it("the window toggle re-computes recent form", () => {
+    render(<FormLine player={qbSeason({ weeks: qbWeeks([100, 100, 100, 100, 100, 200, 200, 200]) })} />);
+    fireEvent.click(screen.getByRole("button", { name: "L3" }));
+    const yds = [...document.querySelectorAll(".form-cell")].find((c) => c.textContent.includes("PASS YDS"));
+    expect(yds).toHaveTextContent("200");
+    expect(screen.getByText("LAST 3 VS SEASON AVG · PER GAME · LABS")).toBeInTheDocument();
+  });
+
   it("explains the minimum games instead of guessing a trend", () => {
     render(<FormLine player={qbSeason({ weeks: qbWeeks([100, 100]) })} />);
     expect(screen.getAllByText("NEED 5+ GP")).toHaveLength(5);
@@ -79,8 +87,19 @@ describe("SimilarPlayers", () => {
     getSimilarPlayers.mockResolvedValue({ qualified: true, similar: [{ playerId: "b", displayName: "Bravo Two", team: "CIN", similarity: 0.917 }] });
     wrap(<SimilarPlayers player={wrSeason()} />);
     const link = await screen.findByRole("link", { name: "Bravo Two" });
-    expect(link).toHaveAttribute("href", "/compare?a=00-0036322&b=b&season=2024");
+    expect(link).toHaveAttribute("href", "/compare?a=00-0036322&b=b&as=2024&bs=2024");
     expect(screen.getByText("92%")).toBeInTheDocument();
+    expect(getSimilarPlayers).toHaveBeenLastCalledWith("00-0036322", 2024, expect.anything(), "season");
+  });
+
+  it("ALL SEASONS scope shows each comp's season and links cross-season", async () => {
+    getSimilarPlayers.mockResolvedValue({ qualified: true, similar: [{ playerId: "old", displayName: "Old Timer", team: "NO", season: 2019, similarity: 0.88 }] });
+    wrap(<SimilarPlayers player={wrSeason()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "ALL SEASONS" }));
+    const link = await screen.findByRole("link", { name: "Old Timer" });
+    expect(link).toHaveAttribute("href", "/compare?a=00-0036322&b=old&as=2024&bs=2019");
+    expect(screen.getByText("· 2019")).toBeInTheDocument();
+    expect(getSimilarPlayers).toHaveBeenLastCalledWith("00-0036322", 2024, expect.anything(), "all");
   });
 
   it("explains an unqualified player and hides itself when the API has no route", async () => {

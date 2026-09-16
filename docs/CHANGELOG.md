@@ -17,9 +17,12 @@ period.
 ### Added (LABS, flagged off by default)
 
 - Similar players: "plays like" comps under the Advanced tab from a new
-  `GET /players/:id/similar` (mounted only with `FEATURE_SIMILAR=true`).
-- Form line: last four games vs season for the headline stats on Overview.
-- Share card: exportable 1200×630 SVG/PNG player card at `/players/:id/card`.
+  `GET /players/:id/similar` (mounted only with `FEATURE_SIMILAR=true`),
+  EPA-weighted, with a THIS SEASON / ALL SEASONS scope.
+- Form line: last 3, 4, or 6 games vs season for the headline stats on
+  Overview.
+- Share card: exportable 1200×630 SVG/PNG player card at `/players/:id/card`
+  with the page fonts embedded in the export.
 - Enable per browser with `/?labs=similar,form,shareCard`. See
   `PROTOTYPES.md`.
 
