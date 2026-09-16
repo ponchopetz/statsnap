@@ -256,6 +256,33 @@ for what the numbers should be, and any unilateral change to either side
 fails the suite. Vitest is the project's first test dependency —
 chosen because it is the standard runner for Vite projects.
 
+### Experience is displayed as the season ordinal, computed in one place
+
+Decision: The bio grid cell formerly labelled `EXP` is now `NFL SEASON` and
+shows the ordinal of the season being viewed: `ROOKIE` for a first-year
+player, `4TH` for a fourth-season player. The stored field `experience` is
+unchanged: it is nflverse `years_exp`, passed through the ETL untouched, and
+it counts seasons completed *before* the document's season (rookie = 0). The
+only place the +1 happens is `formatExperience()` in
+`frontend/src/utils/format.js`. The ETL rename map and the Mongoose schema
+carry a comment stating the field's meaning so nobody adds a second +1.
+
+Why: The cell undercounted by one because it printed `years_exp` raw under a
+label that implied "seasons played." Verified against the 2024 and 2025 roster
+files: `years_exp == season - entry_year` for every row, so the data was
+correct and the display was mislabelled. Two honest fixes existed: relabel to
+"prior seasons" and keep the number, or keep the football-native reading
+("he's in year 8") and add one. The latter is what a reader expects and what
+the symptom report asked for. Adding the +1 in the ETL was rejected because it
+would change the stored meaning of a source field (and need a full re-run to
+take effect); adding it at call sites was rejected because that is exactly how
+the two-definitions drift in Chunk 15 started.
+
+Boundary: a rookie has 0 prior seasons and renders `ROOKIE`, not `0`, not
+`1ST`, and not "1 year". Each player-season document carries the
+`years_exp` of *that* season's roster, so a 2024 document for a 2024 draftee
+reads `ROOKIE` and the same player's 2025 document reads `2ND`.
+
 ### Per-week helpers are distinct from season aggregators
 
 Decision (Chunk 16): The per-game derived helpers (`gameCompletionPct`,
