@@ -15,6 +15,11 @@ data dumps. StatSnap pulls them from the open-source nflverse dataset, computes
 each stat under a single canonical definition, and serves them through a clean,
 keyboard-fast interface that anyone can use for free.
 
+Beyond the player page there is a head-to-head **Compare** view (any two
+players at a position, any two seasons, mirrored percentile bars, shareable
+URL), a **Splits** tab (home/away, wins/losses, in/out of division, season
+halves), and **Leaderboards** by advanced metric per season and position.
+
 Built as the capstone for the TripleTen Software Engineering bootcamp, with
 sports-tech employers as the intended audience — so the architecture decisions
 are documented and defensible, not just functional.
@@ -175,6 +180,8 @@ done
 | `GET` | `/players/search?q=` | Typeahead search by display name. Deduplicates a player across seasons via an aggregation pipeline; returns up to 10 rows of `playerId`, `displayName`, `position`, and most-recent `team`. Returns 400 if `q` is missing. |
 | `GET` | `/players/:playerId` | All seasons for one player, sorted most-recent-first, each with its embedded `weeks` array and the `advanced` metrics map. Returns 404 if no documents match. |
 | `GET` | `/schedule` | The freshest cached schedule document (`{ season, week, games, fetchedAt }`). On a cache miss returns a 200 with an empty `games` array — never a 404. |
+| `GET` | `/leaderboards?season=&position=&metric=&limit=` | Qualified players for one season and position ranked by the ETL-stored percentile for `metric` (so the ordering has one definition), up to `limit` (default 25, max 100). Rows carry `weeks` so the client formats the raw value with the same helper the Advanced panel uses. Returns 400 with a message for a bad season, position, metric name, or limit. |
+| `GET` | `/seasons` | Distinct seasons in the stats collection, newest first: `{ seasons: [2025, 2024, ...] }`. |
 
 ## Scope (V1)
 

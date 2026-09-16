@@ -1,4 +1,4 @@
-// PROTOTYPE (flag: splits). Situational splits computed from the stored
+// Situational splits computed from the stored
 // weeks of one player-season. Every value runs through the same stats.js
 // helpers the rest of the app uses, so a split row is just the season
 // definition applied to a filtered weeks array (the Career pseudo-document
@@ -18,6 +18,27 @@ import { formatNumber, formatPercent, formatSigned, formatDecimal } from "./form
 // same cut keeps the halves close to even in the 17-week era.
 const FIRST_HALF_LAST_WEEK = 9;
 
+// Current alignment (2002 realignment, Washington/Las Vegas/LA codes as
+// nflverse spells them). Used only to decide "divisional game or not".
+export const NFL_DIVISIONS = {
+  BUF: "AFC East", MIA: "AFC East", NE: "AFC East", NYJ: "AFC East",
+  BAL: "AFC North", CIN: "AFC North", CLE: "AFC North", PIT: "AFC North",
+  HOU: "AFC South", IND: "AFC South", JAX: "AFC South", TEN: "AFC South",
+  DEN: "AFC West", KC: "AFC West", LV: "AFC West", LAC: "AFC West",
+  DAL: "NFC East", NYG: "NFC East", PHI: "NFC East", WAS: "NFC East",
+  CHI: "NFC North", DET: "NFC North", GB: "NFC North", MIN: "NFC North",
+  ATL: "NFC South", CAR: "NFC South", NO: "NFC South", TB: "NFC South",
+  ARI: "NFC West", LAR: "NFC West", SF: "NFC West", SEA: "NFC West",
+  // Codes nflverse used before relocations/renames.
+  OAK: "AFC West", SD: "AFC West", STL: "NFC West", LA: "NFC West",
+};
+
+export function isDivisionalGame(team, opponent) {
+  const a = NFL_DIVISIONS[team];
+  const b = NFL_DIVISIONS[opponent];
+  return a != null && a === b;
+}
+
 export const SPLIT_GROUPS = [
   {
     label: "VENUE",
@@ -32,6 +53,14 @@ export const SPLIT_GROUPS = [
       { key: "wins", label: "IN WINS", test: (w) => w.result === "W" },
       { key: "losses", label: "IN LOSSES", test: (w) => w.result === "L" },
       { key: "ties", label: "IN TIES", test: (w) => w.result === "T", hideWhenEmpty: true },
+    ],
+  },
+  {
+    label: "OPPONENT",
+    splits: [
+      // Per-week team when the ETL stored it; the season team otherwise.
+      { key: "division", label: "IN DIVISION", test: (w, player) => isDivisionalGame(w.team ?? player.team, w.opponent) },
+      { key: "nonDivision", label: "OUT OF DIVISION", test: (w, player) => !isDivisionalGame(w.team ?? player.team, w.opponent) },
     ],
   },
   {
@@ -107,7 +136,7 @@ export function buildSplits(player) {
     label: group.label,
     rows: group.splits
       .map((split) => {
-        const subset = weeks.filter(split.test);
+        const subset = weeks.filter((w) => split.test(w, player));
         return {
           key: split.key,
           label: split.label,

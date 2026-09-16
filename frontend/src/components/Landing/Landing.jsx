@@ -4,7 +4,7 @@ import { useLocalStorageState } from "../../hooks/useLocalStorageState.js";
 import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
 import ScheduleRail from "../ScheduleRail/ScheduleRail.jsx";
 import TweaksPanel from "../TweaksPanel/TweaksPanel.jsx";
-import { isFlagEnabled } from "../../utils/flags.js";
+import { enabledFlags, FLAG_LABELS } from "../../utils/flags.js";
 import "./Landing.css";
 
 const RECENTS_KEY = "statsnap:recents";
@@ -15,6 +15,10 @@ function Landing() {
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [recents, setRecents] = useLocalStorageState(RECENTS_KEY, []);
   const navigate = useNavigate();
+  // Flagged prototypes with a landing entry point (see utils/flags.js).
+  const labs = enabledFlags()
+    .filter((name) => FLAG_LABELS[name]?.to)
+    .map((name) => ({ name, ...FLAG_LABELS[name] }));
 
   const updateQuery = (value) => {
     setQuery(value);
@@ -60,11 +64,17 @@ function Landing() {
           />
         </div>
 
-        {(isFlagEnabled("compare") || isFlagEnabled("leaderboards")) && (
+        <nav className="landing-nav" aria-label="Tools">
+          <Link className="landing-nav-link" to="/compare">COMPARE</Link>
+          <Link className="landing-nav-link" to="/leaderboards">LEADERBOARDS</Link>
+        </nav>
+
+        {labs.length > 0 && (
           <nav className="labs-row" aria-label="Prototype features">
             <span className="labs-tag">LABS</span>
-            {isFlagEnabled("compare") && <Link className="labs-link" to="/compare">COMPARE</Link>}
-            {isFlagEnabled("leaderboards") && <Link className="labs-link" to="/leaderboards">LEADERBOARDS</Link>}
+            {labs.map(({ name, to, label }) => (
+              <Link key={name} className="labs-link" to={to}>{label}</Link>
+            ))}
           </nav>
         )}
 

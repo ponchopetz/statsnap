@@ -1,7 +1,5 @@
 // controllers/leaderboards.js
 //
-// PROTOTYPE — mounted only when FEATURE_LEADERBOARDS=true (see app.js).
-//
 // Ranks qualified players for one season + position by an advanced metric.
 // The sort key is the ETL-computed percentile stored in each document's
 // `advanced` map, so the ordering has exactly one definition (percentiles.py)

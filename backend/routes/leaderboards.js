@@ -1,4 +1,4 @@
-// routes/leaderboards.js — PROTOTYPE, see controllers/leaderboards.js
+// routes/leaderboards.js
 
 const router = require("express").Router();
 const { getLeaderboard } = require("../controllers/leaderboards");
