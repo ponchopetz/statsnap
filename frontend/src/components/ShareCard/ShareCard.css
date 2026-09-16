@@ -1,0 +1,82 @@
+/* ShareCard — LABS. */
+
+.card-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--display);
+}
+
+.card-topbar .back-btn {
+  text-decoration: none;
+}
+
+.card-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.card-title-main {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.card-title-sub {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+}
+
+.card-status {
+  padding: 40px;
+  text-align: center;
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+}
+
+.card-body {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.card-frame {
+  width: min(1000px, 100%);
+  border: 1px solid var(--line);
+  line-height: 0;
+}
+
+.card-note {
+  margin: 0;
+  max-width: 1000px;
+  font-family: var(--display);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--fg-3);
+}
+
+@media (max-width: 30rem) {
+  .card-topbar {
+    padding: 10px 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .card-body {
+    padding: 16px;
+  }
+}

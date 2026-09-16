@@ -83,6 +83,22 @@ export async function getLeaderboard({ season, position, metric, limit = 25 }, s
 }
 
 /**
+ * LABS (flag: similar). Nearest percentile profiles in the same position
+ * cohort and season. 404 when the API does not expose the route.
+ * Returns: Promise<{ playerId, season, position, qualified, similar: [...] }>
+ */
+export async function getSimilarPlayers(playerId, season, signal) {
+  const url = `${API_BASE_URL}/players/${encodeURIComponent(playerId)}/similar?season=${encodeURIComponent(season)}`;
+  const response = await fetch(url, { signal });
+  if (!response.ok) {
+    const err = new Error(`Similar players failed: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+  return response.json();
+}
+
+/**
  * Fetch the seasons present in the stats collection, newest first.
  * Returns: Promise<{ seasons: number[] }>
  */
