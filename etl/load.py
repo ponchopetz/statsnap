@@ -127,7 +127,9 @@ def reshape(df):
         .group_by(["playerId", "season"])
         .agg(
             # Identity fields — hoist to top level, same value every week
-            [pl.last(f) for f in TOP_LEVEL_FIELDS]
+            # drop_nulls first: nflverse leaves team null on a few rows, and a
+            # null final week must not blank the document's team.
+            [pl.col(f).drop_nulls().last().alias(f) for f in TOP_LEVEL_FIELDS]
             +
             # Week-level stats — package each row as an object, collect into list
             [pl.struct(WEEK_FIELDS).alias("weeks")]
