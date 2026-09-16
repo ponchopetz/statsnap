@@ -226,7 +226,7 @@ function PlayerPage() {
 
               <Tabs.Panel id="career">
                 <Career data={data} />
-                {isFlagEnabled("careerArc") && <CareerArc data={data} />}
+                <CareerArc data={data} />
               </Tabs.Panel>
             </Tabs>
           </main>

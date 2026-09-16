@@ -50,6 +50,22 @@ describe("CareerArc", () => {
     expect(screen.getByRole("button", { name: "INT" })).toHaveAttribute("aria-pressed", "true");
   });
 
+  it("percentile mode switches the stat options and shows unranked seasons as gaps", () => {
+    const ranked = [
+      qbSeason({ season: 2024, advanced: { passingEpa: 0.91 } }),
+      qbSeason({ season: 2023, advanced: undefined }),
+    ];
+    render(<CareerArc data={ranked} />);
+    fireEvent.click(screen.getByRole("button", { name: "PERCENTILE" }));
+    expect(screen.getByRole("button", { name: "Passing EPA" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("P91 · 2024")).toBeInTheDocument();
+    expect(screen.getByText("2 · 1 UNRANKED")).toBeInTheDocument();
+    expect(screen.getByText(/A SEASON BELOW THE QUALIFIER HAS NO RANK/)).toBeInTheDocument();
+    // Switching back remembers the totals selection.
+    fireEvent.click(screen.getByRole("button", { name: "TOTALS" }));
+    expect(screen.getByRole("button", { name: "PASS YDS" })).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("renders nothing with fewer than two seasons", () => {
     const { container } = render(<CareerArc data={[data[0]]} />);
     expect(container).toBeEmptyDOMElement();

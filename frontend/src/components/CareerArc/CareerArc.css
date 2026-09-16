@@ -1,4 +1,4 @@
-/* CareerArc — LABS. Same frame as the Career table it sits under. */
+/* CareerArc — same frame as the Career table it sits under. */
 
 .arc {
   border: 1px solid var(--line);
@@ -17,6 +17,12 @@
   flex-wrap: wrap;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
+}
+
+.arc-head-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .arc-label {
@@ -133,6 +139,10 @@
 }
 
 @media (max-width: 30rem) {
+  .arc-head-left {
+    width: 100%;
+    justify-content: space-between;
+  }
   .arc-options {
     width: 100%;
     overflow-x: auto;

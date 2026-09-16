@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildForm, formRecord, FORM_WINDOW } from "../form.js";
 import { ageInSeason, arcOptions, buildCareerArc } from "../careerArc.js";
+import { ADVANCED_CONFIG } from "../stats.js";
 import { qbSeason, week } from "../../test/fixtures.js";
 
 const qbWeeks = (yards) => yards.map((y, i) => week({ week: i + 1, attempts: 30, completions: 20, passingYards: y, passingTds: 1, interceptions: 0, passingEpa: 1 }));
@@ -61,7 +62,23 @@ describe("career arc", () => {
     expect(row.key).toBe("passingYards");
     expect(points.map((p) => [p.season, p.value, p.age])).toEqual([[2022, 100, 26], [2023, 600, 27], [2024, 600, 28]]);
 
-    expect(buildCareerArc(seasons, "nope").row.key).toBe(arcOptions("QB")[0].key);
+    expect(buildCareerArc(seasons, "nope").row.key).toBe("passingYards"); // falls back to the primary
     expect(buildCareerArc([], "passingYards")).toEqual({ points: [], row: null });
+  });
+
+  it("percentile mode plots the stored cohort rank and leaves unranked seasons as gaps", () => {
+    const seasons = [
+      qbSeason({ season: 2024, advanced: { passingEpa: 0.91, pacr: 0.4 } }),
+      qbSeason({ season: 2023, advanced: undefined }),
+      qbSeason({ season: 2022, advanced: { passingEpa: 0.55 } }),
+    ];
+    expect(arcOptions("QB", "percentile").map((o) => o.key)).toEqual(ADVANCED_CONFIG.QB.map((r) => r.key));
+    const { points, row } = buildCareerArc(seasons, "passingEpa", "percentile");
+    expect(row.label).toBe("Passing EPA");
+    expect(points.map((p) => [p.season, p.value])).toEqual([[2022, 0.55], [2023, null], [2024, 0.91]]);
+    expect(row.format(0.91)).toBe("P91");
+    expect(row.format(null)).toBe("—");
+    // Unknown key in percentile mode falls back to the first ranked metric.
+    expect(buildCareerArc(seasons, "nope", "percentile").row.key).toBe(ADVANCED_CONFIG.QB[0].key);
   });
 });

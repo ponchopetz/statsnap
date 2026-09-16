@@ -414,6 +414,18 @@ hundred KB for 60 rows) rather than a third, Mongo-side definition of the
 season aggregates; ETL-written season aggregates on the document would
 remove that.
 
+### Career arc: totals or percentile, same definitions
+
+Decision (1.1.0): The Career tab ends with a chart of one stat across every
+loaded season. TOTALS mode reuses the headline list (so the chart and the
+table above it cannot disagree); PERCENTILE mode plots the ETL's stored
+cohort rank for an advanced metric, with an unqualified season drawn as a
+gap rather than a zero. Age is shown on 1 September of each season.
+
+Why: raw totals reward volume and era; the percentile answers the question a
+reader actually has ("was he better in 2022 or 2024 relative to his peers")
+with no new computation, because the ranking already lives on the document.
+
 ### Feature flags for labs prototypes
 
 Decision (1.1.0): Experimental features ship behind `frontend/src/utils/flags.js`,
