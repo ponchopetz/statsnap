@@ -12,6 +12,16 @@ happened, so it isn't reconstructed here — `git log` and the ADR entries
 under "Data & schema," "Frontend architecture," etc. are the record of that
 period.
 
+## [Unreleased]
+
+### Fixed
+
+- Player page bio grid undercounted experience by one: nflverse `years_exp`
+  counts seasons completed before the current one, so a rookie showed `0`
+  and a fourth-season player `3`. The cell is now labelled `NFL SEASON` and
+  shows `ROOKIE` or the season ordinal (`4TH`), computed by a single
+  `formatExperience()` helper.
+
 ## [1.0.0] — 2026-09-01
 
 Initial versioned release. Marks the app as it stood after the TripleTen

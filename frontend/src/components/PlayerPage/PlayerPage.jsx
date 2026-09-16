@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { useMediaQuery } from "../../hooks/useMediaQuery.js";
 import { useSlowLoading } from "../../hooks/useSlowLoading.js";
-import { formatAge, formatHeight, formatDraft } from "../../utils/format.js";
+import { formatAge, formatHeight, formatDraft, formatExperience } from "../../utils/format.js";
 import Tabs from "../Tabs/Tabs.jsx";
 import Overview from "../Overview/Overview.jsx";
 import AdvancedPanel from "../AdvancedPanel/AdvancedPanel.jsx";
@@ -145,8 +145,8 @@ function PlayerPage() {
                 <div className="bio-value">{formatAge(player.birthDate) ?? "—"}</div>
               </div>
               <div className="bio-cell">
-                <div className="bio-label">EXP</div>
-                <div className="bio-value">{player.experience ?? "—"}</div>
+                <div className="bio-label">NFL SEASON</div>
+                <div className="bio-value">{formatExperience(player.experience) ?? "—"}</div>
               </div>
               <div className="bio-cell">
                 <div className="bio-label">HT</div>

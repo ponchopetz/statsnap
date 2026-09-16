@@ -152,6 +152,9 @@ RENAME_MAP = {
     "height":        "heightInches",
     "weight":        "weight",
     "college":       "college",
+    # Seasons completed BEFORE this season (rookie = 0). Stored as-is; the
+    # frontend's formatExperience() is the one place that turns it into the
+    # season ordinal shown to users. Do not add 1 here.
     "years_exp":     "experience",
     "headshot_url":  "headshotUrl",
     "draft_year":    "draftYear",

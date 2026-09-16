@@ -93,3 +93,33 @@ export function formatDecimal(n, decimals = 1) {
   if (n == null) return "—";
   return n.toFixed(decimals);
 }
+
+/**
+ * Formats a player's NFL experience as the ordinal of the season being viewed.
+ *
+ * This is the single definition of the "experience" stat. The stored field
+ * (`experience`, from nflverse `years_exp`, passed through untouched by the
+ * ETL) counts seasons COMPLETED BEFORE the document's season, so a rookie is
+ * 0 and a fourth-season player is 3. The number a football reader expects is
+ * the season they are in, which is that count plus one. Doing the +1 here and
+ * nowhere else keeps the ETL, the schema, and the API honest to the source
+ * while the UI label ("NFL SEASON") matches what is shown.
+ *
+ * @param {number|null|undefined} yearsExp - Seasons completed before this one
+ * @returns {string|null} "ROOKIE" for 0, otherwise an ordinal like "4TH" or
+ *   "12TH"; null if the input is missing or not a non-negative integer.
+ */
+export function formatExperience(yearsExp) {
+  if (yearsExp == null || !Number.isInteger(yearsExp) || yearsExp < 0) return null;
+  if (yearsExp === 0) return "ROOKIE";
+  const season = yearsExp + 1;
+  const mod100 = season % 100;
+  const mod10 = season % 10;
+  let suffix = "TH";
+  if (mod100 < 11 || mod100 > 13) {
+    if (mod10 === 1) suffix = "ST";
+    else if (mod10 === 2) suffix = "ND";
+    else if (mod10 === 3) suffix = "RD";
+  }
+  return `${season}${suffix}`;
+}
