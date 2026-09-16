@@ -1,18 +1,15 @@
 // app.js — entry point
 
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '.env'), quiet: true });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
-require('./utils/db');
-
 const playersRouter = require('./routes/players');
 const scheduleRouter = require('./routes/schedule');
 const errorHandler = require('./middlewares/errorHandler');
-const { startScheduleCron } = require('./utils/scheduleCron');
 
 const PORT = process.env.PORT || 3001;
 const CLIENT_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
@@ -43,8 +40,18 @@ app.get('/', (req, res) => {
 
 app.use(errorHandler);
 
-startScheduleCron();
+// Side effects (database connection, schedule cron, listening on a port) run
+// only when this file is the process entry point (`node app.js`, `npm start`).
+// Requiring the module — as the supertest route tests do — builds the app
+// without connecting to anything, so tests can attach their own database.
+if (require.main === module) {
+  require('./utils/db');
+  const { startScheduleCron } = require('./utils/scheduleCron');
+  startScheduleCron();
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
