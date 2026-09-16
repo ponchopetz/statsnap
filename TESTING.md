@@ -37,9 +37,8 @@ Some tests are declared with `it.fails`. They document a real, current
 discrepancy; the suite stays green while the bug exists and turns red the
 moment it is fixed, so the marker cannot silently outlive the bug.
 
-- `stats.golden.test.js` `KNOWN_DRIFT`: negative season air-yard totals
-  (Python nulls PACR/RACR, JS returns a negative ratio) and share metrics
-  with no non-null week (Python null, JS `0`). Fix belongs in `stats.js`.
+- `stats.golden.test.js` `KNOWN_DRIFT`: currently empty. Add an entry only
+  with a note explaining the discrepancy, and delete it with the fix.
 - `players.routes.test.js`: `?q=a&q=b` (array query) returns 500 instead of
   400 because `q.trim()` runs before the try/catch.
 
