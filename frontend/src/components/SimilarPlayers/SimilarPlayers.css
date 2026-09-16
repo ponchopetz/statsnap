@@ -28,7 +28,7 @@
 
 .sim-row {
   display: grid;
-  grid-template-columns: 24px 1fr 48px 140px 44px;
+  grid-template-columns: 24px 1fr 84px 140px 44px;
   align-items: center;
   gap: 12px;
   padding: 8px 0;
@@ -64,6 +64,35 @@
   font-size: 11px;
   letter-spacing: 0.08em;
   color: var(--fg-2);
+  white-space: nowrap;
+}
+
+.sim-season {
+  color: var(--fg-3);
+}
+
+.sim-scopes {
+  display: flex;
+  border: 1px solid var(--line-2);
+}
+
+.sim-scope-btn {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--fg-3);
+  padding: 4px 10px;
+  border-right: 1px solid var(--line-2);
+}
+
+.sim-scope-btn:last-child {
+  border-right: 0;
+}
+
+.sim-scope-btn--active {
+  color: var(--accent-ink);
+  background: var(--accent);
 }
 
 .sim-bar {
@@ -98,7 +127,7 @@
 
 @media (max-width: 30rem) {
   .sim-row {
-    grid-template-columns: 20px 1fr 40px 64px 40px;
+    grid-template-columns: 20px 1fr 64px 56px 40px;
     gap: 8px;
   }
 }

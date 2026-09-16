@@ -25,12 +25,42 @@
   text-transform: uppercase;
 }
 
+.form-line-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .form-line-sub {
   font-family: var(--display);
   font-size: 10px;
   letter-spacing: 0.12em;
   color: var(--fg-3);
   text-transform: uppercase;
+}
+
+.form-windows {
+  display: flex;
+  border: 1px solid var(--line-2);
+}
+
+.form-window-btn {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--fg-3);
+  padding: 3px 8px;
+  border-right: 1px solid var(--line-2);
+}
+
+.form-window-btn:last-child {
+  border-right: 0;
+}
+
+.form-window-btn--active {
+  color: var(--accent-ink);
+  background: var(--accent);
 }
 
 .form-line-grid {
@@ -107,6 +137,10 @@
 }
 
 @media (max-width: 30rem) {
+  .form-line-head {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
   .form-line-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
