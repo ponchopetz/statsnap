@@ -132,8 +132,10 @@ function Compare() {
   const profileA = usePlayerProfile(idA || null);
   const profileB = usePlayerProfile(idB || null);
 
-  const seasonsA = useMemo(() => profileA.data?.map((d) => d.season) ?? [], [profileA.data]);
-  const seasonsB = useMemo(() => profileB.data?.map((d) => d.season) ?? [], [profileB.data]);
+  // Guard on the id: the profile hook keeps its last data after a slot is
+  // cleared, and a cleared player must not influence the other slot's season.
+  const seasonsA = useMemo(() => (idA ? profileA.data?.map((d) => d.season) ?? [] : []), [idA, profileA.data]);
+  const seasonsB = useMemo(() => (idB ? profileB.data?.map((d) => d.season) ?? [] : []), [idB, profileB.data]);
 
   const seasonA = pickSeason(ownA, shared, seasonsA, seasonsB);
   const seasonB = pickSeason(ownB, shared, seasonsB, seasonsA);

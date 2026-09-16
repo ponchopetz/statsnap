@@ -90,7 +90,9 @@ function Leaderboards() {
   }, [data, inProgress]);
 
   let body;
-  if (status === "loading") {
+  if (seasons && seasons.length === 0) {
+    body = <div className="lb-status">NO SEASONS LOADED ON THIS API YET</div>;
+  } else if (status === "loading") {
     body = <div className="lb-status">{slow ? "LOADING · WAKING FREE SERVER — CAN TAKE ~20S" : "LOADING..."}</div>;
   } else if (status === "error") {
     body = (

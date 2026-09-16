@@ -90,8 +90,8 @@ JetBrains Mono and Space Grotesk; if that fails the export still runs on
 system fonts and the note under the card says so. There is no headshot on
 purpose: a cross-origin image would taint the canvas and block the export.
 
-**Unfinished / next.** Only the weights the card uses are embedded (about
-100 KB per export, cached per page load). A server-rendered card would let
+**Unfinished / next.** Only the Latin subsets of the weights the card uses
+are embedded (about 100 KB per export, cached per page load). A server-rendered card would let
 the URL itself be shared as an image. Accent colour is read from the live
 theme.
 

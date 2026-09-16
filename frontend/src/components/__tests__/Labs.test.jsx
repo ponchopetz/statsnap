@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent, within, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import FormLine from "../FormLine/FormLine.jsx";
 import CareerArc from "../CareerArc/CareerArc.jsx";
@@ -36,10 +36,13 @@ describe("FormLine", () => {
     expect(screen.getByText("LAST 3 VS SEASON AVG · PER GAME · LABS")).toBeInTheDocument();
   });
 
-  it("explains the minimum games instead of guessing a trend", () => {
+  it("explains the minimum games instead of guessing a trend, and no data separately", () => {
     render(<FormLine player={qbSeason({ weeks: qbWeeks([100, 100]) })} />);
     expect(screen.getAllByText("NEED 5+ GP")).toHaveLength(5);
     expect(screen.getByText("LAST 2 VS SEASON AVG · PER GAME · LABS")).toBeInTheDocument();
+    cleanup();
+    render(<FormLine player={qbSeason({ weeks: Array.from({ length: 8 }, (_, i) => week({ week: i + 1 })) })} />);
+    expect(screen.getAllByText("NO DATA")).toHaveLength(5);
   });
 });
 

@@ -152,7 +152,8 @@ function ShareCard() {
       a.href = URL.createObjectURL(png);
       a.download = `statsnap-${player.displayName.replace(/\s+/g, "-").toLowerCase()}-${player.season}.png`;
       a.click();
-      URL.revokeObjectURL(a.href);
+      // Revoke later: revoking in the same tick can cancel the download.
+      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
     } catch (err) {
       setExportError(err.message);
     } finally {
