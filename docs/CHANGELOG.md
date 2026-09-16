@@ -12,17 +12,33 @@ happened, so it isn't reconstructed here — `git log` and the ADR entries
 under "Data & schema," "Frontend architecture," etc. are the record of that
 period.
 
-## [Unreleased]
+## [1.1.0] — 2026-09-16
+
+Three new pages and tabs for arguing about players, a real test suite, and
+four correctness fixes. Minor bump: new features, no breaking changes to the
+API or the stored documents (new fields only).
 
 ### Added
 
+- **Compare** (`/compare`): two players at one position, each with their own
+  season, six headline stats and every advanced metric with mirrored
+  percentile bars, swap and copy-link. Entry points: landing nav and a
+  COMPARE button on the player page.
+- **Splits** tab on the player page: home/away, wins/losses, in/out of
+  division, weeks 1–9 vs 10+, against a full-season baseline.
+- **Leaderboards** (`/leaderboards`): qualified players ranked by the ETL
+  percentile per season, position, and metric, with a minimum-games filter.
+  New endpoints `GET /leaderboards` and `GET /seasons`.
+- One shared headline-stat list (`utils/headline.js`) that Overview and
+  Compare both read; Overview's three position components collapse into one.
+- Per-week `team` on every embedded week; the game log shows a TEAM column
+  for a season split across two teams.
 - Test suite: Vitest + React Testing Library (frontend), Vitest + supertest +
   mongodb-memory-server (backend), pytest against a throwaway local `mongod`
   (ETL), a pull-request CI workflow, and `TESTING.md`. The JS/Python
   aggregation contract is now enforced in both directions.
-- Prototype features behind flags, all default off: head-to-head Compare,
-  Splits tab, and Leaderboards (with a flagged `GET /leaderboards`). See
-  `PROTOTYPES.md`.
+- A LABS flag mechanism (`utils/flags.js`) for future prototypes; nothing is
+  behind it in this release. See `PROTOTYPES.md`.
 
 ### Fixed
 
