@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useLocalStorageState } from "../../hooks/useLocalStorageState.js";
 import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
 import ScheduleRail from "../ScheduleRail/ScheduleRail.jsx";
 import TweaksPanel from "../TweaksPanel/TweaksPanel.jsx";
+import { isFlagEnabled } from "../../utils/flags.js";
 import "./Landing.css";
 
 const RECENTS_KEY = "statsnap:recents";
@@ -58,6 +59,14 @@ function Landing() {
             onSelect={handlePick}
           />
         </div>
+
+        {(isFlagEnabled("compare") || isFlagEnabled("leaderboards")) && (
+          <nav className="labs-row" aria-label="Prototype features">
+            <span className="labs-tag">LABS</span>
+            {isFlagEnabled("compare") && <Link className="labs-link" to="/compare">COMPARE</Link>}
+            {isFlagEnabled("leaderboards") && <Link className="labs-link" to="/leaderboards">LEADERBOARDS</Link>}
+          </nav>
+        )}
 
         {recents.length > 0 && (
           <ul className="recent-row">
