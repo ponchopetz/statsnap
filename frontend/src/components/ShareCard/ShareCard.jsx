@@ -3,11 +3,15 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { HEADLINE_CONFIG } from "../../utils/headline.js";
 import { buildAdvancedRows } from "../../utils/stats.js";
+import { embeddedFontCss } from "../../utils/embedFonts.js";
 import "./ShareCard.css";
 
 // LABS (flag: shareCard) — a 1200×630 player card as inline SVG, exportable
 // to PNG through a canvas. No headshot: a cross-origin image would taint the
-// canvas and block the export, so the jersey number is the watermark.
+// canvas and block the export, so the jersey number is the watermark. The
+// page fonts are embedded into the exported SVG (utils/embedFonts.js) so the
+// PNG matches the screen; if that fails the export still runs on system
+// fonts.
 
 const W = 1200;
 const H = 630;
@@ -108,6 +112,7 @@ function ShareCard() {
   const svgRef = useRef(null);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(null);
+  const [fontsEmbedded, setFontsEmbedded] = useState(null);
 
   const seasons = data?.map((d) => d.season) ?? [];
   const paramSeason = Number(searchParams.get("season"));
@@ -119,7 +124,15 @@ function ShareCard() {
     setExporting(true);
     setExportError(null);
     try {
-      const xml = new XMLSerializer().serializeToString(svgRef.current);
+      const clone = svgRef.current.cloneNode(true);
+      const fontCss = await embeddedFontCss();
+      setFontsEmbedded(fontCss.length > 0);
+      if (fontCss) {
+        const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
+        style.textContent = fontCss;
+        clone.insertBefore(style, clone.firstChild);
+      }
+      const xml = new XMLSerializer().serializeToString(clone);
       const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const img = new Image();
@@ -173,7 +186,10 @@ function ShareCard() {
             <CardSvg player={player} svgRef={svgRef} />
           </div>
           <p className="card-note">
-            THE PNG USES THE SYSTEM MONOSPACE FONT IF JETBRAINS MONO IS NOT INSTALLED LOCALLY. NO HEADSHOT ON THE CARD SO THE EXPORT NEVER TRIPS A CROSS-ORIGIN CANVAS BLOCK.
+            {fontsEmbedded === false
+              ? "FONTS COULD NOT BE EMBEDDED; THE LAST PNG USED SYSTEM FONTS. "
+              : "THE PNG EMBEDS JETBRAINS MONO AND SPACE GROTESK. "}
+            NO HEADSHOT ON THE CARD SO THE EXPORT NEVER TRIPS A CROSS-ORIGIN CANVAS BLOCK.
           </p>
         </main>
       )}
