@@ -206,6 +206,29 @@ Why: `$set` replaces every document's fields wholesale on each run, so a re-run
 is safe and non-destructive. Proven in Chunk 13 (18 counting-stat fields added
 across three seasons) and again in Chunk 14c (seven game-context fields).
 
+### Mid-season trades: per-week team, season document stamped with the last team
+
+Decision: Every embedded week carries the `team` the player was on that week,
+and the player-season document's top-level `team`/`teamCity` are taken from
+the LATEST loaded week (`pl.last` after the week sort in `load.py`), not the
+first. The game log shows a TEAM column only when a season spans more than one
+team. Roster and draft rows are deduplicated per player before the identity
+join.
+
+Why: The loader used `pl.first`, so a player traded in week 8 was labelled with
+his old team everywhere for the whole season, and search (which reads the most
+recent season's team) inherited it. "Where is he now" is what a reader expects
+from the identity block; "where was he that game" belongs on the game-log row.
+Storing both answers both without a second document per stint. Separately, the
+2025 roster file carries one player on two rows; a LEFT join on that key
+duplicated every one of his weekly rows, inflating games played and every sum.
+Keeping the last roster row per player closes that.
+
+Consequence: documents loaded before this change have no per-week `team` and
+still carry the first-week team. Both are corrected by re-running the loader
+for that season (idempotent upsert, no migration), and the weekly cron does so
+for the current season automatically.
+
 ---
 
 ## Stat computation contract

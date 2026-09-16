@@ -90,6 +90,22 @@ class TestGameContext:
 
 
 class TestIdentity:
+    def test_duplicate_roster_rows_do_not_duplicate_weekly_stats(self):
+        # Seen in the 2025 roster file: one gsis_id on two rows. Without the
+        # dedupe the left join doubles every week for that player.
+        stats = pl.DataFrame({"player_id": ["a", "a", "b"], "team": ["KC", "KC", "BUF"], "week": [1, 2, 1]})
+        rosters = pl.DataFrame({
+            "gsis_id": ["a", "a", "b"], "jersey_number": [15, 15, 17], "birth_date": [date(1995, 9, 17)] * 3,
+            "height": [74, 74, 77], "weight": [225, 225, 237], "college": ["Texas Tech", "Texas Tech", "Wyoming"],
+            "years_exp": [7, 7, 6], "headshot_url": ["old", "new", "u"],
+        })
+        draft = pl.DataFrame({"gsis_id": ["a", "a"], "season": [2017, 2017], "round": [1, 1], "pick": [10, 10]})
+        out = enrich_with_identity(stats, rosters, draft)
+        assert len(out) == 3
+        a_rows = out.filter(pl.col("player_id") == "a")
+        assert len(a_rows) == 2
+        assert a_rows["headshot_url"].to_list() == ["new", "new"]  # last roster row wins
+
     def test_left_joins_keep_stats_for_undrafted_and_unrostered_players(self):
         stats = pl.DataFrame({"player_id": ["a", "b"], "team": ["KC", "XX"]})
         rosters = pl.DataFrame({

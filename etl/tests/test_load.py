@@ -49,17 +49,16 @@ class TestReshape:
         docs = reshape(pl.DataFrame(flat_rows(season=2023) + flat_rows(season=2024)))
         assert sorted((d["playerId"], d["season"]) for d in docs) == [("p1", 2023), ("p1", 2024)]
 
-    def test_mid_season_trade_yields_one_document_stamped_with_the_first_week_team(self):
-        # Documented current behaviour, not an endorsement: the schema has no
-        # per-week team, and pl.first() after a week sort picks the EARLIEST
-        # team. A player traded in week 8 renders with their old team for the
-        # whole season. Changing this needs a schema decision (per-week team
-        # or last-week team), not a test tweak.
-        rows = flat_rows(weeks=(1, 8, 9), team_by_week={1: "NYG", 8: "PHI", 9: "PHI"})
+    def test_mid_season_trade_stamps_the_last_week_team_and_keeps_team_per_week(self):
+        # One document per player-season, stamped with the team he finished
+        # on, and every week carries its own team so the game log can show
+        # the switch. Rows are deliberately unsorted to prove the week sort
+        # drives "last".
+        rows = flat_rows(weeks=(9, 1, 8), team_by_week={1: "NYG", 8: "PHI", 9: "PHI"})
         docs = reshape(pl.DataFrame(rows))
         assert len(docs) == 1
-        assert docs[0]["team"] == "NYG"
-        assert len(docs[0]["weeks"]) == 3
+        assert docs[0]["team"] == "PHI"
+        assert [(w["week"], w["team"]) for w in docs[0]["weeks"]] == [(1, "NYG"), (8, "PHI"), (9, "PHI")]
 
 
 class TestUpsertIdempotency:
