@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { buildForm, formRecord, FORM_WINDOW, FORM_WINDOWS } from "../form.js";
-import { inlineFontUrls, embeddedFontCss, resetFontCache } from "../embedFonts.js";
 import { ageInSeason, arcOptions, buildCareerArc } from "../careerArc.js";
 import { ADVANCED_CONFIG } from "../stats.js";
 import { qbSeason, week } from "../../test/fixtures.js";
