@@ -17,7 +17,7 @@ function Landing() {
   const navigate = useNavigate();
   // Flagged prototypes with a landing entry point (see utils/flags.js).
   const labs = enabledFlags()
-    .filter((name) => FLAG_LABELS[name]?.to)
+    .filter((name) => FLAG_LABELS[name])
     .map((name) => ({ name, ...FLAG_LABELS[name] }));
 
   const updateQuery = (value) => {
@@ -72,9 +72,13 @@ function Landing() {
         {labs.length > 0 && (
           <nav className="labs-row" aria-label="Prototype features">
             <span className="labs-tag">LABS</span>
-            {labs.map(({ name, to, label }) => (
-              <Link key={name} className="labs-link" to={to}>{label}</Link>
-            ))}
+            {labs.map(({ name, to, label }) =>
+              to ? (
+                <Link key={name} className="labs-link" to={to}>{label}</Link>
+              ) : (
+                <span key={name} className="labs-link labs-link--tag" title="On the player page">{label}</span>
+              )
+            )}
           </nav>
         )}
 

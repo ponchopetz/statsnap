@@ -1,0 +1,119 @@
+/* FormLine — LABS. Mirrors the stat-row grid so it reads as a second row. */
+
+.form-line {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-top: 0;
+}
+
+.form-line-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.form-line-label {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.form-line-sub {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+
+.form-line-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.form-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-right: 1px solid var(--line);
+  border-left: 3px solid transparent;
+}
+
+.form-cell:last-child {
+  border-right: 0;
+}
+
+.form-cell {
+  border-bottom: 1px solid var(--line);
+}
+
+.form-cell--hot {
+  border-left-color: var(--accent);
+}
+
+.form-cell--cold {
+  border-left-color: var(--danger);
+}
+
+.form-cell-label {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+
+.form-cell-value {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--fg);
+}
+
+.form-cell-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--display);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+
+.form-cell--hot .form-cell-tag {
+  color: var(--accent);
+}
+
+.form-cell--cold .form-cell-tag {
+  color: var(--danger);
+}
+
+/* Match StatRow's reflow points so the two grids stay aligned. */
+@media (max-width: 64rem) {
+  .form-line-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 30rem) {
+  .form-line-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .form-cell {
+    padding: 10px 12px;
+  }
+  .form-cell-value {
+    font-size: 18px;
+  }
+}
