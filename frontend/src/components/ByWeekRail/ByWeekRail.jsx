@@ -75,10 +75,12 @@ function ByWeekRail({ player }) {
             />
           ))}
         </div>
+        {/* Stays mounted once scrolled to the end so the hint's height doesn't
+            collapse and jump WeekDetail up. */}
         <div className="byweek-strip-fade" aria-hidden="true">
-          {offscreen > 0 && (
-            <span className="byweek-strip-more">+{offscreen} MORE →</span>
-          )}
+          <span className={`byweek-strip-more${offscreen > 0 ? "" : " byweek-strip-more--hidden"}`}>
+            +{offscreen} MORE →
+          </span>
         </div>
       </div>
       <WeekDetail week={displayWeeks[selectedIndex]} position={player.position} />

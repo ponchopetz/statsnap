@@ -60,6 +60,9 @@
   color: var(--fg-2);
   white-space: nowrap;
 }
+.byweek-strip-more--hidden {
+  visibility: hidden;
+}
 
 .byweek-mini {
   flex: 0 0 calc((100% - 28px) / 6);
