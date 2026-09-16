@@ -29,7 +29,8 @@ files land in `coverage/` (git-ignored).
 | `etl/tests/test_load.py` | Throwaway `mongod` | Bulk-upsert idempotency: same load twice is byte-identical, re-runs replace in place, `advanced` map is replaced not merged. Also pins the mid-season-trade behaviour (first-week team wins). |
 | `backend/tests/*.routes.test.js` | mongodb-memory-server | Happy paths, 400/404, regex-metacharacter and word-boundary search, dedupe across seasons, the 10-row cap, projection allowlist, generic 500s. |
 | `backend/tests/scheduleRefresh.test.js` | Stubbed `fetch` | Cold cache, stale cache, empty upstream, HTTP 5xx, network failure, unknown teams, unconfigured season, week rollover. None of them can damage a good cache. |
-| `frontend/src/components/__tests__/*.test.jsx` | Mocked `utils/api.js` | Bio grid and loading/error/not-found states, GameLog DNP gap rows, Career ratio-of-sums totals, ScheduleRail degradation. |
+| `frontend/src/components/__tests__/*.test.jsx` | Mocked `utils/api.js` | Bio grid and loading/error/not-found states, Overview cells per position, GameLog DNP gap rows, Career ratio-of-sums totals, ScheduleRail degradation, Compare page states and URL handling, Leaderboards controls, Splits panel, Tabs keyboard navigation and roving tabindex, PlayerSearch debounce/keyboard/escape/⌘K, Typeahead states, TweaksPanel theme persistence, Landing recents and `?q=`, App routing and ErrorBoundary. |
+| `backend/tests/leaderboards.routes.test.js`, `similar.routes.test.js` | mongodb-memory-server | Ranking by stored percentile, every 400, `/seasons`, similarity math and the LABS comps route. |
 
 ## Expected failures (known bugs, deliberately pinned)
 
@@ -65,15 +66,18 @@ you forget.
 the test setup files before any project module loads, so values in a local
 `.env` can never reach a test run.
 
-## Coverage baseline (this branch, 2026-09-15)
+## Coverage baseline and thresholds (2026-09-16)
 
-Reported honestly, no thresholds enforced. Numbers are line coverage.
+Numbers are line coverage as measured; thresholds sit a few points under
+them and are enforced by `test:coverage` / `pytest --cov` (and therefore by
+CI). Raise a threshold when the baseline moves up for a real reason; never
+write an assertion to move the number.
 
-| Package | Lines | Notes |
-|---|---|---|
-| ETL | 69% total; `percentiles.py` 97%, `transform.py` 63%, `load.py` 49% | The uncovered code is the network `extract_*` functions and the `load()`/`transform()` entry points, which pull from nflverse and write to a real database. Not unit-testable by design. |
-| Backend | 88% | Uncovered: `utils/db.js` (real connection) and the manual-run block in `scheduleRefresh.js`. |
-| Frontend | 69% | Stat math (`stats.js`, `format.js`) is at 97 to 100%. Untested on purpose: Landing, PlayerSearch/Typeahead, TweaksPanel, Tabs keyboard handling. Those are next if the suite grows. |
+| Package | Measured | Threshold (lines / stmts / funcs / branches) | Notes |
+|---|---|---|---|
+| Frontend | 88% lines, 81% branches | 85 / 83 / 82 / 77 | Stat math and formatting are at 97 to 100%. Remaining gaps are the PNG export path in ShareCard (canvas, not available in jsdom), `useOffscreenCount` measurement, and hover-only branches. |
+| Backend | 91% lines, 90% branches | 88 / 88 / 80 / 85 | Uncovered: `utils/db.js` (real connection) and the manual-run block in `scheduleRefresh.js`. |
+| ETL | 69% lines | `fail_under = 65` | The uncovered code is the network `extract_*` functions and the `load()`/`transform()` entry points, which pull from nflverse and write to a real database. Not unit-testable by design. |
 
 ## Notes for whoever extends this
 

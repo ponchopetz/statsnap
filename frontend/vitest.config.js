@@ -18,6 +18,9 @@ export default defineConfig({
         "src/**/*.test.{js,jsx}",
         "src/vendor/**",
       ],
+      // A few points under the measured baseline (see TESTING.md) so a real
+      // regression fails CI without inviting assertions written for the number.
+      thresholds: { lines: 85, statements: 83, functions: 82, branches: 77 },
     },
   },
 });
