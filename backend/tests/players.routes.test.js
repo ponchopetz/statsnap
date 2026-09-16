@@ -98,13 +98,12 @@ describe("GET /players/search", () => {
     expect(ids).not.toContain("p1");
   });
 
-  // Known gap: Express parses a repeated key (?q=a&q=b) into an array.
-  // The controller calls q.trim() before its try/catch, so the request
-  // currently dies as a 500 instead of a 400. Marked as an expected failure
-  // so the suite flips loudly when the controller starts validating the type.
-  it.fails("returns 400 (not 500) when q is repeated into an array", async () => {
+  it("returns 400 (not 500) when q is repeated into an array", async () => {
+    // Express parses ?q=a&q=b into an array; the controller must reject it
+    // as a bad request rather than crash on q.trim().
     const res = await request(app).get("/players/search?q=a&q=b");
     expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: "Query parameter q is required" });
   });
 
   it("hides driver error details behind a generic 500", async () => {

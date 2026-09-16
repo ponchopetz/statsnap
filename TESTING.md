@@ -40,8 +40,6 @@ moment it is fixed, so the marker cannot silently outlive the bug.
 - `stats.golden.test.js` `KNOWN_DRIFT`: negative season air-yard totals
   (Python nulls PACR/RACR, JS returns a negative ratio) and share metrics
   with no non-null week (Python null, JS `0`). Fix belongs in `stats.js`.
-- `players.routes.test.js`: `?q=a&q=b` (array query) returns 500 instead of
-  400 because `q.trim()` runs before the try/catch.
 
 ## Regenerating the golden file
 
