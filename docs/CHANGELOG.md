@@ -12,6 +12,18 @@ happened, so it isn't reconstructed here — `git log` and the ADR entries
 under "Data & schema," "Frontend architecture," etc. are the record of that
 period.
 
+## [Unreleased]
+
+### Added (LABS, flagged off by default)
+
+- Similar players: "plays like" comps under the Advanced tab from a new
+  `GET /players/:id/similar` (mounted only with `FEATURE_SIMILAR=true`).
+- Form line: last four games vs season for the headline stats on Overview.
+- Career arc: one headline stat across every season with age, on Career.
+- Share card: exportable 1200×630 SVG/PNG player card at `/players/:id/card`.
+- Enable per browser with `/?labs=similar,form,careerArc,shareCard`. See
+  `PROTOTYPES.md`.
+
 ## [1.1.0] — 2026-09-16
 
 Three new pages and tabs for arguing about players, a real test suite, and

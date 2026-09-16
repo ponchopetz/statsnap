@@ -32,8 +32,71 @@ page of their own; player-page prototypes appear in place.
 
 ## Current LABS prototypes
 
-None yet on this branch. See the `feature/labs-ideas` branch (similar
-players, career arc, form line, share card) once it lands.
+Enable all four for a browser with `/?labs=similar,form,careerArc,shareCard`.
+The landing LABS row lists whichever are on; each lives on the player page.
+
+### Similar players (`similar`, plus `FEATURE_SIMILAR=true` on the API)
+
+**What it does.** A PLAYS LIKE panel under the Advanced tab: the five
+nearest percentile profiles in the same position cohort and season, each
+linking straight into Compare.
+
+**How it works.** `GET /players/:id/similar?season=` (registered before
+`/:playerId` so the two-segment path is not swallowed) loads the cohort's
+`advanced` maps and ranks by Euclidean distance normalised by the number of
+shared metrics, so a 3-metric overlap and a 7-metric overlap read on the same
+0..1 scale. A player below the qualifier has no profile and the panel says
+so. If the API does not expose the route, the panel renders nothing.
+
+**Unfinished / next.** Similarity treats every metric equally; a weighted
+version (e.g. EPA counts double) is a one-line change in `utils/similarity.js`.
+Cross-season comps ("2024 Jefferson plays like 2019 Thomas") need the cohort
+query to drop the season filter and the response to carry it.
+
+### Form line (`form`)
+
+**What it does.** A six-cell strip under the Overview stat row: the team's
+record and the five chartable headline stats over the last four games against
+the season average, tagged HOT or COLD on a 15%+ swing in the stat's own
+direction (more interceptions is cold).
+
+**How it works.** `utils/form.js` reads the same per-week series
+`utils/headline.js` gives the sparkline, so the numbers agree with the chart.
+The grid mirrors the stat row's six cells and breakpoints so the two rows
+stay aligned.
+
+**Unfinished / next.** The window (4) and threshold (15%) are constants; a
+window toggle (L3 / L4 / L6) is cheap. Rates are averaged per game here
+(that is what "form" means), not ratio-of-sums.
+
+### Career arc (`careerArc`)
+
+**What it does.** Under the Career table: one headline stat plotted across
+every loaded season with the player's age that season under each point.
+
+**How it works.** `utils/careerArc.js` runs the chosen headline row over each
+season document (same definitions as the Career table); age is computed on
+1 September of the season. Reuses the Sparkline primitive.
+
+**Unfinished / next.** Needs two seasons to render. A percentile arc (how
+the player ranked each year) would be more telling than raw totals and only
+needs `advanced` from each document.
+
+### Share card (`shareCard`)
+
+**What it does.** `/players/:id/card?season=`: a 1200×630 SVG card (name,
+season, six headline stats, advanced percentile bars, jersey watermark) with
+a DOWNLOAD PNG button. A CARD button appears in the player topbar.
+
+**How it works.** Inline SVG rendered from the same headline and advanced
+definitions, serialised and drawn onto a 2× canvas for the PNG. There is no
+headshot on purpose: a cross-origin image would taint the canvas and block
+the export.
+
+**Unfinished / next.** The PNG falls back to the system monospace font
+unless JetBrains Mono is installed locally (fonts are not embedded in the
+SVG). Embedding the font as a data URI in a `<style>` block fixes that at
+the cost of ~100 KB per export. Accent colour is read from the live theme.
 
 ## Verification notes
 
