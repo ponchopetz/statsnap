@@ -87,6 +87,8 @@ const playerStatsSchema = new mongoose.Schema(
     // Roster fields (nflverse load_rosters)
     birthDate:    { type: String },
     college:      { type: String },
+    // nflverse years_exp: seasons completed BEFORE this season (rookie = 0).
+    // Displayed as a season ordinal by the frontend's formatExperience().
     experience:   { type: Number },
     headshotUrl:  { type: String },
     heightInches: { type: Number },
