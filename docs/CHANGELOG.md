@@ -24,6 +24,13 @@ period.
 - Enable per browser with `/?labs=similar,form,careerArc,shareCard`. See
   `PROTOTYPES.md`.
 
+### Changed
+
+- Test suite covers the remaining UI (Landing, PlayerSearch, Typeahead,
+  TweaksPanel, Tabs keyboard handling, Compare page, Splits panel, App
+  routing, ErrorBoundary, API client) and enforces coverage thresholds set
+  just under the measured baselines. Frontend line coverage 69% → 88%.
+
 ## [1.1.0] — 2026-09-16
 
 Three new pages and tabs for arguing about players, a real test suite, and

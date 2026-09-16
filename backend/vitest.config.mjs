@@ -10,6 +10,8 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov"],
       include: ["app.js", "controllers/**", "middlewares/**", "models/**", "routes/**", "utils/**"],
+      // See TESTING.md for the baseline these sit under.
+      thresholds: { lines: 88, statements: 88, functions: 80, branches: 85 },
     },
   },
 });
