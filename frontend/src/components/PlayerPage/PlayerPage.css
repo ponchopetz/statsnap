@@ -38,6 +38,12 @@
   }
 }
 
+/* COMPARE link (PROTOTYPE, flag: compare) shares the back-button treatment */
+.compare-btn {
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
 /* ───── Two-column content area ───── */
 
 .player-content {

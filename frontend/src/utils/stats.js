@@ -269,7 +269,9 @@ const RECEIVER_ROWS = [
   },
 ];
 
-const ADVANCED_CONFIG = {
+// Exported so prototype pages (leaderboards, compare) can list the ranked
+// metrics per position from the same source as the Advanced panel.
+export const ADVANCED_CONFIG = {
   QB: [
     {
       key: "passingEpa",

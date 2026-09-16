@@ -1,0 +1,109 @@
+/* Splits — PROTOTYPE (flag: splits). Table grammar borrowed from Career. */
+
+.splits-panel {
+  border: 1px solid var(--line);
+  padding: 16px;
+}
+
+.splits-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.splits-head-label {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.splits-head-season {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+
+.splits-scroll {
+  overflow-x: auto;
+}
+
+.splits-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--display);
+  white-space: nowrap;
+}
+
+.splits-table th {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  text-align: right;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.splits-table td {
+  font-size: 13px;
+  color: var(--fg);
+  text-align: right;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.splits-table th.ctx,
+.splits-table td.ctx {
+  text-align: left;
+}
+
+.splits-row-baseline td {
+  color: var(--fg-2);
+  font-weight: 700;
+  border-bottom: 1px solid var(--line);
+}
+
+.splits-row-baseline .ctx {
+  color: var(--accent);
+}
+
+.splits-group td {
+  padding-top: 14px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--fg-3);
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.splits-row-empty td {
+  color: var(--fg-3);
+}
+
+.splits-footnote {
+  font-family: var(--display);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  margin-top: 10px;
+}
+
+.splits-empty {
+  padding: 32px 16px;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--fg-3);
+}
