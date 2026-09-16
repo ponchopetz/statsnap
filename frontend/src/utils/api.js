@@ -87,8 +87,9 @@ export async function getLeaderboard({ season, position, metric, limit = 25 }, s
  * cohort and season. 404 when the API does not expose the route.
  * Returns: Promise<{ playerId, season, position, qualified, similar: [...] }>
  */
-export async function getSimilarPlayers(playerId, season, signal) {
-  const url = `${API_BASE_URL}/players/${encodeURIComponent(playerId)}/similar?season=${encodeURIComponent(season)}`;
+export async function getSimilarPlayers(playerId, season, signal, scope = "season") {
+  const params = new URLSearchParams({ season, scope });
+  const url = `${API_BASE_URL}/players/${encodeURIComponent(playerId)}/similar?${params}`;
   const response = await fetch(url, { signal });
   if (!response.ok) {
     const err = new Error(`Similar players failed: ${response.status}`);

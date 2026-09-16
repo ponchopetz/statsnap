@@ -28,6 +28,7 @@ describe("api client", () => {
     expect(await getSchedule()).toEqual({ ok: true });
     expect(await getSeasons()).toEqual({ ok: true });
     expect(await getSimilarPlayers("00-1", 2024)).toEqual({ ok: true });
+    expect(await getSimilarPlayers("00-1", 2024, undefined, "all")).toEqual({ ok: true });
     expect(await getLeaderboard({ season: 2024, position: "WR", metric: "racr" })).toEqual({ ok: true });
   });
 

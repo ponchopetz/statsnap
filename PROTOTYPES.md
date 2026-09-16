@@ -45,17 +45,20 @@ The landing LABS row lists whichever are on; each lives on the player page.
 nearest percentile profiles in the same position cohort and season, each
 linking straight into Compare.
 
-**How it works.** `GET /players/:id/similar?season=` (registered before
-`/:playerId` so the two-segment path is not swallowed) loads the cohort's
-`advanced` maps and ranks by Euclidean distance normalised by the number of
-shared metrics, so a 3-metric overlap and a 7-metric overlap read on the same
-0..1 scale. A player below the qualifier has no profile and the panel says
-so. If the API does not expose the route, the panel renders nothing.
+**How it works.** `GET /players/:id/similar?season=&scope=season|all`
+(registered before `/:playerId` so the two-segment path is not swallowed)
+loads the cohort's `advanced` maps and ranks by weighted Euclidean distance
+(EPA rates weigh 2, CPOE 1.5, everything else 1) normalised by total weight,
+so a 3-metric overlap and a 7-metric overlap read on the same 0..1 scale.
+`scope=all` drops the season filter, so a 2024 receiver can play like a 2019
+one; each comp carries its season and the row links into Compare with
+per-slot seasons. A player below the qualifier has no profile and the panel
+says so. If the API does not expose the route, the panel renders nothing.
 
-**Unfinished / next.** Similarity treats every metric equally; a weighted
-version (e.g. EPA counts double) is a one-line change in `utils/similarity.js`.
-Cross-season comps ("2024 Jefferson plays like 2019 Thomas") need the cohort
-query to drop the season filter and the response to carry it.
+**Unfinished / next.** The weights are a constant; exposing them (or a
+"volume vs efficiency" slider) is the next step. `scope=all` loads every
+qualified season at the position (a few hundred small documents); fine
+today, but a materialised percentile-vector collection would scale it.
 
 ### Form line (`form`)
 
@@ -69,9 +72,9 @@ direction (more interceptions is cold).
 The grid mirrors the stat row's six cells and breakpoints so the two rows
 stay aligned.
 
-**Unfinished / next.** The window (4) and threshold (15%) are constants; a
-window toggle (L3 / L4 / L6) is cheap. Rates are averaged per game here
-(that is what "form" means), not ratio-of-sums.
+**Unfinished / next.** The window is switchable (L3 / L4 / L6); the 15%
+threshold is a constant. Rates are averaged per game here (that is what
+"form" means), not ratio-of-sums.
 
 ### Share card (`shareCard`)
 
@@ -80,14 +83,17 @@ season, six headline stats, advanced percentile bars, jersey watermark) with
 a DOWNLOAD PNG button. A CARD button appears in the player topbar.
 
 **How it works.** Inline SVG rendered from the same headline and advanced
-definitions, serialised and drawn onto a 2× canvas for the PNG. There is no
-headshot on purpose: a cross-origin image would taint the canvas and block
-the export.
+definitions, serialised and drawn onto a 2× canvas for the PNG. Before
+serialising, `utils/embedFonts.js` fetches the Google Fonts stylesheet and
+swaps each font file for a data URI in a `<style>` block, so the PNG uses
+JetBrains Mono and Space Grotesk; if that fails the export still runs on
+system fonts and the note under the card says so. There is no headshot on
+purpose: a cross-origin image would taint the canvas and block the export.
 
-**Unfinished / next.** The PNG falls back to the system monospace font
-unless JetBrains Mono is installed locally (fonts are not embedded in the
-SVG). Embedding the font as a data URI in a `<style>` block fixes that at
-the cost of ~100 KB per export. Accent colour is read from the live theme.
+**Unfinished / next.** Only the weights the card uses are embedded (about
+100 KB per export, cached per page load). A server-rendered card would let
+the URL itself be shared as an image. Accent colour is read from the live
+theme.
 
 ## Verification notes
 

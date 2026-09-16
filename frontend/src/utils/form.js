@@ -5,6 +5,7 @@
 import { HEADLINE_CONFIG } from "./headline.js";
 
 export const FORM_WINDOW = 4;
+export const FORM_WINDOWS = [3, 4, 6];
 // Relative change that earns a HOT / COLD tag.
 const HOT_THRESHOLD = 0.15;
 
@@ -21,9 +22,9 @@ function record(weeks) {
 }
 
 /** Team record over the last N games and the season, from the stored results. */
-export function formRecord(player) {
+export function formRecord(player, window = FORM_WINDOW) {
   const weeks = player.weeks ?? [];
-  return { recent: record(weeks.slice(-FORM_WINDOW)), season: record(weeks) };
+  return { recent: record(weeks.slice(-window)), season: record(weeks) };
 }
 
 /**
@@ -32,7 +33,7 @@ export function formRecord(player) {
  *   `delta` is relative (recent / season - 1). Fewer than FORM_WINDOW + 1
  *   games gives no trend: there is no "rest of season" to compare to.
  */
-export function buildForm(player) {
+export function buildForm(player, window = FORM_WINDOW) {
   const rows = HEADLINE_CONFIG[player.position];
   if (!rows) return [];
   const weeks = player.weeks ?? [];
@@ -42,8 +43,8 @@ export function buildForm(player) {
     .map((r) => {
       const series = r.series(weeks);
       const season = mean(series);
-      const recent = mean(series.slice(-FORM_WINDOW));
-      const enough = weeks.length > FORM_WINDOW && season != null && recent != null;
+      const recent = mean(series.slice(-window));
+      const enough = weeks.length > window && season != null && recent != null;
       let delta = null;
       let trend = null;
       if (enough) {
