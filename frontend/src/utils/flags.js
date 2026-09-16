@@ -1,6 +1,7 @@
 // Feature flags for LABS prototypes. Everything defaults OFF so the
 // production build behaves exactly as before. Compare, Splits, and
-// Leaderboards graduated out of this file in 1.1.0 and are always on.
+// Leaderboards, and Career Arc graduated out of this file in 1.1.0 and are
+// always on.
 // A flag is on when the first of these says so:
 //
 //   1. localStorage "statsnap:flags"  → {"compare": true}   (per browser)
@@ -18,7 +19,6 @@
 export const FLAG_DEFAULTS = {
   similar: false,    // "plays like" comps under the Advanced panel (needs FEATURE_SIMILAR on the API)
   form: false,       // last-4-games form strip on Overview
-  careerArc: false,  // one stat across every season, with age, on Career
   shareCard: false,  // exportable SVG/PNG player card
 };
 
@@ -27,7 +27,6 @@ export const FLAG_DEFAULTS = {
 export const FLAG_LABELS = {
   similar: { label: "SIMILAR PLAYERS" },
   form: { label: "FORM LINE" },
-  careerArc: { label: "CAREER ARC" },
   shareCard: { label: "SHARE CARD" },
 };
 

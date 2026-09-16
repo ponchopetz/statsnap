@@ -19,9 +19,8 @@ period.
 - Similar players: "plays like" comps under the Advanced tab from a new
   `GET /players/:id/similar` (mounted only with `FEATURE_SIMILAR=true`).
 - Form line: last four games vs season for the headline stats on Overview.
-- Career arc: one headline stat across every season with age, on Career.
 - Share card: exportable 1200×630 SVG/PNG player card at `/players/:id/card`.
-- Enable per browser with `/?labs=similar,form,careerArc,shareCard`. See
+- Enable per browser with `/?labs=similar,form,shareCard`. See
   `PROTOTYPES.md`.
 
 ### Changed
@@ -48,6 +47,9 @@ API or the stored documents (new fields only).
 - **Leaderboards** (`/leaderboards`): qualified players ranked by the ETL
   percentile per season, position, and metric, with a minimum-games filter.
   New endpoints `GET /leaderboards` and `GET /seasons`.
+- **Career Arc** under the Career table: one stat across every loaded
+  season with age under each point, as season totals or as the ETL
+  percentile rank (an unqualified season draws as a gap).
 - One shared headline-stat list (`utils/headline.js`) that Overview and
   Compare both read; Overview's three position components collapse into one.
 - Per-week `team` on every embedded week; the game log shows a TEAM column

@@ -12,6 +12,10 @@ This file tracks what is in LABS now, how to turn it on, and what graduated.
   division, season halves, against a full-season baseline.
 - **Leaderboards** — `/leaderboards`. Ranked by the ETL percentile through
   `GET /leaderboards`; seasons from `GET /seasons`; minimum-games filter.
+- **Career Arc** — under the Career table: one stat across every loaded
+  season with age under each point, in TOTALS mode (headline stats) or
+  PERCENTILE mode (the ETL's cohort rank for an advanced metric; an
+  unqualified season draws as a gap).
 
 What is still open on those three lives in `docs/adr/DECISIONS.md`
 ("Compare, Splits, Leaderboards") and the CHANGELOG.
@@ -32,7 +36,7 @@ page of their own; player-page prototypes appear in place.
 
 ## Current LABS prototypes
 
-Enable all four for a browser with `/?labs=similar,form,careerArc,shareCard`.
+Enable all three for a browser with `/?labs=similar,form,shareCard`.
 The landing LABS row lists whichever are on; each lives on the player page.
 
 ### Similar players (`similar`, plus `FEATURE_SIMILAR=true` on the API)
@@ -68,19 +72,6 @@ stay aligned.
 **Unfinished / next.** The window (4) and threshold (15%) are constants; a
 window toggle (L3 / L4 / L6) is cheap. Rates are averaged per game here
 (that is what "form" means), not ratio-of-sums.
-
-### Career arc (`careerArc`)
-
-**What it does.** Under the Career table: one headline stat plotted across
-every loaded season with the player's age that season under each point.
-
-**How it works.** `utils/careerArc.js` runs the chosen headline row over each
-season document (same definitions as the Career table); age is computed on
-1 September of the season. Reuses the Sparkline primitive.
-
-**Unfinished / next.** Needs two seasons to render. A percentile arc (how
-the player ranked each year) would be more telling than raw totals and only
-needs `advanced` from each document.
 
 ### Share card (`shareCard`)
 
