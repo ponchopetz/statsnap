@@ -9,7 +9,7 @@ process.env.FEATURE_SIMILAR = "true";
 const require = createRequire(import.meta.url);
 const app = require("../app.js");
 const PlayerStats = require("../models/playerStats.js");
-const { similarity, rankSimilar } = require("../utils/similarity.js");
+const { similarity, rankSimilar, DEFAULT_WEIGHTS } = require("../utils/similarity.js");
 
 beforeAll(startMongo);
 afterAll(stopMongo);
@@ -22,6 +22,16 @@ describe("similarity", () => {
     expect(similarity({ a: 0.5, b: 0.5 }, { a: 0.5, b: 0.5 })).toBeNull();
     expect(similarity({ a: 0.5, b: 0.5, c: 0.5 }, { a: 0.5, b: 0.5, d: 0.5 })).toBeNull();
     expect(similarity(undefined, { a: 1 })).toBeNull();
+  });
+
+  it("weights EPA metrics more heavily than volume metrics", () => {
+    expect(DEFAULT_WEIGHTS.receivingEpa).toBe(2);
+    const target = { receivingEpa: 0.9, targetShare: 0.9, wopr: 0.9 };
+    const offOnEpa = { receivingEpa: 0.5, targetShare: 0.9, wopr: 0.9 };
+    const offOnShare = { receivingEpa: 0.9, targetShare: 0.5, wopr: 0.9 };
+    expect(similarity(target, offOnEpa)).toBeLessThan(similarity(target, offOnShare));
+    // Unweighted, the two are identical.
+    expect(similarity(target, offOnEpa, { weights: {} })).toBeCloseTo(similarity(target, offOnShare, { weights: {} }), 10);
   });
 
   it("ranks by similarity, drops the target itself and unmatched profiles, breaks ties by name", () => {
@@ -57,6 +67,20 @@ describe("GET /players/:playerId/similar", () => {
     expect(res.body.similar.map((s) => s.playerId)).toEqual(["near", "far"]);
     expect(res.body.similar[0].similarity).toBeGreaterThan(res.body.similar[1].similarity);
     expect(res.body.similar[0]).not.toHaveProperty("_id");
+  });
+
+  it("scope=all compares across seasons and carries each comp's season", async () => {
+    await PlayerStats.insertMany([
+      wr("me", "Me", { targetShare: 0.9, wopr: 0.9, racr: 0.5 }),
+      wr("me", "Me", { targetShare: 0.9, wopr: 0.9, racr: 0.5 }, { season: 2023 }),
+      wr("old", "Old Timer", { targetShare: 0.9, wopr: 0.9, racr: 0.5 }, { season: 2019 }),
+      wr("near", "Near", { targetShare: 0.7, wopr: 0.7, racr: 0.5 }),
+    ]);
+    const res = await request(app).get("/players/me/similar?season=2024&scope=all");
+    expect(res.status).toBe(200);
+    expect(res.body.scope).toBe("all");
+    expect(res.body.similar.map((s) => [s.playerId, s.season])).toEqual([["old", 2019], ["near", 2024]]);
+    expect((await request(app).get("/players/me/similar?season=2024&scope=nope")).status).toBe(400);
   });
 
   it("reports an unqualified target with an empty list, 404s an unknown season, 400s a bad query", async () => {
