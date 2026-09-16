@@ -59,3 +59,56 @@ export async function getSchedule(signal) {
 
   return response.json();
 }
+
+/**
+ * Fetch the top qualified players for one
+ * season, position, and advanced metric. The backend ranks by the ETL's
+ * stored percentile map, so ordering has exactly one definition; the rows
+ * carry weeks so the client can format the raw value with stats.js.
+ *
+ * Returns: Promise<{ season, position, metric, count, rows }>
+ * Throws:  Error with .status on non-2xx (404 when the backend flag is off).
+ */
+export async function getLeaderboard({ season, position, metric, limit = 25 }, signal) {
+  const params = new URLSearchParams({ season, position, metric, limit });
+  const response = await fetch(`${API_BASE_URL}/leaderboards?${params}`, { signal });
+
+  if (!response.ok) {
+    const err = new Error(`Leaderboard fetch failed: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+
+  return response.json();
+}
+
+/**
+ * LABS (flag: similar). Nearest percentile profiles in the same position
+ * cohort and season. 404 when the API does not expose the route.
+ * Returns: Promise<{ playerId, season, position, qualified, similar: [...] }>
+ */
+export async function getSimilarPlayers(playerId, season, signal, scope = "season") {
+  const params = new URLSearchParams({ season, scope });
+  const url = `${API_BASE_URL}/players/${encodeURIComponent(playerId)}/similar?${params}`;
+  const response = await fetch(url, { signal });
+  if (!response.ok) {
+    const err = new Error(`Similar players failed: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+  return response.json();
+}
+
+/**
+ * Fetch the seasons present in the stats collection, newest first.
+ * Returns: Promise<{ seasons: number[] }>
+ */
+export async function getSeasons(signal) {
+  const response = await fetch(`${API_BASE_URL}/seasons`, { signal });
+  if (!response.ok) {
+    const err = new Error(`Seasons fetch failed: ${response.status}`);
+    err.status = response.status;
+    throw err;
+  }
+  return response.json();
+}

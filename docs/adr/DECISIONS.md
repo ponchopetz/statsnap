@@ -206,6 +206,29 @@ Why: `$set` replaces every document's fields wholesale on each run, so a re-run
 is safe and non-destructive. Proven in Chunk 13 (18 counting-stat fields added
 across three seasons) and again in Chunk 14c (seven game-context fields).
 
+### Mid-season trades: per-week team, season document stamped with the last team
+
+Decision: Every embedded week carries the `team` the player was on that week,
+and the player-season document's top-level `team`/`teamCity` are taken from
+the LATEST loaded week (`pl.last` after the week sort in `load.py`), not the
+first. The game log shows a TEAM column only when a season spans more than one
+team. Roster and draft rows are deduplicated per player before the identity
+join.
+
+Why: The loader used `pl.first`, so a player traded in week 8 was labelled with
+his old team everywhere for the whole season, and search (which reads the most
+recent season's team) inherited it. "Where is he now" is what a reader expects
+from the identity block; "where was he that game" belongs on the game-log row.
+Storing both answers both without a second document per stint. Separately, the
+2025 roster file carries one player on two rows; a LEFT join on that key
+duplicated every one of his weekly rows, inflating games played and every sum.
+Keeping the last roster row per player closes that.
+
+Consequence: documents loaded before this change have no per-week `team` and
+still carry the first-week team. Both are corrected by re-running the loader
+for that season (idempotent upsert, no migration), and the weekly cron does so
+for the current season automatically.
+
 ---
 
 ## Stat computation contract
@@ -255,6 +278,33 @@ asserting the other against them makes Python the single source of truth
 for what the numbers should be, and any unilateral change to either side
 fails the suite. Vitest is the project's first test dependency —
 chosen because it is the standard runner for Vite projects.
+
+### Experience is displayed as the season ordinal, computed in one place
+
+Decision: The bio grid cell formerly labelled `EXP` is now `NFL SEASON` and
+shows the ordinal of the season being viewed: `ROOKIE` for a first-year
+player, `4TH` for a fourth-season player. The stored field `experience` is
+unchanged: it is nflverse `years_exp`, passed through the ETL untouched, and
+it counts seasons completed *before* the document's season (rookie = 0). The
+only place the +1 happens is `formatExperience()` in
+`frontend/src/utils/format.js`. The ETL rename map and the Mongoose schema
+carry a comment stating the field's meaning so nobody adds a second +1.
+
+Why: The cell undercounted by one because it printed `years_exp` raw under a
+label that implied "seasons played." Verified against the 2024 and 2025 roster
+files: `years_exp == season - entry_year` for every row, so the data was
+correct and the display was mislabelled. Two honest fixes existed: relabel to
+"prior seasons" and keep the number, or keep the football-native reading
+("he's in year 8") and add one. The latter is what a reader expects and what
+the symptom report asked for. Adding the +1 in the ETL was rejected because it
+would change the stored meaning of a source field (and need a full re-run to
+take effect); adding it at call sites was rejected because that is exactly how
+the two-definitions drift in Chunk 15 started.
+
+Boundary: a rookie has 0 prior seasons and renders `ROOKIE`, not `0`, not
+`1ST`, and not "1 year". Each player-season document carries the
+`years_exp` of *that* season's roster, so a 2024 document for a 2024 draftee
+reads `ROOKIE` and the same player's 2025 document reads `2ND`.
 
 ### Per-week helpers are distinct from season aggregators
 
@@ -324,16 +374,66 @@ can observe tab changes even when not owning the state.
 
 ### Panel dispatch: three components vs config-map
 
-Decision: Choose the dispatch shape by the axis of variation. Overview uses
-three sub-components (`OverviewQB`/`OverviewRB`/`OverviewReceiver`) because the
-layouts genuinely differ. Advanced, Game Log, and Career each use a single
-component plus a position-keyed config map, because only the column/row list
-varies and the structure is one table.
+Decision: Choose the dispatch shape by the axis of variation. Advanced, Game
+Log, Career, and Splits each use a single component plus a position-keyed
+config map, because only the column/row list varies and the structure is one
+table. Overview started as three sub-components (`OverviewQB`/`OverviewRB`/
+`OverviewReceiver`) on the theory that its layouts differed; by 1.1.0 they had
+converged to the same structure, so Overview is now one `OverviewPanel` driven
+by the headline list in `utils/headline.js`.
 
 Why: When the variation is "what structure," separate components are clearest.
 When the variation is "which columns," a config map is lighter and keeps one
 rendering path. Picking the pattern to match the axis of variation is the
-explainable choice.
+explainable choice, and re-checking the axis when the code converges is how
+the three Overview files were retired without a behaviour change (the Overview
+render test pins each position's cells against the config).
+
+### Headline stats have one list
+
+Decision (1.1.0): The six headline cells per position live in
+`frontend/src/utils/headline.js` (value, display format, sparkline series,
+comparison direction). Overview, Compare, and any future surface read that
+list. It joins `stats.js` (season math) and `format.js` (display) as the third
+piece of the one-definition rule: the math, the formatting, and the list of
+which stats are headline stats each have exactly one home.
+
+### Compare, Splits, Leaderboards
+
+Decision (1.1.0): Three features promoted from flagged prototypes. Compare
+builds its rows from `headline.js` and `buildAdvancedRows`, so nothing on
+that page has its own stat definition; each slot has its own season, so two
+seasons can be compared. Splits filters the stored weeks and applies the
+season definition to the subset, the Career pseudo-document idea one level
+down. Leaderboards rank by the ETL-stored percentile through a new
+`GET /leaderboards` so ordering is defined once in `percentiles.py`; the raw
+value column is formatted client-side by the same config row the Advanced
+panel uses. `GET /seasons` reports what is loaded so the page never hardcodes
+years. Tradeoff accepted for now: leaderboard rows carry `weeks` (a few
+hundred KB for 60 rows) rather than a third, Mongo-side definition of the
+season aggregates; ETL-written season aggregates on the document would
+remove that.
+
+### Career arc: totals or percentile, same definitions
+
+Decision (1.1.0): The Career tab ends with a chart of one stat across every
+loaded season. TOTALS mode reuses the headline list (so the chart and the
+table above it cannot disagree); PERCENTILE mode plots the ETL's stored
+cohort rank for an advanced metric, with an unqualified season drawn as a
+gap rather than a zero. Age is shown on 1 September of each season.
+
+Why: raw totals reward volume and era; the percentile answers the question a
+reader actually has ("was he better in 2022 or 2024 relative to his peers")
+with no new computation, because the ranking already lives on the document.
+
+### Feature flags for labs prototypes
+
+Decision (1.1.0): Experimental features ship behind `frontend/src/utils/flags.js`,
+default off, switchable per browser with `/?labs=<name>` or per build with
+`VITE_FLAG_<NAME>=true`. Enabled prototypes appear in a LABS row on the
+landing page. Anything with a backend route is mounted behind an explicit env
+flag until promoted. Graduating a feature means deleting its flag, not
+flipping a default, so `develop` never carries a half-on feature.
 
 ### Season switching via URL param
 

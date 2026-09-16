@@ -1,0 +1,153 @@
+/* CareerArc — same frame as the Career table it sits under. */
+
+.arc {
+  border: 1px solid var(--line);
+  border-top: 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.arc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.arc-head-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.arc-label {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.arc-options {
+  display: flex;
+  border: 1px solid var(--line-2);
+}
+
+.arc-btn {
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--fg-3);
+  padding: 6px 10px;
+  border-right: 1px solid var(--line-2);
+  white-space: nowrap;
+}
+
+.arc-btn:last-child {
+  border-right: 0;
+}
+
+.arc-btn--active {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+@media (hover: hover) {
+  .arc-btn:not(.arc-btn--active):hover {
+    color: var(--accent);
+  }
+}
+
+.arc-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.arc-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.arc-stat-label {
+  font-family: var(--display);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+}
+
+.arc-stat-value {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.arc-chart {
+  width: 100%;
+  aspect-ratio: 600 / 60;
+}
+
+.arc-axis {
+  display: grid;
+  gap: 4px;
+}
+
+.arc-tick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--display);
+  text-align: center;
+}
+
+.arc-tick-season {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.arc-tick-age {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--fg-3);
+  min-height: 11px;
+}
+
+.arc-tick-value {
+  font-size: 11px;
+  color: var(--fg-2);
+}
+
+.arc-footnote {
+  font-family: var(--display);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 30rem) {
+  .arc-head-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .arc-options {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .arc-tick-value {
+    display: none;
+  }
+}

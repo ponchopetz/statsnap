@@ -1,0 +1,4 @@
+# Test-only dependencies. Production installs (and the ETL GitHub Action)
+# use requirements.txt alone; these are layered on top for local runs and CI.
+pytest==8.4.2
+pytest-cov==6.3.0

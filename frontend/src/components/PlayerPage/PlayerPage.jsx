@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { useMediaQuery } from "../../hooks/useMediaQuery.js";
 import { useSlowLoading } from "../../hooks/useSlowLoading.js";
-import { formatAge, formatHeight, formatDraft } from "../../utils/format.js";
+import { formatAge, formatHeight, formatDraft, formatExperience } from "../../utils/format.js";
 import Tabs from "../Tabs/Tabs.jsx";
 import Overview from "../Overview/Overview.jsx";
 import AdvancedPanel from "../AdvancedPanel/AdvancedPanel.jsx";
@@ -11,6 +11,10 @@ import GameLog from "../GameLog/GameLog.jsx";
 import Career from "../Career/Career.jsx";
 import SeasonSelector from "../SeasonSelector/SeasonSelector.jsx";
 import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
+import Splits from "../Splits/Splits.jsx";
+import SimilarPlayers from "../SimilarPlayers/SimilarPlayers.jsx";
+import CareerArc from "../CareerArc/CareerArc.jsx";
+import { isFlagEnabled } from "../../utils/flags.js";
 import "./PlayerPage.css";
 
 function PlayerPage() {
@@ -73,6 +77,22 @@ function PlayerPage() {
           placeholder={searchPlaceholder}
           onSelect={(player) => navigate(`/players/${player.playerId}`)}
         />
+
+        <Link
+          className="back-btn compare-btn"
+          to={`/compare?a=${encodeURIComponent(playerId)}${selectedSeason ? `&season=${selectedSeason}` : ""}`}
+        >
+          COMPARE
+        </Link>
+
+        {isFlagEnabled("shareCard") && (
+          <Link
+            className="back-btn compare-btn"
+            to={`/players/${encodeURIComponent(playerId)}/card${selectedSeason ? `?season=${selectedSeason}` : ""}`}
+          >
+            CARD
+          </Link>
+        )}
       </header>
 
       {status === "loading" && (
@@ -145,8 +165,8 @@ function PlayerPage() {
                 <div className="bio-value">{formatAge(player.birthDate) ?? "—"}</div>
               </div>
               <div className="bio-cell">
-                <div className="bio-label">EXP</div>
-                <div className="bio-value">{player.experience ?? "—"}</div>
+                <div className="bio-label">NFL SEASON</div>
+                <div className="bio-value">{formatExperience(player.experience) ?? "—"}</div>
               </div>
               <div className="bio-cell">
                 <div className="bio-label">HT</div>
@@ -183,6 +203,7 @@ function PlayerPage() {
                 <Tabs.Tab id="overview">OVERVIEW</Tabs.Tab>
                 <Tabs.Tab id="advanced">ADVANCED</Tabs.Tab>
                 <Tabs.Tab id="gamelog">GAME LOG</Tabs.Tab>
+                <Tabs.Tab id="splits">SPLITS</Tabs.Tab>
                 <Tabs.Tab id="career">CAREER</Tabs.Tab>
               </Tabs.List>
 
@@ -192,14 +213,20 @@ function PlayerPage() {
 
               <Tabs.Panel id="advanced">
                 <AdvancedPanel player={player} />
+                {isFlagEnabled("similar") && <SimilarPlayers player={player} />}
               </Tabs.Panel>
 
               <Tabs.Panel id="gamelog">
                 <GameLog player={player} />
               </Tabs.Panel>
 
+              <Tabs.Panel id="splits">
+                <Splits player={player} />
+              </Tabs.Panel>
+
               <Tabs.Panel id="career">
                 <Career data={data} />
+                <CareerArc data={data} />
               </Tabs.Panel>
             </Tabs>
           </main>

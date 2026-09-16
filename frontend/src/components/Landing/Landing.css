@@ -175,3 +175,80 @@
     display: none;
   }
 }
+
+/* Tools nav — Compare and Leaderboards, always present under the search */
+
+.landing-nav {
+  display: flex;
+  gap: 8px;
+  position: relative;
+  background: var(--bg);
+  padding: 0 10px;
+}
+
+.landing-nav-link {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--fg-2);
+  text-decoration: none;
+  border: 1px solid var(--line-2);
+  padding: 8px 14px;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+@media (hover: hover) {
+  .landing-nav-link:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+/* Labs row — flagged prototypes, rendered only when a flag is on */
+
+.labs-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  position: relative;
+  background: var(--bg);
+  padding: 4px 10px;
+}
+
+.labs-tag {
+  color: var(--accent-ink);
+  background: var(--accent);
+  font-weight: 700;
+  padding: 3px 7px;
+}
+
+.labs-link {
+  color: var(--fg-2);
+  text-decoration: none;
+  border: 1px solid var(--line-2);
+  padding: 7px 12px;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+@media (hover: hover) {
+  .labs-link:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+.labs-link--tag {
+  color: var(--fg-3);
+  border-style: dashed;
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .labs-link--tag:hover {
+    color: var(--fg-3);
+    border-color: var(--line-2);
+  }
+}

@@ -1,29 +1,20 @@
-import OverviewQB from "./OverviewQB.jsx";
-import OverviewRB from "./OverviewRB.jsx";
-import OverviewReceiver from "./OverviewReceiver.jsx";
+import OverviewPanel from "./OverviewPanel.jsx";
+import { HEADLINE_CONFIG } from "../../utils/headline.js";
 import "./Overview.css";
 
 function Overview({ player }) {
   if (!player) return null;
 
-  let content;
-  switch (player.position) {
-    case "QB":
-      content = <OverviewQB player={player} />;
-      break;
-    case "RB":
-      content = <OverviewRB player={player} />;
-      break;
-    case "WR":
-    case "TE":
-      content = <OverviewReceiver player={player} />;
-      break;
-    default:
-      console.warn(`Overview: unknown position "${player.position}"`);
-      return null;
+  if (!HEADLINE_CONFIG[player.position]) {
+    console.warn(`Overview: unknown position "${player.position}"`);
+    return null;
   }
 
-  return <div className="overview">{content}</div>;
+  return (
+    <div className="overview">
+      <OverviewPanel player={player} />
+    </div>
+  );
 }
 
 export default Overview;

@@ -5,6 +5,9 @@ const mongoose = require('mongoose');
 const weekSchema = new mongoose.Schema(
   {
     week: { type: Number, required: true },
+    // Team that week; differs from the document's team only after a trade.
+    // Absent on documents loaded before this field existed.
+    team: { type: String },
 
     // QB metrics
     attempts:        { type: Number },
@@ -87,6 +90,8 @@ const playerStatsSchema = new mongoose.Schema(
     // Roster fields (nflverse load_rosters)
     birthDate:    { type: String },
     college:      { type: String },
+    // nflverse years_exp: seasons completed BEFORE this season (rookie = 0).
+    // Displayed as a season ordinal by the frontend's formatExperience().
     experience:   { type: Number },
     headshotUrl:  { type: String },
     heightInches: { type: Number },

@@ -1,4 +1,4 @@
-import { formatNumber, formatPercent, formatSigned } from "./format.js";
+import { formatNumber, formatPercent, formatSigned, formatDecimal } from "./format.js";
 
 /**
  * Sums a numeric field across an array of weekly stat objects.
@@ -15,15 +15,17 @@ export function sumWeeks(weeks, key) {
 /**
  * Averages a numeric field across an array of weekly stat objects,
  * ignoring null/undefined entries (they represent weeks where the player
- * didn't play, not actual zeros).
+ * didn't play, not actual zeros). Returns null (not 0) when there is
+ * nothing to average — mirrors Polars mean() in percentiles.py, where an
+ * all-null column yields null and the player is excluded from ranking.
  * @param {Array<Object>|null|undefined} weeks - Weekly stat objects
  * @param {string} key - Property name to average
- * @returns {number} Mean of non-null values, or 0 if none exist
+ * @returns {number|null} Mean of non-null values, or null if none exist
  */
 export function averageWeeks(weeks, key) {
-  if (!weeks?.length) return 0;
+  if (!weeks?.length) return null;
   const valid = weeks.filter((week) => week[key] != null);
-  if (!valid.length) return 0;
+  if (!valid.length) return null;
   return valid.reduce((acc, week) => acc + week[key], 0) / valid.length;
 }
 
@@ -82,26 +84,30 @@ export function seasonAdot(weeks) {
 
 /**
  * Season-level Passing Air Conversion Ratio: passing yards earned per air yard
- * targeted. Ratio of sums. Null when no passing air yards (QB never recorded
- * any downfield target), which excludes the player from PACR ranking.
+ * targeted. Ratio of sums. Null when total passing air yards are zero or
+ * negative (screens and checkdowns only) — a conversion ratio over a
+ * non-positive base has no meaning. Mirrors the `> 0` gate in
+ * percentiles.py, which excludes such players from PACR ranking.
  * @param {Array<Object>|null|undefined} weeks
  * @returns {number|null}
  */
 export function seasonPacr(weeks) {
   const totalAirYards = sumWeeks(weeks, "passingAirYards");
-  if (totalAirYards === 0) return null;
+  if (totalAirYards <= 0) return null;
   return sumWeeks(weeks, "passingYards") / totalAirYards;
 }
 
 /**
  * Season-level Receiver Air Conversion Ratio: receiving yards per air yard
- * allocated to the receiver. Ratio of sums. Null when no receiving air yards.
+ * allocated to the receiver. Ratio of sums. Null when total receiving air
+ * yards are zero or negative (a back or tight end fed only behind the line
+ * of scrimmage). Mirrors the `> 0` gate in percentiles.py.
  * @param {Array<Object>|null|undefined} weeks
  * @returns {number|null}
  */
 export function seasonRacr(weeks) {
   const totalAirYards = sumWeeks(weeks, "receivingAirYards");
-  if (totalAirYards === 0) return null;
+  if (totalAirYards <= 0) return null;
   return sumWeeks(weeks, "receivingYards") / totalAirYards;
 }
 
@@ -233,8 +239,7 @@ const RECEIVER_ROWS = [
     key: "wopr",
     label: "WOPR",
     // wopr is a 0–2ish rating, not a percentage — plain 2-decimal display.
-    // format.js has no plain decimal formatter, so using toFixed(2) directly.
-    rawValue: (weeks) => averageWeeks(weeks, "wopr").toFixed(2),
+    rawValue: (weeks) => formatDecimal(averageWeeks(weeks, "wopr"), 2),
   },
   {
     key: "racr",
@@ -264,7 +269,9 @@ const RECEIVER_ROWS = [
   },
 ];
 
-const ADVANCED_CONFIG = {
+// Exported so prototype pages (leaderboards, compare) can list the ranked
+// metrics per position from the same source as the Advanced panel.
+export const ADVANCED_CONFIG = {
   QB: [
     {
       key: "passingEpa",
@@ -335,7 +342,7 @@ const ADVANCED_CONFIG = {
     {
       key: "wopr",
       label: "WOPR",
-      rawValue: (weeks) => averageWeeks(weeks, "wopr").toFixed(2),
+      rawValue: (weeks) => formatDecimal(averageWeeks(weeks, "wopr"), 2),
     },
     {
       key: "yacPerRec",

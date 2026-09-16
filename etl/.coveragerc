@@ -1,0 +1,11 @@
+[run]
+source = .
+omit =
+    tests/*
+    venv/*
+    explore.py
+
+[report]
+# Baseline is ~69% (TESTING.md); the uncovered remainder is the network
+# extract_* functions and the load()/transform() entry points.
+fail_under = 65
