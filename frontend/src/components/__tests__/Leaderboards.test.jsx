@@ -46,6 +46,13 @@ describe("Leaderboards", () => {
     expect(await screen.findAllByRole("row")).toHaveLength(2); // header + Alpha
   });
 
+  it("explains an empty database instead of loading forever", async () => {
+    getSeasons.mockResolvedValue({ seasons: [] });
+    renderPage();
+    expect(await screen.findByText("NO SEASONS LOADED ON THIS API YET")).toBeInTheDocument();
+    expect(getLeaderboard).not.toHaveBeenCalled();
+  });
+
   it("tells the user when the API has no leaderboards route", async () => {
     getSeasons.mockResolvedValue({ seasons: [2025] });
     const err = new Error("Leaderboard fetch failed: 404");

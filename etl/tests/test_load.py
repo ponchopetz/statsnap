@@ -60,6 +60,14 @@ class TestReshape:
         assert docs[0]["team"] == "PHI"
         assert [(w["week"], w["team"]) for w in docs[0]["weeks"]] == [(1, "NYG"), (8, "PHI"), (9, "PHI")]
 
+    def test_null_team_on_the_last_week_does_not_blank_the_document_team(self):
+        rows = flat_rows(weeks=(1, 2, 3), team_by_week={1: "PIT", 2: "PIT", 3: None})
+        docs = reshape(pl.DataFrame(rows))
+        assert docs[0]["team"] == "PIT"
+        assert [w["team"] for w in docs[0]["weeks"]] == ["PIT", "PIT", None]
+        # A field that is null everywhere stays null.
+        assert docs[0]["draftYear"] is None
+
 
 class TestUpsertIdempotency:
     def test_running_the_same_load_twice_does_not_duplicate_or_change_documents(self, collection):

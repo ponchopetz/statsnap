@@ -50,7 +50,7 @@ function FormLine({ player }) {
                 {r.trend === "hot" && "▲ HOT"}
                 {r.trend === "cold" && "▼ COLD"}
                 {r.trend === "even" && "EVEN"}
-                {r.trend === null && `NEED ${windowSize + 1}+ GP`}
+                {r.trend === null && (r.season == null ? "NO DATA" : `NEED ${windowSize + 1}+ GP`)}
               </span>
             </span>
           </div>

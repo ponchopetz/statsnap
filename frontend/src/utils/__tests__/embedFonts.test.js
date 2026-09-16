@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { inlineFontUrls, embeddedFontCss, resetFontCache, FONT_CSS_URL } from "../embedFonts.js";
+import { inlineFontUrls, embeddedFontCss, resetFontCache, latinFacesOnly, FONT_CSS_URL } from "../embedFonts.js";
 
 const css = `@font-face{font-family:'JetBrains Mono';src:url(https://fonts.gstatic.com/a.woff2) format('woff2');}
 @font-face{font-family:'Space Grotesk';src:url(https://fonts.gstatic.com/b.woff2) format('woff2');}
@@ -14,6 +14,23 @@ const okFetcher = vi.fn(async (url) => ({
 beforeEach(() => {
   resetFontCache();
   okFetcher.mockClear();
+});
+
+describe("latinFacesOnly", () => {
+  it("keeps latin and range-less blocks and drops other scripts", () => {
+    const sheet = `/* cyrillic */
+@font-face{font-family:'A';src:url(https://fonts.gstatic.com/c.woff2);unicode-range:U+0400-045F;}
+/* latin-ext */
+@font-face{font-family:'A';src:url(https://fonts.gstatic.com/e.woff2);unicode-range:U+0100-02BA;}
+/* latin */
+@font-face{font-family:'A';src:url(https://fonts.gstatic.com/l.woff2);unicode-range:U+0000-00FF,U+0131;}
+@font-face{font-family:'B';src:url(https://fonts.gstatic.com/n.woff2);}`;
+    const out = latinFacesOnly(sheet);
+    expect(out).toContain("l.woff2");
+    expect(out).toContain("n.woff2");
+    expect(out).not.toContain("c.woff2");
+    expect(out).not.toContain("e.woff2");
+  });
 });
 
 describe("inlineFontUrls", () => {

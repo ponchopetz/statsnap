@@ -21,6 +21,21 @@ function blobToDataUri(blob) {
   });
 }
 
+const FACE_PATTERN = /@font-face\s*\{[^}]*\}/g;
+
+/**
+ * Keeps only the @font-face blocks the card can use: those whose
+ * unicode-range covers basic Latin (U+0000-00FF) or that declare no range.
+ * Google serves one block per script subset; the others would only add
+ * weight to the export.
+ */
+export function latinFacesOnly(css) {
+  const faces = css.match(FACE_PATTERN) ?? [];
+  return faces
+    .filter((face) => !/unicode-range/i.test(face) || /U\+0000-00FF/i.test(face))
+    .join("\n");
+}
+
 /**
  * Replaces every fonts.gstatic.com url() in `css` with a data: URI.
  * @param {string} css        the @font-face stylesheet
@@ -48,7 +63,7 @@ export async function embeddedFontCss(fetcher = fetch) {
   try {
     const res = await fetcher(FONT_CSS_URL);
     if (!res.ok) throw new Error(`font css failed: ${res.status}`);
-    cached = await inlineFontUrls(await res.text(), fetcher);
+    cached = await inlineFontUrls(latinFacesOnly(await res.text()), fetcher);
   } catch {
     cached = "";
   }
