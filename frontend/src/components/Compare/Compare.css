@@ -39,17 +39,19 @@
   color: var(--fg-3);
 }
 
-.cmp-season {
+.cmp-actions {
   display: flex;
-  align-items: center;
   gap: 10px;
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  color: var(--fg-3);
+  flex-shrink: 0;
 }
 
-.cmp-season select,
-.lb-select {
+.cmp-actions .back-btn {
+  min-width: 108px;
+  text-align: center;
+}
+
+/* Per-slot season select sits inline with the position badge and team */
+.cmp-card-season select {
   font-family: var(--display);
   font-size: 12px;
   color: var(--fg);
@@ -214,6 +216,15 @@
   font-weight: 600;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .cmp-clear {
   position: absolute;
   top: -8px;
@@ -373,11 +384,9 @@
   font-family: var(--display);
   font-size: 10px;
   letter-spacing: 0.12em;
+  line-height: 1.25;
   color: var(--fg-2);
   text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .cmp-footnote {

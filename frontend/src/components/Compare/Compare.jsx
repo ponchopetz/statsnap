@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { buildComparison } from "../../utils/compare.js";
@@ -6,15 +6,17 @@ import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
 import "./Compare.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PROTOTYPE (flag: compare) — head-to-head player comparison.
+// Compare — head-to-head, two players at the same position.
 //
-// URL is the state: /compare?a=<playerId>&b=<playerId>&season=<year>.
+// URL is the state: /compare?a=<id>&b=<id>&season=<year>&as=<year>&bs=<year>
+//   season   default season for both slots (what the player-page button sets)
+//   as / bs  per-slot override, so a 2022 season can face a 2024 one
 // Two profile fetches, no new endpoint. Rows come from utils/compare.js,
-// which uses the same stats.js helpers as Overview and the Advanced panel,
-// so a number here can never disagree with the player page.
+// which reads the same headline and advanced definitions the player page
+// renders, so a number here can never disagree with the player page.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function IdentityCard({ player, side, onClear }) {
+function IdentityCard({ player, side, seasons, onSeason, onClear }) {
   const nameParts = player.displayName.split(" ");
   const last = nameParts[nameParts.length - 1];
   const first = nameParts.slice(0, -1).join(" ");
@@ -35,7 +37,14 @@ function IdentityCard({ player, side, onClear }) {
         <div className="cmp-card-meta">
           <span className={"pos-badge " + player.position}>{player.position}</span>
           <span className="cmp-card-team">{player.team}</span>
-          <span className="cmp-card-season">{player.season}</span>
+          <label className="cmp-card-season">
+            <span className="visually-hidden">Season for player {side.toUpperCase()}</span>
+            <select value={player.season} onChange={(e) => onSeason(Number(e.target.value))}>
+              {seasons.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
       <button type="button" className="cmp-clear" onClick={onClear} aria-label={`Remove player ${side.toUpperCase()}`}>
@@ -45,7 +54,7 @@ function IdentityCard({ player, side, onClear }) {
   );
 }
 
-function Slot({ side, playerId, status, doc, seasons, selectedSeason, onPick, onClear }) {
+function Slot({ side, playerId, status, doc, seasons, onPick, onSeason, onClear }) {
   if (!playerId) {
     return (
       <div className="cmp-slot cmp-slot--empty">
@@ -55,30 +64,35 @@ function Slot({ side, playerId, status, doc, seasons, selectedSeason, onPick, on
     );
   }
   if (status === "loading") return <div className="cmp-slot cmp-status">LOADING...</div>;
-  if (status === "not_found") return <div className="cmp-slot cmp-status">PLAYER NOT FOUND — <button type="button" className="cmp-inline-btn" onClick={onClear}>CLEAR</button></div>;
-  if (status === "error") return <div className="cmp-slot cmp-status">FAILED TO LOAD — <button type="button" className="cmp-inline-btn" onClick={onClear}>CLEAR</button></div>;
-  if (!doc) {
+  if (status === "not_found") {
     return (
       <div className="cmp-slot cmp-status">
-        NO {selectedSeason} SEASON ON RECORD ({seasons.join(", ")})
-        <button type="button" className="cmp-inline-btn" onClick={onClear}>CLEAR</button>
+        PLAYER NOT FOUND <button type="button" className="cmp-inline-btn" onClick={onClear}>CLEAR</button>
+      </div>
+    );
+  }
+  if (status === "error" || !doc) {
+    return (
+      <div className="cmp-slot cmp-status">
+        FAILED TO LOAD <button type="button" className="cmp-inline-btn" onClick={onClear}>CLEAR</button>
       </div>
     );
   }
   return (
     <div className="cmp-slot">
-      <IdentityCard player={doc} side={side} onClear={onClear} />
+      <IdentityCard player={doc} side={side} seasons={seasons} onSeason={onSeason} onClear={onClear} />
     </div>
   );
 }
 
 function DiffRow({ row, showPct }) {
   const cls = (side) => "cmp-val" + (row.winner === side ? " cmp-val--win" : "");
+  const pct = (side) => (row[side].pct != null ? `P${Math.round(row[side].pct * 100)}` : "—");
   return (
     <li className="cmp-row">
       <span className={cls("a")}>
         {row.a.display}
-        {showPct && <span className="cmp-pct">{row.a.pct != null ? `P${Math.round(row.a.pct * 100)}` : "—"}</span>}
+        {showPct && <span className="cmp-pct">{pct("a")}</span>}
       </span>
       <span className="cmp-bars">
         <span className="cmp-bar cmp-bar--a">
@@ -90,18 +104,30 @@ function DiffRow({ row, showPct }) {
         </span>
       </span>
       <span className={cls("b")}>
-        {showPct && <span className="cmp-pct">{row.b.pct != null ? `P${Math.round(row.b.pct * 100)}` : "—"}</span>}
+        {showPct && <span className="cmp-pct">{pct("b")}</span>}
         {row.b.display}
       </span>
     </li>
   );
 }
 
+// Picks the season a slot shows: its own override, then the shared default,
+// then the latest season the two players share, then the player's latest.
+function pickSeason(own, shared, mine, theirs) {
+  if (mine.includes(own)) return own;
+  if (mine.includes(shared)) return shared;
+  const common = mine.filter((s) => theirs.includes(s));
+  if (common.length) return Math.max(...common);
+  return mine[0] ?? null;
+}
+
 function Compare() {
   const [searchParams, setSearchParams] = useSearchParams();
   const idA = searchParams.get("a") || "";
   const idB = searchParams.get("b") || "";
-  const paramSeason = Number(searchParams.get("season"));
+  const shared = Number(searchParams.get("season"));
+  const ownA = Number(searchParams.get("as"));
+  const ownB = Number(searchParams.get("bs"));
 
   const profileA = usePlayerProfile(idA || null);
   const profileB = usePlayerProfile(idB || null);
@@ -109,15 +135,11 @@ function Compare() {
   const seasonsA = useMemo(() => profileA.data?.map((d) => d.season) ?? [], [profileA.data]);
   const seasonsB = useMemo(() => profileB.data?.map((d) => d.season) ?? [], [profileB.data]);
 
-  // Season choices: every season either player has. Default to the latest
-  // season they share, else the latest either has.
-  const seasonOptions = useMemo(() => [...new Set([...seasonsA, ...seasonsB])].sort((x, y) => y - x), [seasonsA, seasonsB]);
-  const shared = seasonsA.filter((s) => seasonsB.includes(s));
-  const defaultSeason = shared.length ? Math.max(...shared) : seasonOptions[0];
-  const selectedSeason = seasonOptions.includes(paramSeason) ? paramSeason : defaultSeason;
+  const seasonA = pickSeason(ownA, shared, seasonsA, seasonsB);
+  const seasonB = pickSeason(ownB, shared, seasonsB, seasonsA);
 
-  const docA = idA ? profileA.data?.find((d) => d.season === selectedSeason) ?? null : null;
-  const docB = idB ? profileB.data?.find((d) => d.season === selectedSeason) ?? null : null;
+  const docA = idA ? profileA.data?.find((d) => d.season === seasonA) ?? null : null;
+  const docB = idB ? profileB.data?.find((d) => d.season === seasonB) ?? null : null;
 
   const update = (patch) => {
     setSearchParams((prev) => {
@@ -130,9 +152,23 @@ function Compare() {
     });
   };
 
+  const swap = () => update({ a: idB, b: idA, as: ownB || null, bs: ownA || null });
+
+  const [copied, setCopied] = useState(false);
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard blocked: the address bar still has the link */
+    }
+  };
+
   const bothLoaded = docA && docB;
   const samePosition = bothLoaded && docA.position === docB.position;
   const comparison = samePosition ? buildComparison(docA, docB) : null;
+  const seasonLabel = bothLoaded && docA.season !== docB.season ? `${docA.season} VS ${docB.season}` : docA?.season ?? docB?.season;
 
   return (
     <div className="cmp-page">
@@ -140,26 +176,28 @@ function Compare() {
         <Link to="/" className="back-btn">← BACK</Link>
         <div className="cmp-title">
           <span className="cmp-title-main">COMPARE</span>
-          <span className="cmp-title-sub">HEAD TO HEAD · SAME POSITION · ONE SEASON</span>
+          <span className="cmp-title-sub">HEAD TO HEAD · SAME POSITION · ANY SEASON</span>
         </div>
-        {seasonOptions.length > 0 && (
-          <label className="cmp-season">
-            <span>SEASON</span>
-            <select value={selectedSeason} onChange={(e) => update({ season: e.target.value })}>
-              {seasonOptions.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </label>
-        )}
+        <div className="cmp-actions">
+          {idA && idB && (
+            <button type="button" className="back-btn" onClick={swap} aria-label="Swap players">
+              ⇄ SWAP
+            </button>
+          )}
+          {(idA || idB) && (
+            <button type="button" className="back-btn" onClick={copyLink}>
+              {copied ? "✓ COPIED" : "COPY LINK"}
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="cmp-slots">
-        <Slot side="a" playerId={idA} status={profileA.status} doc={docA} seasons={seasonsA} selectedSeason={selectedSeason}
-          onPick={(p) => update({ a: p.playerId })} onClear={() => update({ a: null })} />
+        <Slot side="a" playerId={idA} status={profileA.status} doc={docA} seasons={seasonsA}
+          onPick={(p) => update({ a: p.playerId, as: null })} onSeason={(s) => update({ as: s })} onClear={() => update({ a: null, as: null })} />
         <div className="cmp-vs">VS</div>
-        <Slot side="b" playerId={idB} status={profileB.status} doc={docB} seasons={seasonsB} selectedSeason={selectedSeason}
-          onPick={(p) => update({ b: p.playerId })} onClear={() => update({ b: null })} />
+        <Slot side="b" playerId={idB} status={profileB.status} doc={docB} seasons={seasonsB}
+          onPick={(p) => update({ b: p.playerId, bs: null })} onSeason={(s) => update({ bs: s })} onClear={() => update({ b: null, bs: null })} />
       </div>
 
       {bothLoaded && !samePosition && (
@@ -171,7 +209,7 @@ function Compare() {
       {comparison && (
         <main className="cmp-body">
           <section className="cmp-section">
-            <h2 className="cmp-section-label">SEASON · {selectedSeason}</h2>
+            <h2 className="cmp-section-label">SEASON · {seasonLabel}</h2>
             <ul className="cmp-list">
               {comparison.headline.map((row) => <DiffRow key={row.key} row={row} />)}
             </ul>
@@ -187,7 +225,7 @@ function Compare() {
               {comparison.advanced.map((row) => <DiffRow key={row.key} row={row} showPct />)}
             </ul>
             <div className="cmp-footnote">
-              BARS ARE POSITION-COHORT PERCENTILES. HIGHER IS BETTER, INCLUDING SACKS (RANKED INVERTED BY THE ETL). HIGHLIGHTED VALUE WINS THE ROW.
+              BARS ARE POSITION-COHORT PERCENTILES FOR EACH PLAYER&apos;S OWN SEASON. HIGHER IS BETTER, INCLUDING SACKS (RANKED INVERTED BY THE ETL). HIGHLIGHTED VALUE WINS THE ROW.
             </div>
           </section>
         </main>
