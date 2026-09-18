@@ -2,7 +2,9 @@ import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { buildComparison } from "../../utils/compare.js";
+import { useSlowLoading } from "../../hooks/useSlowLoading.js";
 import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
+import LoadingStatus from "../LoadingStatus/LoadingStatus.jsx";
 import "./Compare.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -55,6 +57,7 @@ function IdentityCard({ player, side, seasons, onSeason, onClear }) {
 }
 
 function Slot({ side, playerId, status, doc, seasons, onPick, onSeason, onClear }) {
+  const slow = useSlowLoading(Boolean(playerId) && status === "loading");
   if (!playerId) {
     return (
       <div className="cmp-slot cmp-slot--empty">
@@ -63,7 +66,11 @@ function Slot({ side, playerId, status, doc, seasons, onPick, onSeason, onClear 
       </div>
     );
   }
-  if (status === "loading") return <div className="cmp-slot cmp-status">LOADING...</div>;
+  if (status === "loading") {
+    return (
+      <LoadingStatus className="cmp-slot cmp-status" label="LOADING..." slowLabel="WAKING FREE SERVER (~20S)" slow={slow} />
+    );
+  }
   if (status === "not_found") {
     return (
       <div className="cmp-slot cmp-status">
