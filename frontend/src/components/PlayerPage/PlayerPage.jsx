@@ -9,6 +9,7 @@ import Overview from "../Overview/Overview.jsx";
 import AdvancedPanel from "../AdvancedPanel/AdvancedPanel.jsx";
 import GameLog from "../GameLog/GameLog.jsx";
 import Career from "../Career/Career.jsx";
+import LoadingStatus from "../LoadingStatus/LoadingStatus.jsx";
 import SeasonSelector from "../SeasonSelector/SeasonSelector.jsx";
 import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
 import Splits from "../Splits/Splits.jsx";
@@ -96,11 +97,12 @@ function PlayerPage() {
       </header>
 
       {status === "loading" && (
-        <div className="player-status">
-          {slowLoad
-            ? "LOADING PLAYER... WAKING FREE SERVER — CAN TAKE ~20S"
-            : "LOADING PLAYER..."}
-        </div>
+        <LoadingStatus
+          className="player-status"
+          label="LOADING PLAYER..."
+          slowLabel="LOADING PLAYER... WAKING FREE SERVER — CAN TAKE ~20S"
+          slow={slowLoad}
+        />
       )}
 
       {status === "error" && (

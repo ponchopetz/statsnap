@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getSimilarPlayers } from "../../utils/api.js";
+import { useSlowLoading } from "../../hooks/useSlowLoading.js";
+import LoadingStatus from "../LoadingStatus/LoadingStatus.jsx";
 import "./SimilarPlayers.css";
 
 // LABS (flag: similar) — "plays like" comps under the Advanced panel.
@@ -18,6 +20,7 @@ const SCOPES = [
 function SimilarPlayers({ player }) {
   const [scope, setScope] = useState("season");
   const [state, setState] = useState({ status: "loading", data: null });
+  const slow = useSlowLoading(state.status === "loading");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -42,7 +45,9 @@ function SimilarPlayers({ player }) {
 
   let body;
   if (state.status === "loading") {
-    body = <div className="sim-status">FINDING COMPS...</div>;
+    body = (
+      <LoadingStatus className="sim-status" label="FINDING COMPS..." slowLabel="FINDING COMPS · WAKING FREE SERVER (~20S)" slow={slow} />
+    );
   } else if (state.status === "error") {
     body = <div className="sim-status">COMPS UNAVAILABLE</div>;
   } else if (!state.data.qualified) {
