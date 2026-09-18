@@ -1,3 +1,4 @@
+import LoadingStatus from "../LoadingStatus/LoadingStatus.jsx";
 import "./Typeahead.css";
 
 /**
@@ -11,9 +12,12 @@ function Typeahead({ status, results, errorMessage, activeIdx, onPick, listboxId
   return (
     <div className="typeahead" role="listbox" id={listboxId}>
       {status === "loading" && (
-        <div className="typeahead-hint">
-          {slow ? "WAKING FREE SERVER — FIRST LOAD CAN TAKE ~20S" : "SEARCHING..."}
-        </div>
+        <LoadingStatus
+          className="typeahead-hint"
+          label="SEARCHING..."
+          slowLabel="WAKING FREE SERVER — FIRST LOAD CAN TAKE ~20S"
+          slow={slow}
+        />
       )}
 
       {status === "error" && (

@@ -1,0 +1,96 @@
+/* LoadingStatus — marching pips + slow-load sweep bar */
+.ls {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.ls-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ls-row > span:first-child {
+  min-width: 0;
+}
+
+.ls-pips {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 3px;
+}
+
+.ls-pips i {
+  width: 4px;
+  height: 4px;
+  background: var(--fg-3);
+  opacity: 0.35;
+  animation: ls-pip 1.2s ease-in-out infinite;
+}
+
+.ls-pips i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.ls-pips i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes ls-pip {
+  0%,
+  60%,
+  100% {
+    background: var(--fg-3);
+    opacity: 0.35;
+  }
+  30% {
+    background: var(--accent);
+    opacity: 1;
+  }
+}
+
+.ls-bar {
+  position: relative;
+  display: block;
+  height: 2px;
+  min-width: 120px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.ls-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -35%;
+  width: 35%;
+  background: var(--accent);
+  animation: ls-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes ls-sweep {
+  from {
+    left: -35%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-pips i {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .ls-bar::after {
+    left: 0;
+    width: 100%;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+}

@@ -1,9 +1,11 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
+import { useSlowLoading } from "../../hooks/useSlowLoading.js";
 import { HEADLINE_CONFIG } from "../../utils/headline.js";
 import { buildAdvancedRows } from "../../utils/stats.js";
 import { embeddedFontCss } from "../../utils/embedFonts.js";
+import LoadingStatus from "../LoadingStatus/LoadingStatus.jsx";
 import "./ShareCard.css";
 
 // LABS (flag: shareCard) — a 1200×630 player card as inline SVG, exportable
@@ -109,6 +111,7 @@ function ShareCard() {
   const { playerId } = useParams();
   const [searchParams] = useSearchParams();
   const { status, data } = usePlayerProfile(playerId);
+  const slow = useSlowLoading(status === "loading");
   const svgRef = useRef(null);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(null);
@@ -176,7 +179,14 @@ function ShareCard() {
         )}
       </header>
 
-      {status === "loading" && <div className="card-status">LOADING PLAYER...</div>}
+      {status === "loading" && (
+        <LoadingStatus
+          className="card-status"
+          label="LOADING PLAYER..."
+          slowLabel="LOADING PLAYER... WAKING FREE SERVER — CAN TAKE ~20S"
+          slow={slow}
+        />
+      )}
       {status === "not_found" && <div className="card-status">PLAYER NOT FOUND — ID: {playerId}</div>}
       {status === "error" && <div className="card-status">FAILED TO LOAD PLAYER</div>}
       {exportError && <div className="card-status">EXPORT FAILED — {exportError}</div>}
