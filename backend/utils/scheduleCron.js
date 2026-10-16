@@ -15,8 +15,11 @@ async function runRefresh() {
 }
 
 function startScheduleCron() {
-  // timezone: "UTC" so the 08:00 tick is independent of the host machine's locale
-  cron.schedule("0 8 * * *", runRefresh, { timezone: "UTC" });
+  // Hourly, so final scores land within an hour while the server is awake.
+  // The events call is free and the paid scores call is gated inside
+  // refreshSchedule, so extra ticks cost nothing. timezone: "UTC" keeps the
+  // tick independent of the host machine's locale.
+  cron.schedule("0 * * * *", runRefresh, { timezone: "UTC" });
 
   // Refresh immediately on boot so the cache is warm within seconds of startup
   runRefresh();

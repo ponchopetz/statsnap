@@ -47,7 +47,13 @@ describe("GET /schedule", () => {
   });
 
   it("strips Mongo internals from the response", async () => {
-    await Schedule.create({ season: 2026, week: 1, games: [game("a")], fetchedAt: new Date() });
+    await Schedule.create({
+      season: 2026,
+      week: 1,
+      games: [game("a")],
+      fetchedAt: new Date(),
+      scoresFetchedAt: new Date(),
+    });
 
     const res = await request(app).get("/schedule");
     expect(Object.keys(res.body).sort()).toEqual(["fetchedAt", "games", "season", "week"]);
