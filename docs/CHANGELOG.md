@@ -14,6 +14,13 @@ period.
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-10-16
+
+The schedule rail keeps the whole NFL week with final scores, plus the LABS
+prototypes and broader test coverage that landed since 1.1.0. Minor bump: new
+features, no breaking changes to the API or the stored documents (new
+optional fields only).
+
 ### Added
 
 - Schedule rail keeps the whole week: finished games stay on the rail with
