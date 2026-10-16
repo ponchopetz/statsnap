@@ -146,14 +146,22 @@ Two separate request layers, worth keeping straight:
    callers are the node-cron job and the on-boot refresh. Every visitor request reads
    the schedule from the MongoDB cache, not from The Odds API.
 
-What sleep means for the cron: the daily 08:00 UTC tick only fires if the process
-happens to be awake at 08:00, and on free tier it usually is not, so that tick is
+What sleep means for the cron: the hourly tick only fires while the process
+happens to be awake, and on free tier it usually is not, so that tick is
 best-effort, not guaranteed. The thing that actually keeps the cache fresh is the
 on-boot refresh: every time the service cold-starts (because a visitor woke it), it
 re-fetches the current week and upserts the cache. So freshness tracks "someone
 visited," not the clock.
 
-Caveat I accept: if nobody visits for a long stretch, nothing wakes the service, so
-the cache can sit stale. That is fine here because the schedule only matters when
-someone is actually looking at the page, and the first visit refreshes it within a
-minute. Correctness comes from the idempotent on-boot refresh, not the scheduled tick.
+Caveat I accepted at first: if nobody visits for a long stretch, nothing wakes the
+service, so the cache can sit stale. That was fine while the rail only showed
+upcoming games, since the first visit refreshed it within a minute.
+
+It stopped being fine once the rail kept final scores. The scores endpoint only
+reaches back 3 days, a week first refreshed on Sunday never sees the games that
+already finished, and the visitor who wakes the server gets the cache before the
+boot refresh lands. So `.github/workflows/schedule-wake.yml` now pings the backend
+at five fixed points in the NFL week (Wednesday for the full slate, then after
+each game window). Each ping wakes the service and the on-boot refresh does the
+rest. Paid score calls stay gated inside `refreshSchedule`, so the extra wakes
+cost no credits on their own.
