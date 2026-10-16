@@ -5,6 +5,18 @@ import LoadingStatus from "../LoadingStatus/LoadingStatus.jsx";
 import { getSchedule } from "../../utils/api.js";
 import "./ScheduleRail.css";
 
+// Mirrors FINAL_AFTER_MS in backend/utils/scheduleRefresh.js: a game counts
+// as over 4h after kickoff, even if its final score never arrived.
+const FINAL_AFTER_MS = 4 * 60 * 60 * 1000;
+
+// "upcoming" | "live" | "final" for one game at time `now` (ms)
+function gameState(game, now) {
+  if (game.completed) return "final";
+  const kickoff = Date.parse(game.kickoff);
+  if (now < kickoff) return "upcoming";
+  return now - kickoff < FINAL_AFTER_MS ? "live" : "final";
+}
+
 function formatKickoff(iso) {
   const d = new Date(iso);
   return {
@@ -72,6 +84,8 @@ function ScheduleRail() {
     );
   }
 
+  const now = Date.now();
+
   return (
     <section className="sched-rail">
       <div className="sched-scroll-wrap">
@@ -82,17 +96,30 @@ function ScheduleRail() {
         </div>
         <ul className="sched-scroll" ref={scrollRef}>
           {data.games.map((g) => {
+            const state = gameState(g, now);
             const { day, time } = formatKickoff(g.kickoff);
+            // Scores exist only on finished games; a tie dims neither side
+            const awayLost = g.completed && g.awayScore < g.homeScore;
+            const homeLost = g.completed && g.homeScore < g.awayScore;
             return (
-              <li key={g.id} className="sched-card">
+              <li key={g.id} className={`sched-card sched-card--${state}`}>
                 <div className="sched-card-time">
-                  {day} {time}
+                  {state === "upcoming" ? `${day} ${time}` : state.toUpperCase()}
                 </div>
                 <div className="sched-matchup">
-                  <span className="sched-team">{g.away}</span>
+                  <span className={`sched-team${awayLost ? " sched-team--loss" : ""}`}>
+                    {g.away}
+                  </span>
                   <span className="sched-at">@</span>
-                  <span className="sched-team">{g.home}</span>
+                  <span className={`sched-team${homeLost ? " sched-team--loss" : ""}`}>
+                    {g.home}
+                  </span>
                 </div>
+                {g.completed && (
+                  <div className="sched-score">
+                    {g.awayScore} – {g.homeScore}
+                  </div>
+                )}
               </li>
             );
           })}

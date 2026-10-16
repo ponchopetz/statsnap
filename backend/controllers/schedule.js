@@ -6,7 +6,7 @@ const getSchedule = async (req, res, next) => {
   try {
     const doc = await Schedule.findOne(
       {},
-      { _id: 0, __v: 0, createdAt: 0, updatedAt: 0 },
+      { _id: 0, __v: 0, createdAt: 0, updatedAt: 0, scoresFetchedAt: 0 },
     ).sort({ fetchedAt: -1 });
 
     if (!doc) {

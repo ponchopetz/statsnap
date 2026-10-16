@@ -14,6 +14,16 @@ period.
 
 ## [Unreleased]
 
+### Added
+
+- Schedule rail keeps the whole week: finished games stay on the rail with
+  their final score, games under 4h past kickoff show LIVE, and the rest keep
+  their kickoff time. Finals come from The Odds API `/scores` endpoint,
+  called only when a game needs one and at most once an hour (about 50–70 of
+  the free plan's 500 monthly credits at worst).
+- A scheduled GitHub Actions workflow wakes the free-tier backend after each
+  game window so final scores are cached before anyone visits.
+
 ### Added (LABS, flagged off by default)
 
 - Similar players: "plays like" comps under the Advanced tab from a new

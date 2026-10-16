@@ -8,6 +8,10 @@ const gameSchema = new mongoose.Schema(
     kickoff: { type: String, required: true }, // verbatim ISO string from the API
     away:    { type: String, required: true },
     home:    { type: String, required: true },
+    // Set only once a game is final (from /scores); absent otherwise
+    awayScore: { type: Number },
+    homeScore: { type: Number },
+    completed: { type: Boolean },
   },
   { _id: false }
 );
@@ -18,6 +22,8 @@ const scheduleSchema = new mongoose.Schema(
     week:      { type: Number, required: true },
     games:     { type: [gameSchema], default: [] },
     fetchedAt: { type: Date, required: true },
+    // Last paid /scores call; throttles it across restarts
+    scoresFetchedAt: { type: Date },
   },
   {
     timestamps: true,

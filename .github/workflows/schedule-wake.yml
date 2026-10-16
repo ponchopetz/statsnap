@@ -1,0 +1,26 @@
+name: Wake backend for schedule scores
+
+# The backend sleeps on Render's free tier, and its schedule cache refreshes
+# when the process boots. These pings wake it at fixed points in the NFL week
+# so the boot refresh caches final scores before anyone visits. Each time
+# clears kickoff + 4h (the scores gate in utils/scheduleRefresh.js) in both
+# EDT and EST, since GitHub cron is UTC only.
+on:
+  schedule:
+    - cron: "0 12 * * 3"    # Wed 12:00 UTC: store the full slate before Thursday
+    - cron: "0 10 * * 5"    # Fri 10:00 UTC: Thursday night final
+    - cron: "30 22 * * 0"   # Sun 22:30 UTC: early-window finals
+    - cron: "30 1 * * 1"    # Mon 01:30 UTC: late-window finals
+    - cron: "0 6 * * 1"     # Mon 06:00 UTC: Sunday night final
+  workflow_dispatch:        # manual run button in the Actions tab
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the backend
+        # A cold start takes 30 to 60 seconds; allow for it and retry
+        run: >
+          curl --fail --silent --show-error --output /dev/null
+          --max-time 120 --retry 2 --retry-delay 30
+          https://statsnap-1zu1.onrender.com/schedule

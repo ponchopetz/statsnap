@@ -104,8 +104,8 @@ outside the table returns null and falls back to the offseason empty state.
 
 Decision: `refreshSchedule` anchors the current slate to the earliest upcoming
 game, derives its season/week, and upserts that one `{ season, week }` document.
-It writes nothing on an empty upstream or a null week. The cron refreshes daily
-at 08:00 UTC and also runs once on server boot.
+It writes nothing on an empty upstream or a null week. The cron refreshes hourly
+(daily at 08:00 UTC before final scores) and also runs once on server boot.
 
 Why: Anchoring to the earliest real game rather than to "now" sidesteps the
 Tuesday dead zone and makes the rail advance on its own as a week's games finish.
@@ -116,11 +116,58 @@ than waiting for the next daily tick. The cron callback swallows and logs its ow
 errors, since a scheduler tick has no downstream error handler and an unhandled
 rejection could crash the process.
 
-Scope: only games that have not kicked off appear (the events endpoint omits
-started games), so mid-week the slate shrinks — no full-week archive in V1.
-Postseason is not shown: weeks past 18 derive null. Both are V2 considerations.
+Scope: the refresh merges the feed into the stored week by game id instead of
+replacing the list, so a game stays on the rail after the events feed drops it
+(it originally replaced the list, and the slate shrank as the week was played;
+see "Final scores" below). Postseason is not shown: weeks past 18 derive null.
 The `node-cron` scheduler serves the schedule cache only; the Python ETL remains
 a separate process with its own (still undecided) scheduling mechanism.
+
+### Final scores: gated `/scores` calls, finals only, scheduled wake-ups
+
+Decision: Finished games stay on the rail with their final score. After the
+merge, `refreshSchedule` calls the paid `/scores?daysFrom=3` endpoint (2 credits)
+only when a stored game is between 4h and 72h past kickoff with no final yet, and
+at most once an hour (`scoresFetchedAt` on the week document). A game under 4h
+past kickoff shows LIVE with no score; past 4h it reads FINAL even if its score
+never arrived. A GitHub Actions workflow (`schedule-wake.yml`) wakes the sleeping
+backend at five fixed points in the NFL week so the boot refresh runs on the
+league's clock, not only when someone visits.
+
+Why: Dropping finished games was a side effect, not a product choice: the events
+feed drops games as they are played and the refresh replaced the list. A visitor
+on Sunday night should see Thursday's and the early games' results. The numbers:
+
+- 4h: regulation runs about 3h10m and overtime rarely passes 3h45m. A game that
+  is still not final at 4h is retried on the hourly throttle.
+- 72h: the furthest `daysFrom` reaches. Past it a final can never arrive, so the
+  gate closes instead of spending credits every hour on a game it cannot score.
+- 1h throttle, stored in Mongo: every wake on the free host is a restart, so an
+  in-memory throttle would reset on each visit.
+- Budget: the free Starter plan is 500 credits a month. About 6–8 calls a week
+  (Thursday, London, early, late, Sunday night, Monday night, an overtime
+  retry) at 2 credits each is 50–70 a month at worst, leaving room for the V2
+  betting-lines integration.
+
+A scores failure is caught and logged so it never costs the events merge, the
+same "degraded upstream never damages the cache" rule as the events call.
+
+Why finals only: the API returns no quarter or game clock, and running scores
+every 30 minutes would cost up to about 365 credits a month for a host that is
+asleep most of the time.
+
+Why the wake workflow: the refresh-on-boot caveat in `docs/NOTES.md` stopped
+holding once scores depend on timing. With no visits from Thursday night to
+Sunday night, Thursday's final can fall outside the 3-day window; a week first
+refreshed on Sunday never sees the games that already finished; and the visitor
+who wakes the server is served the cache before the boot refresh lands. The ping
+times (Wed 12:00, Fri 10:00, Sun 22:30, Mon 01:30, Mon 06:00 UTC) each clear
+kickoff + 4h for their window in both EDT and EST.
+
+Tradeoffs: a game moved out of its week (a postponement) stays in the stored
+week with its old kickoff until the week rolls over. GitHub can delay scheduled
+runs and disables them after 60 days without repository activity. The 4h
+constant is mirrored in `ScheduleRail.jsx`.
 
 ### Schedule cache retention: accumulate, no pruning (V1)
 
@@ -129,7 +176,7 @@ documents accumulate — roughly one per week, ~18 per regular season — and no
 index or delete step removes them.
 
 Why: The accumulation is inert. `refreshSchedule` upserts keyed on
-`{ season, week }`, so the daily cron overwrites the current week's single
+`{ season, week }`, so the cron updates the current week's single
 document all week (no within-week growth); a new document is created only at the
 week rollover, when the events endpoint stops returning the finished week's
 games and the earliest upcoming game resolves to the next week. `GET /schedule`
