@@ -15,7 +15,9 @@ env:
 
 jobs:
   load:
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: that label moves to each new Ubuntu LTS on
+    # GitHub's schedule. See "CI runner images" in docs/adr/DECISIONS.md.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: etl
