@@ -36,9 +36,9 @@ seasonForDate return null for the new season and the schedule rail shows the
 offseason empty state.
 
 ### 2. ETL — SEASON in .github/workflows/etl.yml
-WHEN: a few days after Week 1's Monday night game, ideally before the Week 2
-Thursday cron (14:17 UTC Thursday), so the first new-season load already carries
-Week 1's corrected stats.
+WHEN: around Week 1. The daily cron (10:17 UTC) starts loading the new season
+on its first run after nflverse has Week 1 data, and later runs pick up Week 1's
+stat corrections on their own.
 
 WHAT: change the one SEASON line:
 
@@ -53,26 +53,19 @@ DON'T FORGET: if you never flip it, the cron keeps refreshing the prior season
 forever and the new season never appears on the site. Set a mid-September
 reminder.
 
-## Open: ETL scheduling mechanism (undecided)
+## ETL scheduling (resolved)
 
-The Python ETL (transform.py / load.py) is run by hand today. The brief and
-AGENTS.md both describe it as running "weekly," but that is intent — no
-scheduler is built. This is NOT the node-cron job from Chunk 19; that one lives
-inside the Express process and serves the schedule cache only. node-cron should
-NOT run the ETL (shelling from Node into Python couples two services that should
-stay independent and run on different cadences for different reasons).
+The Python ETL (transform.py / load.py) runs from a GitHub Actions workflow,
+`.github/workflows/etl.yml`, kept separate from the web process. This is NOT the
+node-cron job from Chunk 19; that one lives inside the Express process and
+serves the schedule cache only. node-cron should NOT run the ETL (shelling from
+Node into Python couples two services that should stay independent and run on
+different cadences for different reasons).
 
-When this gets built, decide:
-- Mechanism: system cron on the host, a GitHub Action on a schedule, or a
-  platform scheduler (e.g. Render cron job). Kept separate from the web process.
-- Cadence: weekly, on Tuesday. The football week ends Monday night, so
-  nflverse stats for a week are not complete and stable until Tuesday — running
-  Tuesday ingests a finished week, not a half-played one.
-- Idempotency is already handled: load.py upserts on { playerId, season }, so a
-  re-run is safe regardless of trigger.
-
-Not in scope for any current chunk. Logged so the "weekly" language in the brief
-stops looking settled when it isn't.
+Cadence: daily at 10:17 UTC. The plan logged here was weekly on Tuesday, so
+only finished weeks got loaded. Daily replaced that on purpose: each game's
+stats show up the next morning, and a week fills in as its games are played.
+See "ETL schedule" in docs/adr/DECISIONS.md.
 
 ## Shared search component — collapse & clear on select (fix)
 

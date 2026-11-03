@@ -171,7 +171,7 @@ def upsert_documents(collection, docs):
     Write documents to MongoDB using bulk upsert.
 
     Why upsert, not insert:
-      This ETL runs weekly. On the first run of the season, documents don't
+      This ETL runs daily. On the first run of the season, documents don't
       exist yet — they need to be created. On every subsequent run, the same
       players' documents already exist and need to be replaced with fresher
       data. upsert handles both cases: create if missing, replace if found.
