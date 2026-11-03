@@ -728,6 +728,34 @@ forward: patch (`1.0.x`) for bug fixes, minor (`1.x.0`) for new features,
 major (`x.0.0`) for breaking or ground-up redesigns. See `docs/CHANGELOG.md`
 for the running log of what shipped in each version.
 
+### CI runner images: pinned to ubuntu-24.04, not ubuntu-latest
+
+Decision: Every GitHub Actions job (`etl.yml`, the three `test.yml` jobs, and
+`schedule-wake.yml`) names an exact runner image, `runs-on: ubuntu-24.04`,
+instead of the `ubuntu-latest` label. Python stays pinned to an exact patch in
+`.python-version` (now 3.11.18), which both Python jobs read.
+
+Why: `ubuntu-latest` is a moving label. GitHub repoints it at each new Ubuntu
+LTS image on its own schedule, so the OS under a job can change with no commit
+in this repo. That happened between the 2026-10-22 and 2026-10-29 ETL runs: the
+label moved from 24.04 to 26.04. `actions/setup-python` doesn't compile Python;
+it downloads a prebuilt build made for that exact OS version, and 3.11.9 was
+never built for 26.04. The Thursday load failed at setup, and the site's stats
+stopped updating. The Python version was pinned exactly, but the OS it installs
+onto was not. 3.11.18 was chosen because it is the newest 3.11 patch and has
+builds for 22.04, 24.04, and 26.04, so the Python pin won't block the next OS
+move.
+
+Tradeoff: Pinned images get retired. GitHub announces a retirement months
+ahead and runs scheduled brownouts before removing an image, so the upgrade
+becomes a planned edit instead of a surprise, but it still has to happen.
+Before moving the pin to a newer image, check three things: setup-python's
+manifest (`actions/python-versions`, `versions-manifest.json`) has a build of
+the `.python-version` patch for that OS; `mongodb-memory-server` maps that
+Ubuntu version to a MongoDB binary (10.4.3 only knows Ubuntu up to 24 and falls
+back to the 24.04 build above that); and the test suite passes on a PR before
+the ETL's pin changes.
+
 ---
 
 ## Minor / historical
