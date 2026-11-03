@@ -253,6 +253,34 @@ Why: `$set` replaces every document's fields wholesale on each run, so a re-run
 is safe and non-destructive. Proven in Chunk 13 (18 counting-stat fields added
 across three seasons) and again in Chunk 14c (seven game-context fields).
 
+### ETL schedule: daily, partial weeks accepted
+
+Decision: `.github/workflows/etl.yml` runs the loader every day at 10:17 UTC,
+year-round, instead of weekly on Thursday. A week's stats fill in as its games
+are played: after Thursday night only those two teams' players have the new
+week, and everyone else gets it the morning after their own game.
+
+Why: nflverse republishes weekly player stats after every game window
+(Thursday, each Sunday window, Sunday and Monday night) plus a daily run, so a
+weekly load left the site up to a week behind data that was already published.
+Each run reloads the whole season through the idempotent upsert above, so
+running more often is safe, and stat corrections land on the next run without
+needing a special day. 10:17 UTC sits after nflverse's overnight updates, with
+room for GitHub starting scheduled runs late (the Thursday runs started about
+3.5 to 5.5 hours after their 14:17 UTC slot). Timing runs to individual game
+windows was rejected for the same reason: delays of hours would push them into
+the windows anyway. Year-round rather than season-only because Actions minutes
+are free on a public repo, and a month filter would be one more thing to change
+each September.
+
+Tradeoff: Mid-week, season totals and leaderboards briefly favor teams that
+have already played, the same unevenness bye weeks already cause.
+`seasonComplete` (see its entry under Security & deployment) turns true once
+any Week 18 row is loaded, and Week 18 usually has Saturday games, so for about
+a day each January percentiles show as final before Sunday's games load. The
+next run loads the rest of Week 18 and the gap closes on its own; deriving the
+flag from the schedule instead is a possible follow-up.
+
 ### Mid-season trades: per-week team, season document stamped with the last team
 
 Decision: Every embedded week carries the `team` the player was on that week,
@@ -273,7 +301,7 @@ Keeping the last roster row per player closes that.
 
 Consequence: documents loaded before this change have no per-week `team` and
 still carry the first-week team. Both are corrected by re-running the loader
-for that season (idempotent upsert, no migration), and the weekly cron does so
+for that season (idempotent upsert, no migration), and the daily cron does so
 for the current season automatically.
 
 ---
