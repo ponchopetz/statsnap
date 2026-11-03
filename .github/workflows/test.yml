@@ -14,10 +14,12 @@ concurrency:
   group: test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Every job pins its runner image instead of using ubuntu-latest. See
+# "CI runner images" in docs/adr/DECISIONS.md.
 jobs:
   frontend:
     name: Frontend (Vitest + React Testing Library)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: frontend
@@ -40,7 +42,7 @@ jobs:
 
   backend:
     name: Backend (Vitest + supertest + mongodb-memory-server)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: backend
@@ -70,7 +72,7 @@ jobs:
 
   etl:
     name: ETL (pytest)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: etl

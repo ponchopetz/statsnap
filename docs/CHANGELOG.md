@@ -14,6 +14,20 @@ period.
 
 ## [Unreleased]
 
+### Changed
+
+- Player stats refresh daily (10:17 UTC) instead of once a week on Thursday.
+  A week's stats now fill in game by game, by the morning after each game.
+
+### Fixed
+
+- Weekly ETL load: the 2026-10-29 run failed before loading anything, so
+  player stats stopped updating after the 2026-10-22 load. GitHub moved
+  `ubuntu-latest` to Ubuntu 26.04, and `actions/setup-python` has no Python
+  3.11.9 build for it. Python is now 3.11.18, and every workflow job pins
+  `ubuntu-24.04`, so a future runner-image change can't break a run without
+  a deliberate edit here.
+
 ## [1.2.0] — 2026-10-16
 
 The schedule rail keeps the whole NFL week with final scores, plus the LABS

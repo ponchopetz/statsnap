@@ -1,8 +1,12 @@
-name: ETL weekly load
+name: ETL daily load
 
+# Daily, not weekly: nflverse republishes weekly player stats after every game
+# window, and each run reloads the whole season, so a game's stats show up by
+# the next morning. 10:17 UTC lands after nflverse's overnight updates, with
+# room for GitHub starting scheduled runs a few hours late.
 on:
   schedule:
-    - cron: "17 14 * * 4"   # 14:17 UTC every Thursday
+    - cron: "17 10 * * *"   # 10:17 UTC every day
   workflow_dispatch:          # manual run button in the Actions tab
 
 # Hand-maintained, one edit per year. Set this to the season you want loaded.
@@ -15,7 +19,9 @@ env:
 
 jobs:
   load:
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: that label moves to each new Ubuntu LTS on
+    # GitHub's schedule. See "CI runner images" in docs/adr/DECISIONS.md.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: etl

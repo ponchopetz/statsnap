@@ -16,7 +16,8 @@ on:
 
 jobs:
   wake:
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest. See "CI runner images" in docs/adr/DECISIONS.md.
+    runs-on: ubuntu-24.04
     steps:
       - name: Ping the backend
         # A cold start takes 30 to 60 seconds; allow for it and retry

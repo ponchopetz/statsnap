@@ -41,7 +41,7 @@ are documented and defensible, not just functional.
 - Dev server on port 3001
 
 **ETL (`etl/`)**
-- Python 3.11.9 (pinned via `.python-version`)
+- Python 3.11.18 (pinned via `.python-version`)
 - `nflreadpy` 0.1.5 (nflverse data access)
 - `polars` for transforms, `pymongo` for the bulk upsert, `python-dotenv` for config
 
@@ -116,7 +116,7 @@ A few choices a reviewer might find worth discussing (each is expanded in the AD
 
 - **Node.js** — version not pinned in the repo; Vite 5 and React 18 require
   Node 18+ (Node 20 LTS recommended)
-- **Python 3.11.9** — pinned in `.python-version`
+- **Python 3.11.18** — pinned in `.python-version`
 - **MongoDB Atlas** cluster (free M0 tier is sufficient)
 - **The Odds API** key (free tier — 500 credits/month) for the schedule feature
 
