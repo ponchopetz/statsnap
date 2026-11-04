@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getLeaderboard, getSeasons } from "../../utils/api.js";
 import { ADVANCED_CONFIG } from "../../utils/stats.js";
+import { STAT_GLOSSARY } from "../../utils/glossary.js";
 import { useSlowLoading } from "../../hooks/useSlowLoading.js";
 import LoadingStatus from "../LoadingStatus/LoadingStatus.jsx";
 import "./Leaderboards.css";
@@ -21,6 +22,11 @@ const FOOTNOTE = "Percentiles ranked among qualified players — QB 150+ att, RB
 const FETCH_LIMIT = 60;
 const SHOW_LIMIT = 25;
 const MIN_GAMES_OPTIONS = [0, 6, 10, 14];
+// Key copy for the two table columns that need explaining; the selected
+// metric's definition comes from the shared STAT_GLOSSARY.
+const pctlDefinition = (position) =>
+  `Percentile rank among qualified ${position}s this season: P90 ranks ahead of 90% of them. The bar draws the same number.`;
+const GP_DEFINITION = "Games played this season. MIN GP hides players under a game count.";
 
 function Leaderboards() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,6 +43,8 @@ function Leaderboards() {
   const [status, setStatus] = useState("loading");
   const [data, setData] = useState(null);
   const [errorStatus, setErrorStatus] = useState(null);
+  // Stays open across position/metric changes; its text follows the selection.
+  const [showKey, setShowKey] = useState(false);
   const slow = useSlowLoading(status === "loading");
 
   // Seasons are whatever the ETL has loaded; the newest is the default.
@@ -180,7 +188,7 @@ function Leaderboards() {
             </button>
           ))}
         </div>
-        <label className="lb-control">
+        <label className="lb-control lb-control--metric">
           <span>METRIC</span>
           <select className="lb-select" value={metricRow.key} onChange={(e) => update({ metric: e.target.value })}>
             {metrics.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
@@ -204,8 +212,34 @@ function Leaderboards() {
         <section className="lb-panel">
           <div className="lb-head">
             <h2 className="lb-head-label">{position} · {metricRow.label}</h2>
-            <span className="lb-head-season">{inProgress ? `THROUGH WK ${throughWeek}` : season ? `${season} SEASON` : ""}{visibleRows.length ? ` · TOP ${visibleRows.length}` : ""}</span>
+            <div className="lb-head-right">
+              <span className="lb-head-season">{inProgress ? `THROUGH WK ${throughWeek}` : season ? `${season} SEASON` : ""}{visibleRows.length ? ` · TOP ${visibleRows.length}` : ""}</span>
+              {/* key-toggle styles live in AdvancedPanel.css, shared like .pos-badge */}
+              <button
+                type="button"
+                className={"key-toggle" + (showKey ? " key-toggle--active" : "")}
+                onClick={() => setShowKey((open) => !open)}
+              >
+                {showKey ? "✕ HIDE KEY" : "? KEY"}
+              </button>
+            </div>
           </div>
+          {showKey && (
+            <dl className="lb-key">
+              <div className="lb-key-row">
+                <dt>{metricRow.label}</dt>
+                <dd>{STAT_GLOSSARY[metricRow.label]}</dd>
+              </div>
+              <div className="lb-key-row">
+                <dt>PCTL</dt>
+                <dd>{pctlDefinition(position)}</dd>
+              </div>
+              <div className="lb-key-row">
+                <dt>GP</dt>
+                <dd>{GP_DEFINITION}</dd>
+              </div>
+            </dl>
+          )}
           {body}
           <div className="lb-footnote">{FOOTNOTE}</div>
         </section>

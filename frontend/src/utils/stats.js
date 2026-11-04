@@ -221,7 +221,8 @@ export function seasonCpoe(weeks) {
 // ── Per-position advanced row config (module-local) ───────────────────────────
 // Each entry: { key, label, rawValue(weeks) → string }
 // key    — matches player.advanced map keys and Python metric names
-// label  — must match STAT_GLOSSARY keys so the panel's glossary lookup works
+// label  — must match STAT_GLOSSARY keys (utils/glossary.js) so the Advanced
+//          panel and the Leaderboards key can look up its definition
 // rawValue — formatted display string for the raw season value
 
 const RECEIVER_ROWS = [
