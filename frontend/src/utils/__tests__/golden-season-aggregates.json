@@ -364,7 +364,7 @@
       "passingAirYards": 744.0,
       "adot": 7.75,
       "sacksSuffered": 6.0,
-      "sackYardsLost": -43.0
+      "sackYardsLost": 43.0
     },
     "qb-zero-air-yards": {
       "passingEpa": 0.075,
@@ -373,7 +373,7 @@
       "passingAirYards": 0.0,
       "adot": 0.0,
       "sacksSuffered": 1.0,
-      "sackYardsLost": -8.0
+      "sackYardsLost": 8.0
     },
     "rb-all-null": {
       "rushingEpa": null,
@@ -434,7 +434,7 @@
       "passingAirYards": 556.0,
       "adot": 7.413333333333333,
       "sacksSuffered": 6.0,
-      "sackYardsLost": -44.0
+      "sackYardsLost": 44.0
     }
   }
 }
