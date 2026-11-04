@@ -1,22 +1,7 @@
 import { useState, useEffect } from "react";
 import { buildAdvancedRows } from "../../utils/stats.js";
+import { STAT_GLOSSARY } from "../../utils/glossary.js";
 import "./AdvancedPanel.css";
-
-const STAT_GLOSSARY = {
-  "Target Share": "Share of the team's pass attempts thrown to this player. League WR1 ≈ 25–30%.",
-  "Air Yards Share": "Share of the team's total air yards (downfield distance on all targets) accounted for by this player.",
-  "WOPR": "Weighted Opportunity Rating — combines target share (1.5×) and air-yards share (0.7×). Single number for receiving opportunity. 0.50+ is elite.",
-  "RACR": "Receiver Air Conversion Ratio — receiving yards ÷ air yards thrown his way. >1.0 means he's adding yards beyond what was thrown.",
-  "Receiving Air Yards": "Total downfield distance of every pass thrown to him at the moment of release. Targets behind the line of scrimmage — screens and checkdowns — count as negative, so backs and short-area receivers can post low or even negative totals.",
-  "YAC / Rec": "Yards After Catch per Reception. Pure with-ball production.",
-  "Receiving EPA": "Expected Points Added on plays targeting him. Captures yards + situation (down, distance, field position).",
-  "Rushing EPA": "Expected Points Added on his carries. Positive = above league expectation given the down & distance.",
-  "Passing EPA": "Expected Points Added per dropback. The single best holistic QB efficiency stat.",
-  "PACR": "Passing Air Conversion Ratio — passing yards ÷ passing air yards. Measures how well the QB realizes his intended depth.",
-  "Passing CPOE": "Completion Percentage Over Expected. How much better (or worse) the QB completes vs. league average on similar throws.",
-  "Passing Air Yards": "Total downfield distance of every pass attempt, completed or not.",
-  "Avg Depth of Target": "aDOT — average depth past the line of scrimmage on the QB's targets.",
-};
 
 const FOOTNOTE =
   "Percentiles ranked among qualified players — QB 150+ att, RB 50+ car, WR/TE 30+ tgt.";
@@ -37,6 +22,7 @@ function AdvancedPanel({ player }) {
 
   const headerLabel = inProgress ? `THROUGH WK ${throughWeek}` : `${player.season} SEASON`;
 
+  const allOpen = openKey === "__all";
   const toggleAll = () => setOpenKey((prev) => (prev === "__all" ? null : "__all"));
 
   const toggleRow = (k) => {
@@ -72,7 +58,7 @@ function AdvancedPanel({ player }) {
         )}
         <ul className="adv-list">
           {rows.map((row) => {
-          const isOpen = openKey === "__all" || openKey === row.k;
+          const isOpen = allOpen || openKey === row.k;
           const clickable = Boolean(STAT_GLOSSARY[row.k]);
           return (
             <li key={row.k} className={"adv-row" + (isOpen ? " adv-row-open" : "")}>
@@ -118,8 +104,12 @@ function AdvancedPanel({ player }) {
         <div className="panel-head-right">
           <span className="panel-head-season">{headerLabel}</span>
           {rows.length > 0 && (
-            <button type="button" className="key-toggle" onClick={toggleAll}>
-              {openKey === "__all" ? "✕ HIDE KEY" : "? KEY"}
+            <button
+              type="button"
+              className={"key-toggle" + (allOpen ? " key-toggle--active" : "")}
+              onClick={toggleAll}
+            >
+              {allOpen ? "✕ HIDE KEY" : "? KEY"}
             </button>
           )}
         </div>

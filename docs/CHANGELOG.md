@@ -14,6 +14,15 @@ period.
 
 ## [Unreleased]
 
+### Added
+
+- Leaderboards key: a ? KEY toggle in the board's header defines the
+  selected metric, PCTL and GP, and follows the position and metric you
+  pick. The stat definitions now live in one shared module, which also
+  gives the Advanced panel the missing Carries and sack definitions. On
+  phones the controls fill the width and the table fits without sideways
+  scroll (position badge hidden, cells tightened, PCTL as a number).
+
 ### Changed
 
 - Player stats refresh daily (10:17 UTC) instead of once a week on Thursday.
@@ -21,6 +30,20 @@ period.
 
 ### Fixed
 
+- QB Sack Yards Lost percentile was upside down on the Advanced panel and
+  the leaderboard. nflverse stores sack yardage as negative yards, and
+  ranking that raw sum with the "fewer is better" inversion flipped it
+  twice, so the QB who lost the fewest yards ranked last. The ETL now ranks
+  the magnitude; each season's stored percentiles update on its next load.
+- Career tab: the career table, the CAREER ARC stat buttons and the player
+  page tabs no longer overflow sideways. The table tightens and tucks each
+  season's team under the year, the arc's stat buttons wrap into rows
+  (PERCENTILE overflowed even on desktop), and long careers label the arc
+  axis '16 over 23. Each sizes itself by its own width (container queries),
+  so they also fit in the two-column layout just past 832px.
+- Advanced panel: the KEY button stays highlighted while every definition
+  is showing; before, it only flashed while pressed. A stat's "?" fills in
+  while its definition is open and takes an accent outline on hover.
 - Weekly ETL load: the 2026-10-29 run failed before loading anything, so
   player stats stopped updating after the 2026-10-22 load. GitHub moved
   `ubuntu-latest` to Ubuntu 26.04, and `actions/setup-python` has no Python

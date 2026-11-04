@@ -7,6 +7,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* Query container for the narrow-arc rules at the end of the file. */
+  container: arc / inline-size;
 }
 
 .arc-head {
@@ -64,6 +66,29 @@
   .arc-btn:not(.arc-btn--active):hover {
     color: var(--accent);
   }
+}
+
+/* Stat picker wraps instead of overflowing: PERCENTILE has up to eight long
+   labels, wider than the arc at most sizes. The 1px gaps let the
+   container's line colour through as the rules between buttons, flex-grow
+   stretches a wrapped row flush to both edges, and margin-left: auto keeps
+   the picker right-aligned beside the label or on its own row. */
+.arc-stat-options {
+  flex-wrap: wrap;
+  gap: 1px;
+  background: var(--line-2);
+  margin-left: auto;
+}
+
+.arc-stat-options .arc-btn {
+  flex: 1 1 auto;
+  border-right: 0;
+  background: var(--bg);
+}
+
+/* The rule above outranks .arc-btn--active, so restate the fill. */
+.arc-stat-options .arc-btn--active {
+  background: var(--accent);
 }
 
 .arc-stats {
@@ -138,16 +163,30 @@
   border-top: 1px solid var(--line);
 }
 
-@media (max-width: 30rem) {
+/* ── Narrow arc (≤580px: phones, and the two-column layout just past
+   52rem). Label and TOTALS/PERCENTILE share the first row at their own
+   size, the stat picker takes the full row below, per-season values drop,
+   and long careers show '16 over 23 axis labels (the JSX adds --dense from
+   7 seasons) since "2016 / AGE 23" outgrows the columns. ── */
+@container arc (max-width: 580px) {
   .arc-head-left {
     width: 100%;
     justify-content: space-between;
   }
-  .arc-options {
+  .arc-stat-options {
     width: 100%;
-    overflow-x: auto;
   }
   .arc-tick-value {
     display: none;
+  }
+  .arc-axis--dense {
+    gap: 2px;
+  }
+  .arc-axis--dense .arc-tick-century,
+  .arc-axis--dense .arc-tick-age-label {
+    display: none;
+  }
+  .arc-axis--dense .arc-tick-season::before {
+    content: "'";
   }
 }

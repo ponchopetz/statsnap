@@ -1,6 +1,8 @@
 .career-panel {
   border: 1px solid var(--line);
   padding: 16px;
+  /* Query container for the compact table at the end of the file. */
+  container: career / inline-size;
 }
 
 .career-head {
@@ -82,4 +84,44 @@
   font-family: var(--sans);
   font-size: 14px;
   color: var(--fg-3);
+}
+
+/* ── Narrow panel (≤540px: phones, and the two-column layout just past
+   52rem). The full table needs ~495px, so fit every column without
+   sideways scroll: tighter cells, 12px numerals, two-word headers may wrap
+   (REC / YDS), and TEAM folds under the season year via the cell's
+   data-team attribute. .career-scroll stays as the fallback for panels
+   under ~290px. ── */
+@container career (max-width: 540px) {
+  .career-table th,
+  .career-table td {
+    padding: 8px 4px;
+  }
+  .career-table th:first-child,
+  .career-table td:first-child {
+    padding-left: 0;
+  }
+  .career-table th:last-child,
+  .career-table td:last-child {
+    padding-right: 0;
+  }
+  .career-table td {
+    font-size: 12px;
+  }
+  .career-table th {
+    white-space: normal;
+    letter-spacing: 0.06em;
+    vertical-align: bottom;
+  }
+  .career-team-col {
+    display: none;
+  }
+  .career-table td[data-team]::after {
+    content: attr(data-team);
+    display: block;
+    margin-top: 2px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--fg-3);
+  }
 }

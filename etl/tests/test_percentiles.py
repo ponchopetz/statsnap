@@ -66,6 +66,16 @@ class TestRatioOfSums:
         assert row["sacksSuffered"] == 3
         assert row["_sum_attempts"] == 10
 
+    def test_sack_yards_lost_aggregates_to_a_positive_magnitude(self):
+        # nflverse stores sack yardage as negative yards. The season value is
+        # the magnitude, the same number the Advanced panel displays, so the
+        # "fewer is better" inversion ranks it the right way round.
+        df = frame(("qb", "QB", [
+            {**qb_week(1, 30), "sackYardsLost": -14},
+            {**qb_week(2, 30), "sackYardsLost": -22},
+        ]))
+        assert season(_aggregate_season(df), "qb")["sackYardsLost"] == 36
+
 
 class TestZeroAndUndefinedDenominators:
     def test_zero_attempts_makes_adot_null_and_zero_air_yards_makes_pacr_null(self):
@@ -242,3 +252,16 @@ class TestComputePercentiles:
         result = compute_percentiles(df)
         assert "traded" in result
         assert result["traded"]["passingEpa"] == 1.0
+
+    def test_fewer_sack_yards_lost_ranks_higher_like_fewer_sacks(self):
+        # Regression: ranking the raw negative sum with descending=True
+        # flipped it twice, so the QB who lost the fewest yards came out P0.
+        df = frame(
+            ("clean", "QB", [{**qb_week(1, 200), "sacksSuffered": 1, "sackYardsLost": -7}]),
+            ("sacked", "QB", [{**qb_week(1, 200), "sacksSuffered": 5, "sackYardsLost": -40}]),
+        )
+        result = compute_percentiles(df)
+        assert result["clean"]["sacksSuffered"] == 1.0
+        assert result["sacked"]["sacksSuffered"] == 0.0
+        assert result["clean"]["sackYardsLost"] == 1.0
+        assert result["sacked"]["sackYardsLost"] == 0.0

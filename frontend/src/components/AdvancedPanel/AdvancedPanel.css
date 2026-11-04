@@ -111,6 +111,12 @@
   .adv-row-clickable:hover .k {
     color: var(--fg);
   }
+  /* Same accent outline as the KEY button's hover. Skips open rows: their
+     glyph is already filled, and accent text on the fill would vanish. */
+  .adv-row:not(.adv-row-open) .adv-row-clickable:hover .info-glyph {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
 }
 
 .adv-row-clickable:focus-visible {
@@ -133,6 +139,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+/* The "?" fills in whenever its definition is showing — opened on its own
+   or via KEY — so the glyph reads as the control that's switched on. */
+.adv-row-open .info-glyph {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .adv-def {
@@ -161,13 +176,17 @@
   transition: color 0.12s, border-color 0.12s;
 }
 
+/* Excludes the active state: accent text on the accent fill would vanish. */
 @media (hover: hover) {
-  .key-toggle:hover {
+  .key-toggle:not(.key-toggle--active):hover {
     color: var(--accent);
     border-color: var(--accent);
   }
 }
 
+/* --active holds the highlight while every definition is open (same fill as
+   .arc-btn--active / .lb-pos-btn--active); :active is the press feedback. */
+.key-toggle--active,
 .key-toggle:active {
   color: var(--accent-ink);
   background: var(--accent);
