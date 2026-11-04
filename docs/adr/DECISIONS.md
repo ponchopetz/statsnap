@@ -354,6 +354,29 @@ for what the numbers should be, and any unilateral change to either side
 fails the suite. Vitest is the project's first test dependency —
 chosen because it is the standard runner for Vite projects.
 
+### Sack Yards Lost is ranked as a magnitude
+
+Decision: the season aggregate in `etl/percentiles.py` takes the absolute
+value of the summed `sackYardsLost`, so the ETL ranks yards lost as a
+positive number, the same number the Advanced panel and the leaderboard
+display. It stays in the QB `inverted` set next to `sacksSuffered`: for
+both, fewer is better and ranks higher. The golden contract mirrors it
+(`Math.abs(sumWeeks(weeks, "sackYardsLost"))` in the Vitest suite).
+
+Why: nflverse stores sack yardage as negative yards. Ranked as-is, the
+inversion was applied to an already negative number, so the QB who lost
+the fewest yards came out P0 (2025: Cam Ward, 410 yards lost, ranked
+P100; Brock Purdy, 53, ranked P0). Dropping the metric from `inverted`
+gives the same order with less code, but only because of the sign:
+`inverted` would stop meaning "fewer is better", and a reader would need
+to know nflverse's convention to see why it works. Normalizing the sign
+where the data enters the contract keeps the rule readable.
+
+Tradeoff: stored percentiles only change when a season reloads, and the
+daily workflow reloads just the configured `SEASON`. A ranking change has
+to be followed by a one-time reload of every loaded season (done for
+2016–2026 on 2026-11-04; see docs/NOTES.md).
+
 ### Experience is displayed as the season ordinal, computed in one place
 
 Decision: The bio grid cell formerly labelled `EXP` is now `NFL SEASON` and
