@@ -26,7 +26,7 @@ period.
 ### Changed
 
 - Player stats refresh daily (10:17 UTC) instead of once a week on Thursday.
-  A week's stats now fill in game by game, by the morning after each game.
+  A week's stats now fill in game by game, by the day after each game.
 
 ### Fixed
 

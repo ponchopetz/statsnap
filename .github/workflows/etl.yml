@@ -1,9 +1,10 @@
 name: ETL daily load
 
 # Daily, not weekly: nflverse republishes weekly player stats after every game
-# window, and each run reloads the whole season, so a game's stats show up by
-# the next morning. 10:17 UTC lands after nflverse's overnight updates, with
-# room for GitHub starting scheduled runs a few hours late.
+# window, and each run reloads the whole season, so a game's stats show up the
+# day after. 10:17 UTC lands after nflverse's overnight updates. GitHub starts
+# scheduled runs late, 3 to 8 hours so far (the first daily run, 2026-11-04,
+# started at 17:58 UTC), so in practice the load lands in the UTC afternoon.
 on:
   schedule:
     - cron: "17 10 * * *"   # 10:17 UTC every day
@@ -22,6 +23,11 @@ jobs:
     # Pinned, not ubuntu-latest: that label moves to each new Ubuntu LTS on
     # GitHub's schedule. See "CI runner images" in docs/adr/DECISIONS.md.
     runs-on: ubuntu-24.04
+    # The repo's default GITHUB_TOKEN is read-only; the failure report at the
+    # end needs to open or comment on an issue.
+    permissions:
+      contents: read
+      issues: write
     defaults:
       run:
         working-directory: etl
@@ -41,3 +47,29 @@ jobs:
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
         run: python load.py
+
+      # A failed load used to be silent: on 2026-10-29 setup failed and the
+      # site only showed it as stale stats, five days later. This opens an
+      # issue assigned to the repo owner (the assignment is what notifies),
+      # or comments on the one still open, so a multi-day outage stays one
+      # thread. See "A failed ETL load opens an issue" in docs/adr/DECISIONS.md.
+      - name: Report a failed load
+        if: failure()
+        # The checkout itself may be what failed, so don't rely on etl/.
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ETL load failed
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EVENT: ${{ github.event_name }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          body="The ${EVENT} run on ${BRANCH} (SEASON ${SEASON}) failed at $(date -u '+%Y-%m-%d %H:%M UTC'): ${RUN_URL}"
+          open=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --limit 100 \
+            --json number,title --jq '[.[] | select(.title == env.TITLE)][0].number // empty')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" \
+              --assignee "$GITHUB_REPOSITORY_OWNER" --body "$body"
+          fi
