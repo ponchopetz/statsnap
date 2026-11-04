@@ -105,6 +105,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  /* Query container for the narrow-table steps at the end of the file. */
+  container: lb / inline-size;
 }
 
 .lb-head {
@@ -131,6 +133,55 @@
   letter-spacing: 0.12em;
   color: var(--fg-3);
   text-transform: uppercase;
+}
+
+/* margin-left: auto keeps season + KEY right-aligned, also when the head
+   wraps them onto their own row on phones. */
+.lb-head-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+}
+
+/* Key: a description list (<dt> term, <dd> definition) for the selected
+   metric plus the two columns that need one. Same accent arrow and sans
+   definition text as the Advanced panel's .adv-def. */
+.lb-key {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.lb-key-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.lb-key dt {
+  flex: 0 0 170px;
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-2);
+  text-transform: uppercase;
+}
+
+.lb-key dt::before {
+  content: "▸ ";
+  color: var(--accent);
+}
+
+.lb-key dd {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg-3);
 }
 
 .lb-status {
@@ -258,6 +309,29 @@
   border-top: 1px solid var(--line);
 }
 
+/* ── md — 52rem (832px). The four controls need ~745px on one row; below
+   that, flex-wrap left ragged rows with empty space on the right. Lay them
+   out as an even 2×2 grid instead: labels above fields, every cell filled
+   edge to edge, position buttons bottom-aligned with the selects. ── */
+@media (max-width: 52rem) {
+  .lb-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
+  .lb-pos-btn {
+    flex: 1;
+  }
+  .lb-control {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .lb-select {
+    width: 100%;
+  }
+}
+
 /* ── sm — 30rem (480px). ── */
 @media (max-width: 30rem) {
   .lb-topbar,
@@ -265,8 +339,58 @@
     padding: 10px 16px;
     gap: 12px;
   }
+  /* Half a phone is too narrow for four position buttons or a long metric
+     name, so those two span the grid; SEASON and MIN GP share a row. */
+  .lb-positions,
+  .lb-control--metric {
+    grid-column: 1 / -1;
+  }
+  .lb-head {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .lb-key-row {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .lb-key dt {
+    flex-basis: auto;
+  }
   .lb-body {
     padding: 16px;
+  }
+}
+
+/* ── Narrow table (panel ≤660px). The full table needs ~645px, mostly for
+   the metric header ("RECEIVING AIR YARDS" on one line). Every row is the
+   same position, so the badge goes; cells tighten; the header and long
+   names wrap instead of widening their columns; the bar shrinks. ── */
+@container lb (max-width: 660px) {
+  .lb-table th,
+  .lb-table td {
+    padding: 8px 4px;
+  }
+  .lb-table th:first-child,
+  .lb-table td:first-child {
+    padding-left: 0;
+  }
+  .lb-table th:last-child,
+  .lb-table td:last-child {
+    padding-right: 0;
+  }
+  .lb-table th {
+    white-space: normal;
+    letter-spacing: 0.06em;
+    vertical-align: bottom;
+  }
+  .lb-rank {
+    width: auto;
+  }
+  .lb-player .pos-badge {
+    display: none;
+  }
+  .lb-name {
+    white-space: normal;
   }
   .lb-bar {
     width: 56px;
@@ -274,5 +398,22 @@
   .lb-pct,
   .lb-pct-head {
     min-width: 0;
+  }
+}
+
+/* ── Phone table (panel ≤400px): the bar goes too, PCTL reads as the
+   number alone, and numerals drop to 12px. ── */
+@container lb (max-width: 400px) {
+  .lb-table td {
+    font-size: 12px;
+  }
+  .lb-name {
+    font-size: 13px;
+  }
+  .lb-bar {
+    display: none;
+  }
+  .lb-pct-num {
+    width: auto;
   }
 }

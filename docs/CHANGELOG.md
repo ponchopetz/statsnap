@@ -14,6 +14,15 @@ period.
 
 ## [Unreleased]
 
+### Added
+
+- Leaderboards key: a ? KEY toggle in the board's header defines the
+  selected metric, PCTL and GP, and follows the position and metric you
+  pick. The stat definitions now live in one shared module, which also
+  gives the Advanced panel the missing Carries and sack definitions. On
+  phones the controls fill the width and the table fits without sideways
+  scroll (position badge hidden, cells tightened, PCTL as a number).
+
 ### Changed
 
 - Player stats refresh daily (10:17 UTC) instead of once a week on Thursday.
