@@ -155,7 +155,7 @@ The ETL loads one season per run, selected by the `SEASON` environment variable.
 
 ```bash
 cd etl
-python -m venv venv
+python -m venv venv          # Python 3.11.18, from .python-version via pyenv
 source venv/bin/activate
 pip install -r requirements.txt
 # create etl/.env containing: MONGO_URI=your_atlas_connection_string
@@ -163,13 +163,17 @@ SEASON=2024 python load.py
 ```
 
 Repeat the `load.py` run once per season to populate the dataset. StatSnap loads
-the **2016–2025** seasons:
+the **2016–2026** seasons; the ETL workflow reloads the current one (`SEASON` in
+`.github/workflows/etl.yml`) every day:
 
 ```bash
-for season in 2016 2017 2018 2019 2020 2021 2022 2023 2024 2025; do
+for season in 2016 2017 2018 2019 2020 2021 2022 2023 2024 2025 2026; do
   SEASON=$season python load.py
 done
 ```
+
+Run the loop again after any change to how `percentiles.py` ranks: stored
+percentiles only change when their season reloads.
 
 
 ## API endpoints

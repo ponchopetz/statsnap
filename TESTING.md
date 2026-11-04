@@ -11,7 +11,7 @@ all three; the production ETL cron in `etl.yml` is separate and unchanged.
 ```bash
 cd frontend && npm test          # Vitest + React Testing Library (jsdom)
 cd backend  && npm test          # Vitest + supertest + mongodb-memory-server
-cd etl      && source venv/bin/activate && pip install -r requirements-dev.txt && python -m pytest
+cd etl      && source venv/bin/activate && pip install -r requirements.txt -r requirements-dev.txt && python -m pytest
 ```
 
 Coverage: `npm run test:coverage` in `frontend/` or `backend/`,

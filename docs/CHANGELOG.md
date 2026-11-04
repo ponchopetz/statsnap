@@ -34,7 +34,7 @@ period.
   the leaderboard. nflverse stores sack yardage as negative yards, and
   ranking that raw sum with the "fewer is better" inversion flipped it
   twice, so the QB who lost the fewest yards ranked last. The ETL now ranks
-  the magnitude; each season's stored percentiles update on its next load.
+  the magnitude, and every loaded season (2016–2026) was reloaded with it.
 - Career tab: the career table, the CAREER ARC stat buttons and the player
   page tabs no longer overflow sideways. The table tightens and tucks each
   season's team under the year, the arc's stat buttons wrap into rows

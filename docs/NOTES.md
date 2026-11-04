@@ -158,3 +158,51 @@ at five fixed points in the NFL week (Wednesday for the full slate, then after
 each game window). Each ping wakes the service and the on-boot refresh does the
 rest. Paid score calls stay gated inside `refreshSchedule`, so the extra wakes
 cost no credits on their own.
+
+## Local ETL env broke after a Homebrew upgrade (2026-11-04)
+
+Homebrew replaced `openssl@3` with `openssl@4`. A pyenv Python links its
+`_ssl` module against the OpenSSL it was compiled with, so 3.11.9 and 3.12.7
+(both built against OpenSSL 3) can no longer `import ssl`. `pymongo` imports
+`ssl`, so `etl/venv`, built on 3.11.9, failed at `import pymongo`:
+`test_load.py` errored at collection and `load.py` couldn't run. 3.11.18 links
+OpenSSL 4 and works.
+
+Fix: rebuilt `etl/venv` on 3.11.18, the version `.python-version` and CI pin.
+The old 3.11.9 venv was moved aside, not edited.
+
+```bash
+cd etl
+python -m venv venv    # pyenv resolves 3.11.18 from .python-version
+venv/bin/pip install -r requirements.txt -r requirements-dev.txt
+venv/bin/python -m pytest
+```
+
+Lesson: a venv is tied to the interpreter it was built from, and a pyenv
+interpreter is tied to the OpenSSL it was compiled against. After a Homebrew
+OpenSSL major upgrade, rebuild venvs on a working Python (or
+`pyenv install --force <version>` to recompile the old one). 3.11.9 and 3.12.7
+are still broken in pyenv: reinstall or uninstall them if anything else uses
+them.
+
+## Re-ranking backfill: Sack Yards Lost (2026-11-04)
+
+After fixing the inverted Sack Yards Lost percentile (ADR "Sack Yards Lost is
+ranked as a magnitude"), every loaded season was reloaded once so the stored
+`advanced` maps match the new ranking. 2025 went first as a check (Cam Ward
+P100 → P0, Brock Purdy P0 → P100), then the rest:
+
+```bash
+cd etl
+for s in 2016 2017 2018 2019 2020 2021 2022 2023 2024 2025 2026; do
+  SEASON=$s venv/bin/python load.py
+done
+```
+
+Each run updated exactly its existing player-season documents (541–633 per
+season) and created none. Checked afterwards on the live API: in every season
+the sacks and sack-yards percentiles correlate +0.87 to +0.97, and the top of
+the Sack Yards Lost board lost the fewest yards.
+
+Any future change to how `percentiles.py` ranks needs the same backfill: the
+daily workflow only reloads `SEASON`.
