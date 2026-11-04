@@ -3,8 +3,9 @@
 Three suites, one per package. None of them touch Atlas, Render, or The Odds
 API: the backend runs against an in-memory MongoDB, the ETL against a
 throwaway local `mongod`, and the one upstream HTTP call is stubbed at the
-`fetch` boundary. A pull-request workflow (`.github/workflows/test.yml`) runs
-all three; the production ETL cron in `etl.yml` is separate and unchanged.
+`fetch` boundary. The CI workflow (`.github/workflows/test.yml`) runs all
+three on every pull request and every push to `develop` and `main`; the
+production ETL cron in `etl.yml` is separate.
 
 ## Run everything locally
 

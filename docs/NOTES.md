@@ -64,7 +64,9 @@ different cadences for different reasons).
 
 Cadence: daily at 10:17 UTC. The plan logged here was weekly on Tuesday, so
 only finished weeks got loaded. Daily replaced that on purpose: each game's
-stats show up the next morning, and a week fills in as its games are played.
+stats show up the next day, and a week fills in as its games are played.
+GitHub starts scheduled runs 3 to 8 hours late, so the load usually lands in
+the UTC afternoon (the first daily run, 2026-11-04, started at 17:58 UTC).
 See "ETL schedule" in docs/adr/DECISIONS.md.
 
 ## Shared search component — collapse & clear on select (fix)
