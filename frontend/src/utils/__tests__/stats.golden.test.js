@@ -33,7 +33,8 @@ const JS_EQUIVALENTS = {
   passingAirYards: (weeks) => sumWeeks(weeks, "passingAirYards"),
   adot: (weeks) => seasonAdot(weeks),
   sacksSuffered: (weeks) => sumWeeks(weeks, "sacksSuffered"),
-  sackYardsLost: (weeks) => sumWeeks(weeks, "sackYardsLost"),
+  // Magnitude, as ADVANCED_CONFIG displays it; nflverse stores it negative.
+  sackYardsLost: (weeks) => Math.abs(sumWeeks(weeks, "sackYardsLost")),
   targetShare: (weeks) => averageWeeks(weeks, "targetShare"),
   airYardsShare: (weeks) => averageWeeks(weeks, "airYardsShare"),
   wopr: (weeks) => averageWeeks(weeks, "wopr"),

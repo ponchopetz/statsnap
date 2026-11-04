@@ -88,7 +88,10 @@ def _aggregate_season(df: pl.DataFrame) -> pl.DataFrame:
         col("receivingAirYards").fill_null(0).sum().alias("receivingAirYards"),
         col("carries").fill_null(0).sum().alias("carries"),
         col("sacksSuffered").fill_null(0).sum().alias("sacksSuffered"),
-        col("sackYardsLost").fill_null(0).sum().alias("sackYardsLost"),
+        # nflverse stores sack yardage as negative yards; rank the magnitude
+        # so "inverted" (fewer is better) holds as for sacksSuffered. A raw
+        # negative sum flipped twice: fewest yards lost ranked P0.
+        col("sackYardsLost").fill_null(0).sum().abs().alias("sackYardsLost"),
 
         # AVERAGE metrics (Polars mean already excludes nulls — correct behavior).
         col("targetShare").mean().alias("targetShare"),
