@@ -21,6 +21,9 @@ period.
 
 ### Fixed
 
+- Advanced panel: the KEY button stays highlighted while every definition
+  is showing; before, it only flashed while pressed. A stat's "?" fills in
+  while its definition is open and takes an accent outline on hover.
 - Weekly ETL load: the 2026-10-29 run failed before loading anything, so
   player stats stopped updating after the 2026-10-22 load. GitHub moved
   `ubuntu-latest` to Ubuntu 26.04, and `actions/setup-python` has no Python

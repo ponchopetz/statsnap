@@ -37,6 +37,7 @@ function AdvancedPanel({ player }) {
 
   const headerLabel = inProgress ? `THROUGH WK ${throughWeek}` : `${player.season} SEASON`;
 
+  const allOpen = openKey === "__all";
   const toggleAll = () => setOpenKey((prev) => (prev === "__all" ? null : "__all"));
 
   const toggleRow = (k) => {
@@ -72,7 +73,7 @@ function AdvancedPanel({ player }) {
         )}
         <ul className="adv-list">
           {rows.map((row) => {
-          const isOpen = openKey === "__all" || openKey === row.k;
+          const isOpen = allOpen || openKey === row.k;
           const clickable = Boolean(STAT_GLOSSARY[row.k]);
           return (
             <li key={row.k} className={"adv-row" + (isOpen ? " adv-row-open" : "")}>
@@ -118,8 +119,12 @@ function AdvancedPanel({ player }) {
         <div className="panel-head-right">
           <span className="panel-head-season">{headerLabel}</span>
           {rows.length > 0 && (
-            <button type="button" className="key-toggle" onClick={toggleAll}>
-              {openKey === "__all" ? "✕ HIDE KEY" : "? KEY"}
+            <button
+              type="button"
+              className={"key-toggle" + (allOpen ? " key-toggle--active" : "")}
+              onClick={toggleAll}
+            >
+              {allOpen ? "✕ HIDE KEY" : "? KEY"}
             </button>
           )}
         </div>
