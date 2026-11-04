@@ -258,7 +258,7 @@ across three seasons) and again in Chunk 14c (seven game-context fields).
 Decision: `.github/workflows/etl.yml` runs the loader every day at 10:17 UTC,
 year-round, instead of weekly on Thursday. A week's stats fill in as its games
 are played: after Thursday night only those two teams' players have the new
-week, and everyone else gets it the morning after their own game.
+week, and everyone else gets it the day after their own game.
 
 Why: nflverse republishes weekly player stats after every game window
 (Thursday, each Sunday window, Sunday and Monday night) plus a daily run, so a
@@ -267,7 +267,8 @@ Each run reloads the whole season through the idempotent upsert above, so
 running more often is safe, and stat corrections land on the next run without
 needing a special day. 10:17 UTC sits after nflverse's overnight updates, with
 room for GitHub starting scheduled runs late (the Thursday runs started about
-3.5 to 5.5 hours after their 14:17 UTC slot). Timing runs to individual game
+3.5 to 5.5 hours after their 14:17 UTC slot, and the first daily run, on
+2026-11-04, almost 8 hours after 10:17). Timing runs to individual game
 windows was rejected for the same reason: delays of hours would push them into
 the windows anyway. Year-round rather than season-only because Actions minutes
 are free on a public repo, and a month filter would be one more thing to change
@@ -280,6 +281,26 @@ any Week 18 row is loaded, and Week 18 usually has Saturday games, so for about
 a day each January percentiles show as final before Sunday's games load. The
 next run loads the rest of Week 18 and the gap closes on its own; deriving the
 flag from the schedule instead is a possible follow-up.
+
+### A failed ETL load opens an issue
+
+Decision: the last step of `etl.yml` runs only when an earlier step failed. It
+opens an issue titled "ETL load failed", assigned to the repo owner, with a
+link to the run, or comments on that issue if it is still open. The job gets
+`issues: write` for this; the repository's default token is read-only.
+
+Why: on 2026-10-29 the load failed at Python setup and nothing said so. The
+site just stopped updating, and it took five days to notice. GitHub's own
+failure email for a scheduled run goes to whoever last edited its cron, and it
+is easy to miss. An issue stays visible in the repo, notifies through the
+assignment (the owner isn't watching the repo, so an issue opened by the bot
+alone wouldn't), and keeps a multi-day outage in one thread instead of one
+alert per daily run. Closing the issue after the fix re-arms it.
+
+Limit: it only fires for runs that start. GitHub can delay or drop scheduled
+runs under load, and a dropped run leaves no failure to report. With a daily
+cadence that costs at most a day, because the next run reloads the whole
+season; a staleness check would be the fix if that ever matters.
 
 ### Mid-season trades: per-week team, season document stamped with the last team
 
