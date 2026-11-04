@@ -14,6 +14,10 @@
   gap: 0;
   border-bottom: 1px solid var(--line);
   margin-bottom: 24px;
+  /* Query container: the tabs tighten by this row's width (see the end of
+     the file), since the player page narrows it on phones AND in the
+     two-column layout just past 52rem. */
+  container: tabs / inline-size;
 }
 
 .tabs-tab {
@@ -30,6 +34,7 @@
   letter-spacing: 0.14em;
   color: var(--fg-3);
   text-transform: uppercase;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     color 0.12s,
@@ -67,12 +72,18 @@
   outline-offset: 2px;
 }
 
-/* ── sm — 30rem (480px). Fit all four tabs on one line at phone widths. ── */
-@media (max-width: 30rem) {
+/* ── Fit all five tabs on one line at any row width. Full padding needs
+   ~495px; 12px padding ~415px; the phone step below that ~320px. ── */
+@container tabs (max-width: 500px) {
+  .tabs-tab {
+    padding: 14px 12px;
+  }
+}
+
+@container tabs (max-width: 420px) {
   .tabs-tab {
     padding: 14px 8px;
     font-size: 10px;
     letter-spacing: 0.06em;
-    white-space: nowrap;
   }
 }
