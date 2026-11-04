@@ -9,6 +9,9 @@ import "./CareerArc.css";
 // 2022 or 2024" is answered against his peers, not just his own totals.
 
 const MODE_LABEL = { totals: "TOTALS", percentile: "PERCENTILE" };
+// From this many seasons a narrow arc compacts its axis labels ('16 over
+// 23) so every column still fits; see .arc-axis--dense in CareerArc.css.
+const DENSE_AXIS_SEASONS = 7;
 
 function CareerArc({ data }) {
   const position = data?.[0]?.position;
@@ -38,7 +41,7 @@ function CareerArc({ data }) {
             ))}
           </div>
         </div>
-        <div className="arc-options" role="group" aria-label="Stat">
+        <div className="arc-options arc-stat-options" role="group" aria-label="Stat">
           {options.map((o) => (
             <button
               key={o.key}
@@ -65,11 +68,25 @@ function CareerArc({ data }) {
       <div className="arc-chart">
         <Sparkline data={values} />
       </div>
-      <div className="arc-axis" style={{ gridTemplateColumns: `repeat(${points.length}, 1fr)` }}>
+      <div
+        className={"arc-axis" + (points.length >= DENSE_AXIS_SEASONS ? " arc-axis--dense" : "")}
+        style={{ gridTemplateColumns: `repeat(${points.length}, 1fr)` }}
+      >
         {points.map((p) => (
           <span key={p.season} className="arc-tick">
-            <span className="arc-tick-season">{p.season}</span>
-            <span className="arc-tick-age">{p.age != null ? `AGE ${p.age}` : ""}</span>
+            {/* Split so a narrow arc can drop "20" and "AGE "; the text stays whole. */}
+            <span className="arc-tick-season">
+              <span className="arc-tick-century">{String(p.season).slice(0, 2)}</span>
+              {String(p.season).slice(2)}
+            </span>
+            <span className="arc-tick-age">
+              {p.age != null && (
+                <>
+                  <span className="arc-tick-age-label">AGE </span>
+                  {p.age}
+                </>
+              )}
+            </span>
             <span className="arc-tick-value">{p.value != null ? row.format(p.value) : "—"}</span>
           </span>
         ))}

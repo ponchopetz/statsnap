@@ -21,6 +21,12 @@ period.
 
 ### Fixed
 
+- Career tab: the career table, the CAREER ARC stat buttons and the player
+  page tabs no longer overflow sideways. The table tightens and tucks each
+  season's team under the year, the arc's stat buttons wrap into rows
+  (PERCENTILE overflowed even on desktop), and long careers label the arc
+  axis '16 over 23. Each sizes itself by its own width (container queries),
+  so they also fit in the two-column layout just past 832px.
 - Advanced panel: the KEY button stays highlighted while every definition
   is showing; before, it only flashed while pressed. A stat's "?" fills in
   while its definition is open and takes an accent outline on hover.

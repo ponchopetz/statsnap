@@ -70,7 +70,7 @@ function Career({ data }) {
           <thead>
             <tr>
               <th className="ctx">SEASON</th>
-              <th className="ctx">TEAM</th>
+              <th className="ctx career-team-col">TEAM</th>
               {columns.map((c) => <th key={c.k}>{c.k}</th>)}
             </tr>
           </thead>
@@ -79,8 +79,9 @@ function Career({ data }) {
               const isTotal = d.season === "CAREER";
               return (
                 <tr key={d.season} className={isTotal ? "career-row-total" : undefined}>
-                  <td className="ctx">{d.season}</td>
-                  <td className="ctx">{d.team}</td>
+                  {/* data-team: a narrow panel shows the team under the year (Career.css) */}
+                  <td className="ctx" data-team={isTotal ? undefined : d.team}>{d.season}</td>
+                  <td className="ctx career-team-col">{d.team}</td>
                   {columns.map((c) => <td key={c.k}>{c.value(d)}</td>)}
                 </tr>
               );

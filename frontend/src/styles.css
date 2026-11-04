@@ -23,6 +23,12 @@
      52rem  (832px)  player page two-column layout stacks  (PlayerPage.css)
      30rem  (480px)  phone polish: stat row → two-across, type/padding
                      shrink, keyboard-help strip hides
+   Container queries: components whose column width doesn't track the
+   viewport (the player page narrows them on phones AND just past 52rem)
+   size themselves by their own width instead:
+     tabs    500 / 420px  tab padding tightens           (Tabs.css)
+     career  540px        career table compacts          (Career.css)
+     arc     580px        career arc stacks and compacts (CareerArc.css)
 */
 
 * {
