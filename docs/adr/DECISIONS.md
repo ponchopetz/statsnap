@@ -807,6 +807,25 @@ Ubuntu version to a MongoDB binary (10.4.3 only knows Ubuntu up to 24 and falls
 back to the 24.04 build above that); and the test suite passes on a PR before
 the ETL's pin changes.
 
+### Test suite runs on every push to develop and main
+
+Decision: `test.yml` runs on every push to `develop` and `main`, not only on
+pull requests.
+
+Why: feature branches here are merged locally with `--no-ff` and pushed, with
+no pull request, so a PR-only suite quietly stopped running. Its last run was
+2026-10-16, and every merge since went through without CI. The suite is also
+the cheapest canary for the CI toolchain: it sets up the same pinned runner
+image, Python patch, and dependency pins the ETL uses. A runner or toolchain
+change now fails on the next push, not on the next production load (the
+2026-10-29 failure only surfaced as stale stats five days later).
+
+Tradeoff: promoting `develop` to `main` runs the suite a second time on code
+that already passed on `develop`. That costs a few minutes of runner time,
+which is free for a public repository, and `concurrency` cancels a superseded
+run on the same branch. It doesn't replace running the suites locally before
+a merge; it checks that the result holds on CI's toolchain.
+
 ---
 
 ## Minor / historical

@@ -1,11 +1,18 @@
 name: Test suite
 
-# Pull-request only. This workflow never writes to any database or host;
-# every job runs against a throwaway MongoDB (in-memory or a service
-# container) and stubs the one external API. The production ETL cron lives
-# in etl.yml and is untouched by this file.
+# Runs on every pull request and on every push to develop and main. Feature
+# branches are merged locally and pushed, with no pull request, so the push
+# trigger is what actually runs the suite (and the pinned runner and Python
+# toolchain) after each merge. See "Test suite runs on every push to develop
+# and main" in docs/adr/DECISIONS.md.
+#
+# This workflow never writes to any database or host: every job runs against
+# a throwaway MongoDB (in-memory or a service container) and stubs the one
+# external API. The production ETL cron lives in etl.yml.
 on:
   pull_request:
+  push:
+    branches: [develop, main]
 
 permissions:
   contents: read
