@@ -100,9 +100,10 @@
 }
 
 /* ── Fit all five tabs on one line at any row width. Full padding needs
-   ~495px; 12px padding ~415px; 6px padding ~310px; the last step (4px padding,
-   tighter tracking) ~280px. All include the ADVANCED badge dot. ── */
-@container tabs (max-width: 500px) {
+   ~520px with the ADVANCED count chip, so the 12px step covers every row
+   under 530px; 12px padding needs ~415px; 6px padding ~310px; the last step
+   (4px padding, tighter tracking) ~280px. All include the badge dot/chip. ── */
+@container tabs (max-width: 530px) {
   .tabs-tab {
     padding: 14px 12px;
   }
