@@ -150,3 +150,171 @@ def big_plays_season(raw_stats: pl.DataFrame) -> pl.DataFrame:
         .group_by("playerId", maintain_order=True)
         .agg(pl.col("plays20Plus", "plays40Plus", "fumbles").sum())
     )
+
+
+def _ratio(num: pl.Expr, den: pl.Expr) -> pl.Expr:
+    """num / den as Float64, null (never NaN or inf) when den is not positive."""
+    return pl.when(den > 0).then(num / den).otherwise(None).cast(pl.Float64)
+
+
+def crosswalk_from_rosters(rosters: pl.DataFrame) -> pl.DataFrame:
+    """Unique (pfr_id, playerId) pairs; rows missing either id are dropped."""
+    return (
+        rosters.select(pl.col("pfr_id"), pl.col("gsis_id").alias("playerId"))
+        .drop_nulls()
+        .unique(maintain_order=True)
+    )
+
+
+def snap_share_season(snaps: pl.DataFrame | None, crosswalk: pl.DataFrame) -> pl.DataFrame:
+    """Offensive snaps over team offensive snaps, in regular-season games played."""
+    schema = {"playerId": pl.Utf8, "snapShare": pl.Float64}
+    if snaps is None or snaps.height == 0:
+        return pl.DataFrame(schema=schema)
+    reg = snaps.filter(pl.col("game_type") == "REG").with_columns(
+        pl.col("offense_snaps").max().over("game_id", "team").alias("team_snaps")
+    )
+    return (
+        reg.filter(pl.col("offense_snaps") > 0)
+        .join(crosswalk, left_on="pfr_player_id", right_on="pfr_id", how="inner")
+        .group_by("playerId", maintain_order=True)
+        .agg(pl.col("offense_snaps").sum().alias("snaps"),
+             pl.col("team_snaps").sum().alias("team"))
+        .select("playerId", _ratio(pl.col("snaps"), pl.col("team")).alias("snapShare"))
+        .cast(schema)
+    )
+
+
+def passer_rating_expr(att, comp, yds, td, ints) -> pl.Expr:
+    """NFL passer rating from season totals; null when there are no attempts."""
+    def clip(e: pl.Expr) -> pl.Expr:
+        return e.clip(0, 2.375)
+
+    a = clip((comp / att - 0.3) * 5)
+    b = clip((yds / att - 3) * 0.25)
+    c = clip(td / att * 20)
+    d = clip(2.375 - ints / att * 25)
+    return pl.when(att > 0).then((a + b + c + d) / 6 * 100).otherwise(None).cast(pl.Float64)
+
+
+PFR_KEYS = (
+    "pressureRate", "badThrowPct", "dropRate", "brokenTackles",
+    "ratingWhenTargeted", "intsWhenTargeted",
+    "beforeContactPerAtt", "afterContactPerAtt",
+)
+
+
+def _pfr_reg(df: pl.DataFrame | None, needed: dict[str, pl.DataType], crosswalk: pl.DataFrame):
+    """Regular-season PFR rows keyed by playerId and an Int64 week, or None."""
+    if df is None or df.height == 0:
+        return None
+    # A column a given file does not carry counts as zero.
+    df = df.with_columns(
+        [pl.lit(None, dtype=t).alias(c) for c, t in needed.items() if c not in df.columns]
+    )
+    return (
+        df.filter(pl.col("game_type") == "REG")
+        .join(crosswalk, left_on="pfr_player_id", right_on="pfr_id", how="inner")
+        .with_columns(pl.col("week").cast(pl.Int64))
+    )
+
+
+def _pfr_weekly_joined(pfr: pl.DataFrame, weekly: pl.DataFrame) -> pl.DataFrame:
+    """PFR rows joined to weekly on (playerId, week); unmatched weeks are dropped."""
+    w = weekly.with_columns(pl.col("week").cast(pl.Int64))
+    return pfr.unique(subset=["playerId", "week"], keep="first").join(
+        w, on=["playerId", "week"], how="inner"
+    )
+
+
+def pfr_season(
+    pfr: dict[str, pl.DataFrame | None], weekly: pl.DataFrame, crosswalk: pl.DataFrame
+) -> pl.DataFrame:
+    """One row per player with the 8 PFR keys; absent sources leave nulls."""
+    schema = {"playerId": pl.Utf8, **{k: pl.Float64 for k in PFR_KEYS}}
+    parts: list[pl.DataFrame] = []
+
+    passing = _pfr_reg(
+        pfr.get("pass"), {"times_pressured": pl.Float64, "passing_bad_throws": pl.Float64}, crosswalk
+    )
+    if passing is not None:
+        j = _pfr_weekly_joined(passing, weekly)
+        parts.append(
+            j.group_by("playerId", maintain_order=True)
+            .agg(pl.col("times_pressured").fill_null(0).sum().alias("pressured"),
+                 pl.col("passing_bad_throws").fill_null(0).sum().alias("bad"),
+                 pl.col("attempts").sum().alias("att"),
+                 pl.col("sacksSuffered").fill_null(0).sum().alias("sacks"))
+            .select("playerId",
+                    _ratio(pl.col("pressured"), pl.col("att") + pl.col("sacks")).alias("pressureRate"),
+                    _ratio(pl.col("bad"), pl.col("att")).alias("badThrowPct"))
+        )
+
+    receiving = _pfr_reg(
+        pfr.get("rec"), {"receiving_drop": pl.Float64, "receiving_int": pl.Float64}, crosswalk
+    )
+    if receiving is not None:
+        j = _pfr_weekly_joined(receiving, weekly)
+        agg = j.group_by("playerId", maintain_order=True).agg(
+            pl.col("receiving_drop").fill_null(0).sum().alias("drops"),
+            pl.col("receiving_int").fill_null(0).sum().alias("ints"),
+            pl.col("targets").sum().alias("tgt"),
+            pl.col("receptions").sum().alias("rec"),
+            pl.col("receivingYards").sum().alias("yds"),
+            pl.col("receivingTds").sum().alias("td"),
+        )
+        parts.append(agg.select(
+            "playerId",
+            _ratio(pl.col("drops"), pl.col("tgt")).alias("dropRate"),
+            passer_rating_expr(
+                pl.col("tgt"), pl.col("rec"), pl.col("yds"), pl.col("td"), pl.col("ints")
+            ).alias("ratingWhenTargeted"),
+            pl.col("ints").cast(pl.Float64).alias("intsWhenTargeted"),
+        ))
+
+    rushing = _pfr_reg(
+        pfr.get("rush"),
+        {"carries": pl.Float64, "rushing_yards_before_contact": pl.Float64,
+         "rushing_yards_after_contact": pl.Float64},
+        crosswalk,
+    )
+    if rushing is not None:
+        parts.append(
+            rushing.group_by("playerId", maintain_order=True)
+            .agg(pl.col("carries").fill_null(0).sum().alias("carries"),
+                 pl.col("rushing_yards_before_contact").fill_null(0).sum().alias("before"),
+                 pl.col("rushing_yards_after_contact").fill_null(0).sum().alias("after"))
+            .select("playerId",
+                    _ratio(pl.col("before"), pl.col("carries")).alias("beforeContactPerAtt"),
+                    _ratio(pl.col("after"), pl.col("carries")).alias("afterContactPerAtt"))
+        )
+
+    # Rush and rec files can both list a player-game's broken tackles, so count
+    # each player-game once (max per column) rather than summing across files.
+    bt_needed = {"rushing_broken_tackles": pl.Float64, "receiving_broken_tackles": pl.Float64}
+    bt_frames = [
+        f.select("playerId", "game_id",
+                 pl.col("rushing_broken_tackles").cast(pl.Float64),
+                 pl.col("receiving_broken_tackles").cast(pl.Float64))
+        for f in (_pfr_reg(pfr.get("rush"), bt_needed, crosswalk),
+                  _pfr_reg(pfr.get("rec"), bt_needed, crosswalk))
+        if f is not None
+    ]
+    if bt_frames:
+        parts.append(
+            pl.concat(bt_frames)
+            .group_by("playerId", "game_id")
+            .agg(pl.col("rushing_broken_tackles").max().fill_null(0),
+                 pl.col("receiving_broken_tackles").max().fill_null(0))
+            .group_by("playerId", maintain_order=True)
+            .agg((pl.col("rushing_broken_tackles") + pl.col("receiving_broken_tackles"))
+                 .sum().alias("brokenTackles"))
+        )
+
+    out = pl.DataFrame(schema=schema)
+    for part in parts:
+        out = out.join(part, on="playerId", how="full", coalesce=True, suffix="_new")
+        for key in PFR_KEYS:
+            if f"{key}_new" in out.columns:
+                out = out.with_columns(pl.col(f"{key}_new").alias(key)).drop(f"{key}_new")
+    return out.select(list(schema)).cast(schema)

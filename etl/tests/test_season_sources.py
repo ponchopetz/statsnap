@@ -3,9 +3,13 @@ import pytest
 
 from season_sources import (
     big_plays_season,
+    crosswalk_from_rosters,
     expected_points_season,
     fetch_optional,
     nextgen_season,
+    passer_rating_expr,
+    pfr_season,
+    snap_share_season,
 )
 
 NGS_KEYS = [
@@ -235,3 +239,154 @@ def test_big_plays_sum_across_multiple_rows_per_player():
     assert out.height == 1
     row = out.row(0, named=True)
     assert (row["plays20Plus"], row["plays40Plus"], row["fumbles"]) == (5, 1, 2)
+
+
+CROSSWALK = pl.DataFrame({"pfr_id": ["PF1", "PF2"], "playerId": ["G1", "G2"]})
+
+
+def snap_rows(rows):
+    base = {"game_id": "g1", "game_type": "REG", "team": "AAA",
+            "pfr_player_id": "PF1", "offense_snaps": 0}
+    return pl.DataFrame([{**base, **r} for r in rows])
+
+
+def test_crosswalk_drops_nulls_and_duplicates():
+    rosters = pl.DataFrame({
+        "gsis_id": ["G1", "G1", "G2", None, "G3"],
+        "pfr_id": ["PF1", "PF1", None, "PF4", "PF3"],
+    })
+    out = crosswalk_from_rosters(rosters)
+    assert out.columns == ["pfr_id", "playerId"]
+    assert sorted(out.rows()) == [("PF1", "G1"), ("PF3", "G3")]
+
+
+def test_snap_share_divides_by_team_snaps_in_games_with_offensive_snaps():
+    snaps = snap_rows([
+        {"game_id": "g1", "offense_snaps": 45},
+        {"game_id": "g1", "pfr_player_id": "PF2", "offense_snaps": 60},
+        {"game_id": "g2", "offense_snaps": 0},
+        {"game_id": "g2", "pfr_player_id": "PF2", "offense_snaps": 70},
+        {"game_id": "g3", "game_type": "POST", "offense_snaps": 50},
+    ])
+    out = snap_share_season(snaps, CROSSWALK)
+    assert out.columns == ["playerId", "snapShare"]
+    rows = {r["playerId"]: r["snapShare"] for r in out.iter_rows(named=True)}
+    assert rows["G1"] == pytest.approx(0.75)
+
+
+def test_snap_share_none_gives_typed_empty_frame():
+    out = snap_share_season(None, CROSSWALK)
+    assert out.columns == ["playerId", "snapShare"]
+    assert out.height == 0
+
+
+def test_passer_rating_formula_and_clamps():
+    def rating(*args):
+        return pl.select(passer_rating_expr(*[pl.lit(a) for a in args]).alias("r"))["r"][0]
+
+    assert rating(100, 70, 1000, 8, 1) == pytest.approx(124.583, abs=1e-3)
+    assert rating(10, 10, 300, 5, 0) == pytest.approx(158.333, abs=1e-3)
+    assert rating(10, 0, 0, 0, 5) == 0.0
+    assert rating(0, 0, 0, 0, 0) is None
+
+
+def pfr_weekly(rows):
+    base = {"playerId": "G1", "week": 1, "attempts": 0, "sacksSuffered": 0,
+            "targets": 0, "receptions": 0, "receivingYards": 0, "receivingTds": 0}
+    return pl.DataFrame([{**base, **r} for r in rows])
+
+
+def pass_frame(rows):
+    base = {"game_id": "g1", "season": 2024, "week": 1, "game_type": "REG",
+            "pfr_player_id": "PF1", "times_pressured": 0, "passing_bad_throws": 0}
+    return pl.DataFrame([{**base, **r} for r in rows])
+
+
+def rush_frame(rows):
+    base = {"game_id": "g1", "season": 2024, "week": 1, "game_type": "REG",
+            "pfr_player_id": "PF1", "carries": 0, "rushing_yards_before_contact": 0.0,
+            "rushing_yards_after_contact": 0.0, "rushing_broken_tackles": 0,
+            "receiving_broken_tackles": 0}
+    return pl.DataFrame([{**base, **r} for r in rows])
+
+
+def rec_frame(rows):
+    base = {"game_id": "g1", "season": 2024, "week": 1, "game_type": "REG",
+            "pfr_player_id": "PF1", "rushing_broken_tackles": 0,
+            "receiving_broken_tackles": 0, "receiving_drop": 0, "receiving_int": 0}
+    return pl.DataFrame([{**base, **r} for r in rows])
+
+
+def test_pfr_denominators_use_only_games_with_pfr_rows():
+    weekly = pfr_weekly([
+        {"week": 1, "attempts": 30, "sacksSuffered": 2},
+        {"week": 2, "attempts": 40, "sacksSuffered": 2},
+    ])
+    p = pass_frame([{"times_pressured": 8, "passing_bad_throws": 6}])
+    out = pfr_season({"pass": p, "rush": None, "rec": None}, weekly, CROSSWALK)
+    row = out.filter(pl.col("playerId") == "G1").row(0, named=True)
+    assert row["pressureRate"] == pytest.approx(8 / 32)
+    assert row["badThrowPct"] == pytest.approx(6 / 30)
+
+
+def test_pfr_broken_tackles_dedupe_player_game_across_rush_and_rec_files():
+    rush = rush_frame([{"rushing_broken_tackles": 3}])
+    rec = rec_frame([{"receiving_broken_tackles": 1}])
+    out = pfr_season({"pass": None, "rush": rush, "rec": rec}, pfr_weekly([{}]), CROSSWALK)
+    assert out.filter(pl.col("playerId") == "G1")["brokenTackles"][0] == 4
+
+
+def test_pfr_receiving_and_rushing_rates():
+    weekly = pfr_weekly([
+        {"week": 1, "targets": 10, "receptions": 7, "receivingYards": 100, "receivingTds": 1},
+        {"week": 2, "targets": 10, "receptions": 5, "receivingYards": 80, "receivingTds": 0},
+    ])
+    rec = rec_frame([
+        {"week": 1, "game_id": "g1", "receiving_drop": 2, "receiving_int": 1},
+        {"week": 2, "game_id": "g2", "receiving_drop": 1, "receiving_int": 0},
+    ])
+    rush = rush_frame([
+        {"carries": 10, "rushing_yards_before_contact": 40.0, "rushing_yards_after_contact": 30.0},
+        {"week": 2, "game_id": "g2", "carries": 10,
+         "rushing_yards_before_contact": 20.0, "rushing_yards_after_contact": 10.0},
+    ])
+    out = pfr_season({"pass": None, "rush": rush, "rec": rec}, weekly, CROSSWALK)
+    row = out.filter(pl.col("playerId") == "G1").row(0, named=True)
+    assert row["dropRate"] == pytest.approx(3 / 20)
+    assert row["intsWhenTargeted"] == 1
+    expected = pl.select(passer_rating_expr(
+        pl.lit(20), pl.lit(12), pl.lit(180), pl.lit(1), pl.lit(1)).alias("r"))["r"][0]
+    assert row["ratingWhenTargeted"] == pytest.approx(expected)
+    assert row["beforeContactPerAtt"] == pytest.approx(3.0)
+    assert row["afterContactPerAtt"] == pytest.approx(2.0)
+
+
+def test_pfr_zero_denominator_is_null_not_nan():
+    weekly = pfr_weekly([{"attempts": 0, "sacksSuffered": 0}])
+    p = pass_frame([{"times_pressured": 0}])
+    out = pfr_season({"pass": p, "rush": None, "rec": None}, weekly, CROSSWALK)
+    value = out.filter(pl.col("playerId") == "G1")["pressureRate"]
+    assert value[0] is None
+    assert value.is_nan().sum() == 0
+
+
+def test_pfr_rows_missing_from_crosswalk_are_dropped():
+    weekly = pfr_weekly([{"attempts": 30}])
+    p = pass_frame([{"pfr_player_id": "UNMAPPED", "times_pressured": 5}])
+    out = pfr_season({"pass": p, "rush": None, "rec": None}, weekly, CROSSWALK)
+    assert out.filter(pl.col("playerId") == "G1").height == 0
+    assert out.height == 0
+
+
+def test_pfr_filters_to_regular_season():
+    weekly = pfr_weekly([{"attempts": 30}])
+    p = pass_frame([{"game_type": "WC", "times_pressured": 9}])
+    out = pfr_season({"pass": p, "rush": None, "rec": None}, weekly, CROSSWALK)
+    assert out.height == 0
+
+
+def test_pfr_all_sources_none_gives_typed_empty_frame():
+    out = pfr_season({"pass": None, "rush": None, "rec": None}, pfr_weekly([]), CROSSWALK)
+    assert out.height == 0
+    assert out.columns[0] == "playerId"
+    assert len(out.columns) == 9
