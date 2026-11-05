@@ -5,6 +5,7 @@ from polars import col
 import nflreadpy
 
 from percentiles import compute_percentiles
+from season_sources import build_season_frame, fetch_sources, season_values_map
 
 load_dotenv()
 
@@ -411,14 +412,17 @@ def transform():
     renamed   = rename_columns(selected)
     derived   = compute_derived(renamed)
     clean     = handle_nulls(derived)
-    advanced  = compute_percentiles(clean)
+    season_frame = build_season_frame(fetch_sources(SEASON), clean, filtered, rosters, schedules)
+    advanced  = compute_percentiles(clean, season_frame)
+    values    = season_values_map(season_frame)
 
     print(f"\nTotal rows after transform: {len(clean)}")
     print(f"Columns: {clean.columns}")
     print(f"Players with advanced metrics: {len(advanced)}")
+    print(f"Players with season values: {len(values)}")
     sample_by_position(clean)
 
-    return clean, advanced
+    return clean, advanced, values
 
 
 if __name__ == "__main__":

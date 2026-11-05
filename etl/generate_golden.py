@@ -20,7 +20,7 @@ from pathlib import Path
 
 import polars as pl
 
-from percentiles import POSITION_CONFIGS, _aggregate_season
+from percentiles import POSITION_CONFIGS, SEASON_SOURCED_METRICS, _aggregate_season
 
 OUTPUT = (
     Path(__file__).resolve().parent.parent
@@ -196,17 +196,13 @@ PLAYERS = [
     },
 ]
 
-# Which aggregated metrics each position's test should compare. Mirrors
-# the per-position rows in stats.js ADVANCED_CONFIG.
+# Which aggregated metrics each position's test should compare: the ranked
+# metrics _aggregate_season produces. Season-sourced metrics have no weekly
+# rows to aggregate, so they are exported as `seasonSourced` instead.
 COMPARED_METRICS = {
-    "QB": ["passingEpa", "pacr", "passingCpoe", "passingAirYards", "adot",
-           "sacksSuffered", "sackYardsLost"],
-    "WR": ["targetShare", "airYardsShare", "wopr", "racr",
-           "receivingAirYards", "yacPerRec", "receivingEpa"],
-    "RB": ["rushingEpa", "targetShare", "wopr", "yacPerRec", "carries",
-           "receivingAirYards"],
+    position: [m for m in config["metrics"] if m not in SEASON_SOURCED_METRICS]
+    for position, config in POSITION_CONFIGS.items()
 }
-COMPARED_METRICS["TE"] = COMPARED_METRICS["WR"]
 
 
 def build_dataframe() -> pl.DataFrame:
@@ -245,6 +241,7 @@ def build_golden() -> dict:
                 "metrics": list(config["metrics"]),
                 "qualifierMin": config["qualifier_min"],
                 "inverted": sorted(config["inverted"]),
+                "seasonSourced": sorted(set(config["metrics"]) & SEASON_SOURCED_METRICS),
             }
             for position, config in POSITION_CONFIGS.items()
         },

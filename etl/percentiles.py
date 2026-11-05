@@ -7,45 +7,69 @@ from polars import col
 # qualifier gate that a player must pass to enter the cohort at all,
 # and which metrics are inverted (fewer is better → higher percentile).
 # WR and TE share the same metric set but are ranked as separate cohorts.
+_WR_TE_METRICS = [
+    "targetShare", "airYardsShare", "wopr", "snapShare",
+    "receivingEpa", "racr", "yacPerRec", "receivingAirYards",
+    "separation", "cushion", "yacOverExpected", "catchRate",
+    "dropRate", "brokenTackles", "ratingWhenTargeted", "intsWhenTargeted",
+    "expectedPprPoints", "pprPointsOverExpected", "expectedTds", "expectedReceptions",
+    "plays20Plus", "plays40Plus", "fumbles",
+]
+_WR_TE_INVERTED = {"dropRate", "intsWhenTargeted", "fumbles"}
+
 POSITION_CONFIGS: dict[str, dict] = {
     "QB": {
         "metrics": [
-            "passingEpa", "pacr", "passingCpoe",
-            "passingAirYards", "adot",
-            "sacksSuffered", "sackYardsLost",
+            "passingEpa", "passingCpoe", "pacr", "passingAirYards", "adot",
+            "timeToThrow", "aggressiveness", "airYardsToSticks",
+            "pressureRate", "badThrowPct", "sacksSuffered", "sackYardsLost",
+            "expectedPprPoints", "pprPointsOverExpected", "expectedTds",
+            "plays20Plus", "plays40Plus", "fumbles",
         ],
         "qualifier_col": "_sum_attempts",
         "qualifier_min": 150,
-        "inverted": {"sacksSuffered", "sackYardsLost"},
+        "inverted": {
+            "sacksSuffered", "sackYardsLost", "pressureRate", "badThrowPct", "fumbles",
+        },
     },
     "WR": {
-        "metrics": [
-            "targetShare", "airYardsShare", "wopr",
-            "racr", "receivingAirYards", "yacPerRec", "receivingEpa",
-        ],
+        "metrics": list(_WR_TE_METRICS),
         "qualifier_col": "_sum_targets",
         "qualifier_min": 30,
-        "inverted": set(),
+        "inverted": set(_WR_TE_INVERTED),
     },
     "TE": {
-        "metrics": [
-            "targetShare", "airYardsShare", "wopr",
-            "racr", "receivingAirYards", "yacPerRec", "receivingEpa",
-        ],
+        "metrics": list(_WR_TE_METRICS),
         "qualifier_col": "_sum_targets",
         "qualifier_min": 30,
-        "inverted": set(),
+        "inverted": set(_WR_TE_INVERTED),
     },
     "RB": {
         "metrics": [
-            "rushingEpa", "targetShare", "wopr",
-            "yacPerRec", "carries", "receivingAirYards",
+            "rushingEpa", "yacPerRec", "receivingAirYards",
+            "carries", "snapShare", "targetShare", "wopr",
+            "ryoePerAtt", "runsOverExpectedPct", "eightBoxPct", "timeToLos",
+            "beforeContactPerAtt", "afterContactPerAtt", "brokenTackles",
+            "expectedPprPoints", "pprPointsOverExpected", "expectedTds", "expectedReceptions",
+            "plays20Plus", "plays40Plus", "fumbles",
         ],
         "qualifier_col": "carries",
         "qualifier_min": 50,
-        "inverted": set(),
+        "inverted": {"fumbles"},
     },
 }
+
+# Metrics whose season value comes from the season frame (Next Gen, ff
+# opportunity, snap counts, PFR, big plays) rather than _aggregate_season.
+SEASON_SOURCED_METRICS: frozenset[str] = frozenset(
+    {m for c in POSITION_CONFIGS.values() for m in c["metrics"]}
+    - {
+        "passingEpa", "pacr", "passingCpoe", "passingAirYards", "adot",
+        "sacksSuffered", "sackYardsLost", "targetShare", "airYardsShare",
+        "wopr", "racr", "receivingAirYards", "yacPerRec", "receivingEpa",
+        "rushingEpa", "carries",
+    }
+)
 
 # ── Aggregation ───────────────────────────────────────────────────────────────
 
@@ -214,6 +238,8 @@ def _rank_cohort(
     result: dict[str, dict[str, float]] = {}
 
     for metric in metrics:
+        if metric not in qualified.columns:
+            continue
         descending = metric in inverted
         metric_df = (
             qualified
@@ -246,7 +272,9 @@ def _rank_cohort(
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
-def compute_percentiles(df: pl.DataFrame) -> dict[str, dict[str, float]]:
+def compute_percentiles(
+    df: pl.DataFrame, season_frame: pl.DataFrame | None = None
+) -> dict[str, dict[str, float]]:
     """
     Compute per-player position-cohort percentiles for advanced metrics.
 
@@ -263,8 +291,14 @@ def compute_percentiles(df: pl.DataFrame) -> dict[str, dict[str, float]]:
 
     The df is expected to cover exactly one season (transform.py runs per-season
     via the SEASON env var), so playerId is unique within the input.
+
+    season_frame (one row per playerId, see season_sources.build_season_frame)
+    supplies the season-sourced metrics. Without it only the weekly-derived
+    metrics are ranked; a metric with no column is skipped.
     """
     agg = _aggregate_season(df)
+    if season_frame is not None:
+        agg = agg.join(season_frame, on="playerId", how="left")
     result: dict[str, dict[str, float]] = {}
 
     for position, config in POSITION_CONFIGS.items():
