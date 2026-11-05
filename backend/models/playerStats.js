@@ -109,6 +109,9 @@ const playerStatsSchema = new mongoose.Schema(
     // Per-position percentile map (e.g. passingEpa for QB, targetShare for WR).
     // Map (not a named sub-schema) because the key set varies by position.
     advanced: { type: Map, of: Number },
+
+    // Raw season value per metric key (e.g. snapShare), shown beside the percentile.
+    advancedValues: { type: Map, of: Number },
   },
   {
     timestamps: true,

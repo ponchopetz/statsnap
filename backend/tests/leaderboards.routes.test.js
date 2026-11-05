@@ -45,6 +45,23 @@ describe("GET /leaderboards", () => {
     expect(none.body.rows).toEqual([]);
   });
 
+  it("accepts digit metric keys and returns advancedValues", async () => {
+    await PlayerStats.insertMany([
+      wr("lo", null, { advanced: { plays20Plus: 0.1 }, advancedValues: { plays20Plus: 4 } }),
+      wr("hi", null, { advanced: { plays20Plus: 0.9 }, advancedValues: { plays20Plus: 21 } }),
+    ]);
+    const res = await request(app).get("/leaderboards?season=2024&position=WR&metric=plays20Plus");
+    expect(res.status).toBe(200);
+    expect(res.body.rows.map((r) => r.playerId)).toEqual(["hi", "lo"]);
+    expect(res.body.rows[0].advancedValues).toEqual({ plays20Plus: 21 });
+  });
+
+  it.each([["a.b"], ["$where"], ["9lives"]])("still rejects dotted or operator metric names (%s)", async (metric) => {
+    const res = await request(app).get(`/leaderboards?season=2024&position=WR&metric=${encodeURIComponent(metric)}`);
+    expect(res.status).toBe(400);
+    expect(res.body.message).toContain("metric");
+  });
+
   it.each([
     ["season=abc&position=WR&metric=racr", "season"],
     ["season=2024&position=K&metric=racr", "position"],
