@@ -1,8 +1,9 @@
 // utils/db.js — Mongoose connection
 
 const mongoose = require('mongoose');
+const getDbName = require('./dbName');
 
-const dbName = process.env.DB_NAME || 'statsnap';
+const dbName = getDbName();
 
 mongoose
   .connect(process.env.MONGO_URI, { dbName })
