@@ -12,7 +12,7 @@ from transform import transform, SEASON
 load_dotenv()  # reads MONGO_URI from etl/.env into os.environ
 
 MONGO_URI        = os.environ.get("MONGO_URI")
-DB_NAME            = "statsnap"
+DB_NAME            = os.environ.get("DB_NAME", "statsnap")
 COLLECTION_NAME    = "playerstats"
 
 # ── Column lists ──────────────────────────────────────────────────────────────
