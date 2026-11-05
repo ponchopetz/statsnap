@@ -264,10 +264,6 @@ function seasonValue(key, label, format) {
 }
 
 const fmtSeconds = (v) => `${v.toFixed(2)}s`;
-const fmtSignedPercent = (v) => {
-  const pct = formatPercent(v);
-  return v >= 0 ? `+${pct}` : pct;
-};
 const fmtPercent = (v) => formatPercent(v);
 const fmtSigned2 = (v) => formatSigned(v, 2);
 const fmtSigned1 = (v) => formatSigned(v, 1);
@@ -387,7 +383,7 @@ export const ADVANCED_CONFIG = {
     ]),
     ...inGroup("TRACKING · NEXT GEN", [
       seasonValue("ryoePerAtt", "RYOE / Att", fmtSigned2),
-      seasonValue("runsOverExpectedPct", "Runs Over Expected %", fmtSignedPercent),
+      seasonValue("runsOverExpectedPct", "Runs Over Expected %", fmtPercent),
       seasonValue("eightBoxPct", "8+ Defenders in Box", fmtPercent),
       seasonValue("timeToLos", "Time to LOS", fmtSeconds),
     ]),

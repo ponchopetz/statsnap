@@ -147,7 +147,6 @@ describe("ADVANCED_CONFIG matches the ETL config", () => {
         for (const r of rows) if (!seen.includes(r.group)) seen.push(r.group);
         expect(seen).toEqual(EXPECTED_GROUPS[pos]);
         // each group is one contiguous run
-        expect(rows.map((r) => r.group).join("|").split("|").length).toBe(rows.length);
         const runs = rows.filter((r, i) => i === 0 || rows[i - 1].group !== r.group).length;
         expect(runs).toBe(EXPECTED_GROUPS[pos].length);
       });

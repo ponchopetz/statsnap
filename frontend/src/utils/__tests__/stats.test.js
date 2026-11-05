@@ -224,3 +224,10 @@ describe("buildAdvancedRows season-sourced rows", () => {
     expect(v("Passer Rtg When Tgt")).toBe("98.8");
   });
 });
+
+describe("runs over expected", () => {
+  it("shows a plain percent with no sign", () => {
+    const rows = buildAdvancedRows({ position: "RB", weeks: [], advancedValues: { runsOverExpectedPct: 0.412 } });
+    expect(rows.find((r) => r.key === "runsOverExpectedPct").v).toBe("41.2%");
+  });
+});
