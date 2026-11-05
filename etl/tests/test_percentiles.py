@@ -5,10 +5,17 @@ every rule here is a rule the UI silently depends on.
 """
 import math
 
+import polars as pl
 import pytest
 from polars import col
 
-from percentiles import POSITION_CONFIGS, _aggregate_season, _rank_cohort, compute_percentiles
+from percentiles import (
+    POSITION_CONFIGS,
+    SEASON_SOURCED_METRICS,
+    _aggregate_season,
+    _rank_cohort,
+    compute_percentiles,
+)
 from tests.helpers import frame, qb_week, rb_week, wr_week
 
 
@@ -265,3 +272,99 @@ class TestComputePercentiles:
         assert result["sacked"]["sacksSuffered"] == 0.0
         assert result["clean"]["sackYardsLost"] == 1.0
         assert result["sacked"]["sackYardsLost"] == 0.0
+
+
+# ── Season-sourced metrics ────────────────────────────────────────────────────
+
+def season_frame(**columns):
+    """A season frame keyed by playerId; columns map metric -> {playerId: value}."""
+    ids = sorted({pid for values in columns.values() for pid in values})
+    return pl.DataFrame(
+        {"playerId": ids, **{m: [v.get(i) for i in ids] for m, v in columns.items()}},
+        schema={"playerId": pl.Utf8, **{m: pl.Float64 for m in columns}},
+    )
+
+
+class TestSeasonFrameMetrics:
+    def test_season_frame_metrics_rank_within_qualified_cohort(self):
+        df = frame(
+            ("a", "WR", [wr_week(1, 40)]),
+            ("b", "WR", [wr_week(1, 40)]),
+            ("c", "WR", [wr_week(1, 40)]),
+            ("tiny", "WR", [wr_week(1, 10)]),
+        )
+        sf = season_frame(dropRate={"a": 0.02, "b": 0.05, "c": 0.08, "tiny": 0.0})
+        result = compute_percentiles(df, sf)
+        # dropRate is inverted: the fewest drops is best.
+        assert result["a"]["dropRate"] == 1.0
+        assert result["b"]["dropRate"] == 0.5
+        assert result["c"]["dropRate"] == 0.0
+        assert "tiny" not in result
+
+    def test_style_metric_ranks_by_raw_value(self):
+        df = frame(
+            ("slow", "QB", [qb_week(1, 200)]),
+            ("fast", "QB", [qb_week(1, 200)]),
+        )
+        sf = season_frame(timeToThrow={"slow": 2.5, "fast": 3.0})
+        result = compute_percentiles(df, sf)
+        assert result["slow"]["timeToThrow"] == 0.0
+        assert result["fast"]["timeToThrow"] == 1.0
+
+    def test_missing_season_frame_still_ranks_weekly_metrics(self):
+        df = frame(
+            ("a", "QB", [qb_week(1, 200, epa=4.0)]),
+            ("b", "QB", [qb_week(1, 200, epa=2.0)]),
+        )
+        result = compute_percentiles(df)
+        assert result["a"]["passingEpa"] == 1.0
+        assert not set(result["a"]) & SEASON_SOURCED_METRICS
+
+    def test_player_absent_from_season_frame_is_ranked_on_weekly_metrics_only(self):
+        df = frame(
+            ("a", "QB", [qb_week(1, 200, epa=4.0)]),
+            ("b", "QB", [qb_week(1, 200, epa=2.0)]),
+        )
+        result = compute_percentiles(df, season_frame(timeToThrow={"a": 2.6}))
+        assert result["a"]["timeToThrow"] == 0.5
+        assert "timeToThrow" not in result["b"]
+        assert result["b"]["passingEpa"] == 0.0
+
+
+_QB = ["passingEpa", "passingCpoe", "pacr", "passingAirYards", "adot",
+       "timeToThrow", "aggressiveness", "airYardsToSticks",
+       "pressureRate", "badThrowPct", "sacksSuffered", "sackYardsLost",
+       "expectedPprPoints", "pprPointsOverExpected", "expectedTds",
+       "plays20Plus", "plays40Plus", "fumbles"]
+_WR = ["targetShare", "airYardsShare", "wopr", "snapShare",
+       "receivingEpa", "racr", "yacPerRec", "receivingAirYards",
+       "separation", "cushion", "yacOverExpected", "catchRate",
+       "dropRate", "brokenTackles", "ratingWhenTargeted", "intsWhenTargeted",
+       "expectedPprPoints", "pprPointsOverExpected", "expectedTds", "expectedReceptions",
+       "plays20Plus", "plays40Plus", "fumbles"]
+_RB = ["rushingEpa", "yacPerRec", "receivingAirYards",
+       "carries", "snapShare", "targetShare", "wopr",
+       "ryoePerAtt", "runsOverExpectedPct", "eightBoxPct", "timeToLos",
+       "beforeContactPerAtt", "afterContactPerAtt", "brokenTackles",
+       "expectedPprPoints", "pprPointsOverExpected", "expectedTds", "expectedReceptions",
+       "plays20Plus", "plays40Plus", "fumbles"]
+
+
+def test_position_configs_match_the_contract():
+    assert POSITION_CONFIGS["QB"]["metrics"] == _QB
+    assert POSITION_CONFIGS["WR"]["metrics"] == _WR
+    assert POSITION_CONFIGS["TE"]["metrics"] == _WR
+    assert POSITION_CONFIGS["RB"]["metrics"] == _RB
+    assert POSITION_CONFIGS["QB"]["inverted"] == {
+        "sacksSuffered", "sackYardsLost", "pressureRate", "badThrowPct", "fumbles"}
+    assert POSITION_CONFIGS["WR"]["inverted"] == {"dropRate", "intsWhenTargeted", "fumbles"}
+    assert POSITION_CONFIGS["TE"]["inverted"] == {"dropRate", "intsWhenTargeted", "fumbles"}
+    assert POSITION_CONFIGS["RB"]["inverted"] == {"fumbles"}
+
+
+def test_season_sourced_metrics_are_every_key_outside_the_original_sixteen():
+    original = {"passingEpa", "pacr", "passingCpoe", "passingAirYards", "adot",
+                "sacksSuffered", "sackYardsLost", "targetShare", "airYardsShare",
+                "wopr", "racr", "receivingAirYards", "yacPerRec", "receivingEpa",
+                "rushingEpa", "carries"}
+    assert SEASON_SOURCED_METRICS == (set(_QB) | set(_WR) | set(_RB)) - original

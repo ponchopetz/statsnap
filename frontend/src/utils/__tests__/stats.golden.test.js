@@ -61,7 +61,9 @@ describe("stats.js mirrors the percentiles.py aggregation contract", () => {
 
   it("every ranked metric has a JS equivalent under test", () => {
     for (const config of Object.values(golden.positionConfigs)) {
-      for (const metric of config.metrics) {
+      // Season-sourced metrics have no weekly rows; they live in advancedValues.
+      const weekly = config.metrics.filter((m) => !config.seasonSourced.includes(m));
+      for (const metric of weekly) {
         expect(JS_EQUIVALENTS, metric).toHaveProperty(metric);
       }
     }

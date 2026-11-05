@@ -9,6 +9,7 @@ from season_sources import (
     nextgen_season,
     passer_rating_expr,
     pfr_season,
+    season_values_map,
     snap_share_season,
 )
 
@@ -397,3 +398,12 @@ def test_pfr_missing_required_column_raises():
     p = pass_frame([{}]).drop("times_pressured")
     with pytest.raises(ValueError, match="times_pressured"):
         pfr_season({"pass": p, "rush": None, "rec": None}, weekly, CROSSWALK)
+
+
+def test_season_values_map_drops_null_and_non_finite():
+    frame_ = pl.DataFrame(
+        {"playerId": ["a", "b"], "x": [None, 0.0], "y": [float("nan"), 2.5],
+         "z": [float("inf"), -1.0]},
+        schema={"playerId": pl.Utf8, "x": pl.Float64, "y": pl.Float64, "z": pl.Float64},
+    )
+    assert season_values_map(frame_) == {"b": {"x": 0.0, "y": 2.5, "z": -1.0}}

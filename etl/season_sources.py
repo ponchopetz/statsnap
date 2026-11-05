@@ -1,6 +1,8 @@
 """Extra nflverse datasets reduced to one row of raw season values per player."""
+import math
 from typing import Callable, TypeVar
 
+import nflreadpy
 import polars as pl
 
 T = TypeVar("T")
@@ -317,3 +319,73 @@ def pfr_season(
             if f"{key}_new" in out.columns:
                 out = out.with_columns(pl.col(f"{key}_new").alias(key)).drop(f"{key}_new")
     return out.select(list(schema)).cast(schema)
+
+
+def fetch_sources(season: int) -> dict:
+    """Download every optional season source; a missing one is None."""
+    return {
+        "ngs": {
+            t: fetch_optional(
+                f"next gen {t}", season,
+                lambda t=t: nflreadpy.load_nextgen_stats(season, stat_type=t),
+            )
+            for t in NGS_FIELDS
+        },
+        "ff": fetch_optional(
+            "ff opportunity", season,
+            lambda: nflreadpy.load_ff_opportunity(season, stat_type="weekly"),
+        ),
+        "snaps": fetch_optional(
+            "snap counts", season, lambda: nflreadpy.load_snap_counts(season)
+        ),
+        "pfr": {
+            t: fetch_optional(
+                f"PFR {t}", season,
+                lambda t=t: nflreadpy.load_pfr_advstats(
+                    season, stat_type=t, summary_level="week"
+                ),
+                since=PFR_FIRST_SEASON,
+            )
+            for t in ("pass", "rush", "rec")
+        },
+    }
+
+
+def build_season_frame(
+    sources: dict,
+    weekly: pl.DataFrame,
+    raw_stats: pl.DataFrame,
+    rosters: pl.DataFrame,
+    schedules: pl.DataFrame,
+) -> pl.DataFrame:
+    """One row per player holding every season-sourced value (null where absent)."""
+    reg = schedules.filter(pl.col("game_type") == "REG")
+    reg_game_ids = set(reg["game_id"].to_list())
+    reg_last_week = reg["week"].max()
+    crosswalk = crosswalk_from_rosters(rosters)
+
+    parts = [
+        nextgen_season(sources["ngs"]),
+        expected_points_season(sources["ff"], reg_game_ids, reg_last_week),
+        big_plays_season(raw_stats),
+        snap_share_season(sources["snaps"], crosswalk),
+        pfr_season(sources["pfr"], weekly, crosswalk),
+    ]
+    out = parts[0]
+    for part in parts[1:]:
+        out = out.join(part, on="playerId", how="full", coalesce=True)
+    return out
+
+
+def season_values_map(frame: pl.DataFrame) -> dict[str, dict[str, float]]:
+    """{playerId: {metric: value}} with null and non-finite values dropped."""
+    metrics = [c for c in frame.columns if c != "playerId"]
+    result: dict[str, dict[str, float]] = {}
+    for row in frame.to_dicts():
+        values = {
+            m: row[m] for m in metrics
+            if row[m] is not None and math.isfinite(row[m])
+        }
+        if values:
+            result[row["playerId"]] = values
+    return result

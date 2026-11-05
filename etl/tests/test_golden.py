@@ -19,10 +19,13 @@ def test_checked_in_golden_file_matches_current_python_aggregation():
 
 def test_golden_covers_every_ranked_metric_for_every_position():
     golden = generate_golden.build_golden()
-    from percentiles import POSITION_CONFIGS
+    from percentiles import POSITION_CONFIGS, SEASON_SOURCED_METRICS
 
     for position, config in POSITION_CONFIGS.items():
         compared = set(generate_golden.COMPARED_METRICS[position])
-        assert compared == set(config["metrics"]), position
+        assert compared == set(config["metrics"]) - SEASON_SOURCED_METRICS, position
+        assert golden["positionConfigs"][position]["seasonSourced"] == sorted(
+            set(config["metrics"]) & SEASON_SOURCED_METRICS
+        ), position
         assert golden["positionConfigs"][position]["metrics"] == config["metrics"]
         assert golden["positionConfigs"][position]["qualifierMin"] == config["qualifier_min"]
