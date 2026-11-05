@@ -77,19 +77,35 @@ def is_not_published(err: Exception) -> bool:
     return status == 404
 
 
+def _regular_season_rows(df: pl.DataFrame) -> int:
+    """Rows in a fetched source that belong to the regular season."""
+    for kind in ("game_type", "season_type"):
+        if kind in df.columns:
+            return df.filter(pl.col(kind) == "REG").height
+    return df.height
+
+
 def fetch_optional(
     name: str, season: int, call: Callable[[], T], since: int | None = None
 ) -> T | None:
-    """Run an optional source fetch; None if it predates `since` or is unpublished."""
+    """Run an optional source fetch; None if it predates `since` or is unpublished.
+
+    A 404 is skipped only for the current season, whose files may not exist yet.
+    For an earlier season it is a real failure and is re-raised.
+    """
     if since is not None and season < since:
         return None
     try:
-        return call()
+        result = call()
     except ConnectionError as e:
-        if is_not_published(e):
+        if is_not_published(e) and season >= nflreadpy.get_current_season():
             print(f"nflverse has no {name} data for season {season} yet; skipping.")
             return None
         raise
+    # Some files (Next Gen) cover many seasons, so "not published" shows as empty.
+    if isinstance(result, pl.DataFrame) and _regular_season_rows(result) == 0:
+        print(f"WARNING: {name} has no regular-season rows for season {season}.")
+    return result
 
 
 EXPECTED_FIELDS = {
@@ -160,11 +176,14 @@ def _ratio(num: pl.Expr, den: pl.Expr) -> pl.Expr:
 
 
 def crosswalk_from_rosters(rosters: pl.DataFrame) -> pl.DataFrame:
-    """Unique (pfr_id, playerId) pairs; rows missing either id are dropped."""
+    """Unique (pfr_id, playerId) pairs; rows missing either id, or a pfr_id shared
+    by several players, are dropped."""
     return (
         rosters.select(pl.col("pfr_id"), pl.col("gsis_id").alias("playerId"))
         .drop_nulls()
         .unique(maintain_order=True)
+        # One roster error must not credit a PFR id's stats to two players.
+        .filter(pl.len().over("pfr_id") == 1)
     )
 
 
@@ -374,7 +393,8 @@ def build_season_frame(
     out = parts[0]
     for part in parts[1:]:
         out = out.join(part, on="playerId", how="full", coalesce=True)
-    return out
+    # Polars ranks NaN above every number while season_values_map drops it.
+    return out.with_columns(pl.col(pl.Float64).fill_nan(None))
 
 
 def season_values_map(frame: pl.DataFrame) -> dict[str, dict[str, float]]:

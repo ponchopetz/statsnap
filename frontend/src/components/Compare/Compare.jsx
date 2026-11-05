@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
-import { buildComparison } from "../../utils/compare.js";
+import { buildComparison, groupComparison } from "../../utils/compare.js";
 import { useSlowLoading } from "../../hooks/useSlowLoading.js";
 import PlayerSearch from "../PlayerSearch/PlayerSearch.jsx";
 import LoadingStatus from "../LoadingStatus/LoadingStatus.jsx";
@@ -118,6 +118,39 @@ function DiffRow({ row, showPct }) {
   );
 }
 
+const slug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+// The advanced rows in collapsible groups, each header carrying its win tally.
+// The parent keys this on both players and seasons, so open state resets.
+function AdvancedGroups({ rows }) {
+  const groups = groupComparison(rows);
+  const [open, setOpen] = useState(() => new Set(groups.slice(0, 1).map((g) => g.group)));
+  const idPrefix = useId();
+  const toggle = (name) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  return groups.map(({ group, rows: groupRows, tally }) => {
+    const isOpen = open.has(group);
+    const listId = `${idPrefix}-${slug(group)}`;
+    return (
+      <div key={group} className={"cmp-group" + (isOpen ? " cmp-group-open" : "")}>
+        <button type="button" className="cmp-group-head" aria-expanded={isOpen} aria-controls={listId} onClick={() => toggle(group)}>
+          <span className="cmp-group-chev" aria-hidden="true">{isOpen ? "▾" : "▸"}</span>
+          <span className="cmp-group-name">{group}</span>
+          <span className="cmp-group-tally">{groupRows.every((r) => r.direction === "style") ? "NO WINNER" : `A ${tally.a} · B ${tally.b}`}</span>
+        </button>
+        <ul className="cmp-list" id={listId} hidden={!isOpen}>
+          {groupRows.map((row) => <DiffRow key={row.key} row={row} showPct />)}
+        </ul>
+      </div>
+    );
+  });
+}
+
 // Picks the season a slot shows: its own override, then the shared default,
 // then the latest season the two players share, then the player's latest.
 function pickSeason(own, shared, mine, theirs) {
@@ -230,11 +263,12 @@ function Compare() {
                 <span className="cmp-section-note"> · A PLAYER BELOW THE QUALIFIER SHOWS RAW VALUES ONLY</span>
               )}
             </h2>
-            <ul className="cmp-list">
-              {comparison.advanced.map((row) => <DiffRow key={row.key} row={row} showPct />)}
-            </ul>
+            <AdvancedGroups
+              key={`${docA.playerId}-${docA.season}-${docB.playerId}-${docB.season}`}
+              rows={comparison.advanced}
+            />
             <div className="cmp-footnote">
-              BARS ARE POSITION-COHORT PERCENTILES FOR EACH PLAYER&apos;S OWN SEASON. HIGHER IS BETTER, INCLUDING SACKS (RANKED INVERTED BY THE ETL). HIGHLIGHTED VALUE WINS THE ROW.
+              BARS ARE POSITION-COHORT PERCENTILES FOR EACH PLAYER&apos;S OWN SEASON. HIGHER IS BETTER, INCLUDING LOWER-IS-BETTER STATS LIKE SACKS AND DROPS (RANKED INVERTED). STYLE STATS (TIMING AND COVERAGE TENDENCIES) HAVE NO WINNER. HIGHLIGHTED VALUE WINS THE ROW.
             </div>
           </section>
         </main>

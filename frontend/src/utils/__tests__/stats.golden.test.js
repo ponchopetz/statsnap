@@ -10,7 +10,9 @@ import {
   seasonPassingEpa,
   seasonRushingEpa,
   seasonReceivingEpa,
+  ADVANCED_CONFIG,
 } from "../stats.js";
+import { STAT_GLOSSARY } from "../glossary.js";
 import golden from "./golden-season-aggregates.json";
 
 /**
@@ -87,6 +89,67 @@ describe("stats.js mirrors the percentiles.py aggregation contract", () => {
           }
         });
       }
+    });
+  }
+});
+
+// Mirrors the Contract: groups in order of first appearance per position.
+const EXPECTED_GROUPS = {
+  QB: ["EFFICIENCY", "TRACKING · NEXT GEN", "PRESSURE", "EXPECTED POINTS", "BIG PLAYS & FUMBLES"],
+  WR: ["USAGE", "EFFICIENCY", "TRACKING · NEXT GEN", "CHARTING · PFR", "EXPECTED POINTS", "BIG PLAYS & FUMBLES"],
+  TE: ["USAGE", "EFFICIENCY", "TRACKING · NEXT GEN", "CHARTING · PFR", "EXPECTED POINTS", "BIG PLAYS & FUMBLES"],
+  RB: ["EFFICIENCY", "USAGE", "TRACKING · NEXT GEN", "CHARTING · PFR", "EXPECTED POINTS", "BIG PLAYS & FUMBLES"],
+};
+const PFR_KEYS = [
+  "pressureRate", "badThrowPct", "dropRate", "brokenTackles",
+  "ratingWhenTargeted", "intsWhenTargeted", "beforeContactPerAtt", "afterContactPerAtt",
+];
+const STYLE_KEYS = ["timeToThrow", "aggressiveness", "airYardsToSticks", "cushion", "eightBoxPct", "timeToLos"];
+
+describe("ADVANCED_CONFIG matches the ETL config", () => {
+  for (const [pos, config] of Object.entries(golden.positionConfigs)) {
+    const rows = ADVANCED_CONFIG[pos];
+
+    describe(pos, () => {
+      it("keys follow Python metric order", () => {
+        expect(rows.map((r) => r.key)).toEqual(config.metrics);
+      });
+
+      it("lower direction is exactly the inverted set", () => {
+        const lower = rows.filter((r) => r.direction === "lower").map((r) => r.key);
+        expect([...lower].sort()).toEqual([...config.inverted].sort());
+      });
+
+      it("style direction is exactly the style set", () => {
+        const style = rows.filter((r) => r.direction === "style").map((r) => r.key);
+        expect(style.sort()).toEqual(STYLE_KEYS.filter((k) => config.metrics.includes(k)).sort());
+      });
+
+      it("every season-sourced row reads advancedValues", () => {
+        for (const row of rows.filter((r) => config.seasonSourced.includes(r.key))) {
+          expect(row.rawValue([], { advancedValues: { [row.key]: 1 } }), row.key).not.toBe("—");
+          expect(row.rawValue([], {}), row.key).toBe("—");
+        }
+      });
+
+      it("every label has a glossary entry", () => {
+        for (const row of rows) expect(STAT_GLOSSARY, row.label).toHaveProperty([row.label]);
+      });
+
+      it("since is 2018 exactly on PFR rows", () => {
+        for (const row of rows) {
+          expect(row.since, row.key).toBe(PFR_KEYS.includes(row.key) ? 2018 : undefined);
+        }
+      });
+
+      it("groups follow the contract order", () => {
+        const seen = [];
+        for (const r of rows) if (!seen.includes(r.group)) seen.push(r.group);
+        expect(seen).toEqual(EXPECTED_GROUPS[pos]);
+        // each group is one contiguous run
+        const runs = rows.filter((r, i) => i === 0 || rows[i - 1].group !== r.group).length;
+        expect(runs).toBe(EXPECTED_GROUPS[pos].length);
+      });
     });
   }
 });

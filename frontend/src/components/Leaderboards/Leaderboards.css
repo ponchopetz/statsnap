@@ -290,6 +290,11 @@
   background: var(--accent);
 }
 
+/* A style stat has no better end, so its bar is neutral rather than lime. */
+.lb-fill--style {
+  background: var(--fg-3);
+}
+
 .lb-pct-num {
   font-size: 10px;
   letter-spacing: 0.06em;

@@ -16,6 +16,16 @@ period.
 
 ### Added
 
+- Advanced stats expansion: about 12 to 16 new stats per position from Next
+  Gen Stats, expected fantasy points, snap counts, Pro Football Reference
+  charting, and big plays and fumbles. They appear on the Advanced tab,
+  Leaderboards, Compare, the Career arc and the ? KEY glossary. The Advanced
+  tab groups its rows into collapsible sections and the tab carries a count
+  badge. Stats with no better or worse direction (time to throw, cushion) get a
+  neutral bar, no Compare winner and a HIGHEST label on the arc. Next Gen
+  covers only players above its volume minimum, RBs have no Next Gen receiving
+  stats, and PFR charting starts in 2018. `DB_NAME` can now point the app and
+  the ETL at a different database.
 - Leaderboards key: a ? KEY toggle in the board's header defines the
   selected metric, PCTL and GP, and follows the position and metric you
   pick. The stat definitions now live in one shared module, which also
