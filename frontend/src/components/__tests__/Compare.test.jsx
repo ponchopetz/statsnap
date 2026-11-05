@@ -48,7 +48,7 @@ describe("Compare page", () => {
     expect(await screen.findByText("SEASON · 2024")).toBeInTheDocument();
     expect(screen.getByText("ADVANCED · PERCENTILE VS WRS")).toBeInTheDocument();
     const rows = screen.getAllByRole("listitem");
-    expect(rows.length).toBe(6 + 7);
+    expect(rows.length).toBe(6 + 23);
     // Both fixtures are identical seasons: no row has a winner.
     expect(document.querySelectorAll(".cmp-val--win")).toHaveLength(0);
     expect(screen.getAllByRole("combobox")).toHaveLength(2); // the two season selects
