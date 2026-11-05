@@ -22,10 +22,13 @@ export function ageInSeason(birthDate, season) {
 
 const formatPercentile = (p) => (p == null ? "—" : `P${Math.round(p * 100)}`);
 
-/** Stat choices for a position in a mode: [{ key, label, format, primary? }]. */
+/**
+ * Stat choices for a position in a mode: [{ key, label, format, primary? }].
+ * Percentile choices also carry the row's `group` and `direction`.
+ */
 export function arcOptions(position, mode = "totals") {
   if (mode === "percentile") {
-    return (ADVANCED_CONFIG[position] ?? []).map((r) => ({ key: r.key, label: r.label, format: formatPercentile }));
+    return (ADVANCED_CONFIG[position] ?? []).map((r) => ({ key: r.key, label: r.label, format: formatPercentile, group: r.group, direction: r.direction }));
   }
   return (HEADLINE_CONFIG[position] ?? []).filter((r) => r.chartable).map((r) => ({ key: r.key, label: r.label, format: r.format, primary: r.primary }));
 }
