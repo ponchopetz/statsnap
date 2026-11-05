@@ -63,6 +63,33 @@
   border-bottom-color: var(--accent);
 }
 
+/* Count chip on a tab (ADVANCED). Pulses with the header's live dot (the
+   shared keyframes live in styles.css; usePulseSync phase-locks the two) and
+   rests while its own tab is active. */
+.tab-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.4;
+  vertical-align: 1px;
+  color: var(--accent-ink);
+  background: var(--accent);
+  animation: pulse 1.8s infinite;
+}
+
+.tab-badge--still {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-badge {
+    animation: none;
+  }
+}
+
 .tabs-panel {
   flex: 1;
 }
@@ -73,7 +100,8 @@
 }
 
 /* ── Fit all five tabs on one line at any row width. Full padding needs
-   ~495px; 12px padding ~415px; the phone step below that ~320px. ── */
+   ~495px; 12px padding ~415px; the phone step below that ~330px; the last
+   step ~240px (all with the ADVANCED badge dot). ── */
 @container tabs (max-width: 500px) {
   .tabs-tab {
     padding: 14px 12px;
@@ -85,5 +113,21 @@
     padding: 14px 8px;
     font-size: 10px;
     letter-spacing: 0.06em;
+  }
+  .tab-badge {
+    font-size: 0;
+    padding: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+}
+
+/* Smallest phones (320px viewport leaves a ~288px row): five tabs plus the
+   6px badge dot need 4px padding and tighter tracking to stay on one line. */
+@container tabs (max-width: 300px) {
+  .tabs-tab {
+    padding: 14px 4px;
+    letter-spacing: 0.03em;
   }
 }

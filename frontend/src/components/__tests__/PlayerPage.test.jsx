@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import PlayerPage from "../PlayerPage/PlayerPage.jsx";
-import { qbSeason } from "../../test/fixtures.js";
+import { qbSeason, wrSeason } from "../../test/fixtures.js";
+import { ADVANCED_CONFIG } from "../../utils/stats.js";
 
 // The page talks to the API through utils/api.js; mocking that module keeps
 // the whole component tree (hooks, tabs, panels) real while removing fetch.
@@ -110,6 +111,39 @@ describe("PlayerPage identity block and bio grid", () => {
     cleanupAndRender("/players/00-0033873?season=1999");
     await screen.findByRole("heading", { level: 1 });
     expect(bioValue("COLLEGE")).toBe("Texas Tech");
+  });
+});
+
+describe("PlayerPage ADVANCED tab badge", () => {
+  it("ADVANCED tab shows the position's stat count", async () => {
+    getPlayerProfile.mockResolvedValue([wrSeason()]);
+    renderPage();
+    const tab = await screen.findByRole("tab", { name: "ADVANCED" });
+    const badge = tab.querySelector(".tab-badge");
+    expect(badge).toHaveTextContent(String(ADVANCED_CONFIG.WR.length));
+    expect(badge).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("the tab's accessible name stays ADVANCED", async () => {
+    getPlayerProfile.mockResolvedValue([wrSeason()]);
+    renderPage();
+    expect(await screen.findByRole("tab", { name: "ADVANCED" })).toBeInTheDocument();
+  });
+
+  it("badge stops pulsing while the tab is active", async () => {
+    getPlayerProfile.mockResolvedValue([wrSeason()]);
+    renderPage();
+    const tab = await screen.findByRole("tab", { name: "ADVANCED" });
+    expect(tab.querySelector(".tab-badge")).not.toHaveClass("tab-badge--still");
+    fireEvent.click(tab);
+    expect(tab.querySelector(".tab-badge")).toHaveClass("tab-badge--still");
+  });
+
+  it("omits the badge when the position has no advanced config", async () => {
+    getPlayerProfile.mockResolvedValue([wrSeason({ position: "K" })]);
+    renderPage();
+    const tab = await screen.findByRole("tab", { name: "ADVANCED" });
+    expect(tab.querySelector(".tab-badge")).toBeNull();
   });
 });
 

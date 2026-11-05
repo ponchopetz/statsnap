@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { useMediaQuery } from "../../hooks/useMediaQuery.js";
 import { useSlowLoading } from "../../hooks/useSlowLoading.js";
+import { usePulseSync } from "../../hooks/usePulseSync.js";
+import { ADVANCED_CONFIG } from "../../utils/stats.js";
 import { formatAge, formatHeight, formatDraft, formatExperience } from "../../utils/format.js";
 import Tabs from "../Tabs/Tabs.jsx";
 import Overview from "../Overview/Overview.jsx";
@@ -44,6 +46,14 @@ function PlayerPage() {
   };
 
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Count chip on the ADVANCED tab. It pulses in step with the header's live
+  // dot, and rests while its own tab is open. The badge mounts only once the
+  // profile loads, so the count (0 until then) re-runs the sync as well.
+  const badgeRef = useRef(null);
+  const advancedCount = player ? (ADVANCED_CONFIG[player.position]?.length ?? 0) : 0;
+  const advancedActive = activeTab === "advanced";
+  usePulseSync(badgeRef, [advancedActive, advancedCount]);
 
   const [imageFailed, setImageFailed] = useState(false);
   useEffect(() => { setImageFailed(false); }, [playerId]);
@@ -203,7 +213,18 @@ function PlayerPage() {
             <Tabs activeTab={activeTab} onTabChange={setActiveTab}>
               <Tabs.List>
                 <Tabs.Tab id="overview">OVERVIEW</Tabs.Tab>
-                <Tabs.Tab id="advanced">ADVANCED</Tabs.Tab>
+                <Tabs.Tab id="advanced">
+                  ADVANCED
+                  {advancedCount > 0 && (
+                    <span
+                      ref={badgeRef}
+                      className={`tab-badge${advancedActive ? " tab-badge--still" : ""}`}
+                      aria-hidden="true"
+                    >
+                      {advancedCount}
+                    </span>
+                  )}
+                </Tabs.Tab>
                 <Tabs.Tab id="gamelog">GAME LOG</Tabs.Tab>
                 <Tabs.Tab id="splits">SPLITS</Tabs.Tab>
                 <Tabs.Tab id="career">CAREER</Tabs.Tab>
