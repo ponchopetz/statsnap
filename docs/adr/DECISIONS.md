@@ -44,6 +44,10 @@ rather than embedding the database name in the connection string.
 Why: Keeps the URI focused on cluster and auth, and makes the database name a
 deliberate, visible choice in code rather than a buried URL segment.
 
+Amendment: the default stays in code. The ETL and the backend now also read an
+optional `DB_NAME` environment variable, used only to point a preview at a copy
+of the database. When it is unset, both use `statsnap`.
+
 ---
 
 ## Data sourcing & ETL

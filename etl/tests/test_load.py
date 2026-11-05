@@ -4,10 +4,12 @@ The upsert tests run against a throwaway local mongod (see conftest.py).
 They never touch the URI in etl/.env.
 """
 import copy
+import importlib
 
 import polars as pl
 import pytest
 
+import load
 from load import TOP_LEVEL_FIELDS, WEEK_FIELDS, ensure_index, reshape, upsert_documents
 
 
@@ -135,3 +137,19 @@ class TestUpsertIdempotency:
         info = collection.index_information()
         assert "playerId_season" in info
         assert info["playerId_season"]["key"] == [("playerId", 1), ("season", -1)]
+
+
+def test_db_name_defaults_to_statsnap_and_honours_env(monkeypatch):
+    # conftest forces MONGO_URI to an unreachable loopback port, and importing
+    # load never opens a connection, so reloading it here is safe.
+    try:
+        monkeypatch.delenv("DB_NAME", raising=False)
+        importlib.reload(load)
+        assert load.DB_NAME == "statsnap"
+
+        monkeypatch.setenv("DB_NAME", "statsnap_preview")
+        importlib.reload(load)
+        assert load.DB_NAME == "statsnap_preview"
+    finally:
+        monkeypatch.undo()
+        importlib.reload(load)
