@@ -18,6 +18,7 @@ import {
   gameYardsPerRec,
   combinedTds,
   buildAdvancedRows,
+  groupRows,
 } from "../stats.js";
 
 // Edge-case behaviour of the season helpers that the golden contract test
@@ -164,7 +165,7 @@ describe("buildAdvancedRows", () => {
 
   it("tolerates a document with no weeks array at all", () => {
     const rows = buildAdvancedRows({ position: "WR", advanced: { targetShare: 0.5 } });
-    expect(rows.find((r) => r.k === "Target Share")).toEqual({ k: "Target Share", bar: 0.5, v: "—" });
+    expect(rows.find((r) => r.k === "Target Share")).toMatchObject({ k: "Target Share", key: "targetShare", group: "USAGE", direction: "higher", bar: 0.5, v: "—" });
     expect(rows.find((r) => r.k === "WOPR").v).toBe("—");
     expect(rows.find((r) => r.k === "RACR").v).toBe("—");
   });
@@ -177,5 +178,49 @@ describe("buildAdvancedRows", () => {
     });
     expect(rows.find((r) => r.k === "Sack Yards Lost")).toMatchObject({ v: "35", bar: 0.9 });
     expect(rows.find((r) => r.k === "Passing CPOE").v).toBe("+3.3%");
+  });
+});
+
+describe("groupRows", () => {
+  it("keeps first-appearance order of groups and of rows within them", () => {
+    const rows = [
+      { k: "a", group: "X" },
+      { k: "b", group: "Y" },
+      { k: "c", group: "X" },
+    ];
+    expect(groupRows(rows)).toEqual([
+      { group: "X", rows: [rows[0], rows[2]] },
+      { group: "Y", rows: [rows[1]] },
+    ]);
+  });
+
+  it("returns [] for no rows", () => {
+    expect(groupRows([])).toEqual([]);
+  });
+});
+
+describe("buildAdvancedRows season-sourced rows", () => {
+  it("tolerates a player with no advancedValues", () => {
+    const rows = buildAdvancedRows({ position: "QB", weeks: [] });
+    const fresh = rows.filter((r) => ["Time to Throw", "Pressure Rate", "Fumbles", "Expected TDs"].includes(r.k));
+    expect(fresh).toHaveLength(4);
+    for (const r of fresh) {
+      expect(r.v).toBe("—");
+      expect(r.bar).toBeNull();
+    }
+  });
+
+  it("formats season values from advancedValues", () => {
+    const rows = buildAdvancedRows({
+      position: "WR",
+      weeks: [],
+      advancedValues: { snapShare: 0.853, separation: 3.456, pprPointsOverExpected: -2.34, plays20Plus: 12, ratingWhenTargeted: 98.76 },
+    });
+    const v = (label) => rows.find((r) => r.k === label).v;
+    expect(v("Snap Share")).toBe("85.3%");
+    expect(v("Avg Separation")).toBe("3.46");
+    expect(v("Pts Over Expected")).toBe("-2.3");
+    expect(v("20+ Yd Catches")).toBe("12");
+    expect(v("Passer Rtg When Tgt")).toBe("98.8");
   });
 });

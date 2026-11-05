@@ -15,6 +15,15 @@ import "./ShareCard.css";
 // PNG matches the screen; if that fails the export still runs on system
 // fonts.
 
+// The card keeps the advanced rows it has always shown, whatever else the
+// Advanced panel now lists.
+export const SHARE_CARD_KEYS = {
+  QB: ["passingEpa", "pacr", "passingCpoe", "passingAirYards", "adot", "sacksSuffered", "sackYardsLost"],
+  WR: ["targetShare", "airYardsShare", "wopr", "racr", "receivingAirYards", "yacPerRec", "receivingEpa"],
+  TE: ["targetShare", "airYardsShare", "wopr", "racr", "receivingAirYards", "yacPerRec", "receivingEpa"],
+  RB: ["rushingEpa", "targetShare", "wopr", "yacPerRec", "carries", "receivingAirYards"],
+};
+
 const W = 1200;
 const H = 630;
 const MONO = "JetBrains Mono, ui-monospace, Menlo, monospace";
@@ -39,7 +48,10 @@ export function CardSvg({ player, svgRef }) {
 
   const rows = HEADLINE_CONFIG[player.position] ?? [];
   const weeks = player.weeks ?? [];
-  const advanced = buildAdvancedRows(player).slice(0, 7);
+  const advancedRows = buildAdvancedRows(player);
+  const advanced = (SHARE_CARD_KEYS[player.position] ?? [])
+    .map((key) => advancedRows.find((r) => r.key === key))
+    .filter(Boolean);
   const nameParts = player.displayName.split(" ");
   const last = nameParts[nameParts.length - 1].toUpperCase();
   const first = nameParts.slice(0, -1).join(" ");

@@ -4,12 +4,8 @@
 // row renders. Advanced rows come from buildAdvancedRows, the same function
 // the Advanced panel renders. Nothing on the Compare page has its own stat
 // definition.
-import { buildAdvancedRows } from "./stats.js";
+import { buildAdvancedRows, groupRows } from "./stats.js";
 import { HEADLINE_CONFIG } from "./headline.js";
-
-// Advanced metrics where the percentile is already inverted by the ETL
-// (fewer is better). The raw value still reads "lower wins".
-const LOWER_IS_BETTER_LABELS = new Set(["Sacks Suffered", "Sack Yards Lost"]);
 
 function winner(a, b, lowerIsBetter) {
   if (a == null || b == null || a === b) return null;
@@ -52,14 +48,36 @@ export function buildComparison(playerA, playerB) {
     return {
       key: ra.k,
       label: ra.k,
+      group: ra.group,
+      direction: ra.direction,
       a: { display: ra.v, share: ra.bar ?? 0, pct: ra.bar },
       b: { display: rb.v, share: rb.bar ?? 0, pct: rb.bar },
       // Percentiles already encode direction (inverted metrics rank fewer as
-      // higher), so the higher percentile always wins.
-      winner: winner(ra.bar, rb.bar, false),
-      lowerIsBetter: LOWER_IS_BETTER_LABELS.has(ra.k),
+      // higher), so the higher percentile always wins. A style stat has no
+      // better or worse, so it never picks a winner.
+      winner: ra.direction === "style" ? null : winner(ra.bar, rb.bar, false),
+      // The raw value still reads "lower wins" for inverted metrics.
+      lowerIsBetter: ra.direction === "lower",
     };
   });
 
   return { headline, advanced };
+}
+
+/**
+ * Splits advanced comparison rows into their groups (first-appearance order)
+ * with a per-group tally of wins. Rows with no winner (a tie, a missing
+ * percentile, or a style stat) count for neither side.
+ * @param {Array<{group: string, winner: "a"|"b"|null}>} advancedRows
+ * @returns {Array<{group: string, rows: Array<Object>, tally: {a: number, b: number}}>}
+ */
+export function groupComparison(advancedRows) {
+  return groupRows(advancedRows).map(({ group, rows }) => ({
+    group,
+    rows,
+    tally: {
+      a: rows.filter((r) => r.winner === "a").length,
+      b: rows.filter((r) => r.winner === "b").length,
+    },
+  }));
 }
