@@ -63,6 +63,15 @@
   border-bottom-color: var(--accent);
 }
 
+/* The tab that carries the badge lays out as a flex row, so the chip (or the
+   phone dot) centers on the label's capitals. Left inline, the dot sat on the
+   text baseline and stretched the line box, nudging this label above its
+   neighbours. Height matches the other tabs: one line of label text. */
+.tabs-tab:has(.tab-badge) {
+  display: inline-flex;
+  align-items: center;
+}
+
 /* Count chip on a tab (ADVANCED). Pulses with the header's live dot (the
    shared keyframes live in styles.css; usePulseSync phase-locks the two) and
    rests while its own tab is active. */
@@ -74,7 +83,6 @@
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.4;
-  vertical-align: 1px;
   color: var(--accent-ink);
   background: var(--accent);
   animation: pulse 1.8s infinite;

@@ -371,6 +371,10 @@
 }
 
 .cmp-label {
+  /* min-width + overflow-wrap: a single long word breaks inside its own
+     column instead of running over the bars on either side. */
+  min-width: 0;
+  overflow-wrap: anywhere;
   text-align: center;
   font-family: var(--display);
   font-size: 10px;
@@ -468,6 +472,11 @@
     grid-template-columns: 1fr 96px 1fr;
     gap: 8px;
   }
+  /* Tighter tracking so the longest one-word label (AGGRESSIVENESS, about
+     92px here) fits the 96px column whole. */
+  .cmp-label {
+    letter-spacing: 0.06em;
+  }
   .cmp-val {
     font-size: 14px;
     flex-direction: column;
@@ -488,13 +497,19 @@
   .cmp-body {
     padding: 16px;
   }
+  /* The label column takes 84px so the longest one-word label
+     (AGGRESSIVENESS, about 81px at 9px with tight tracking) fits whole; at
+     72px it ran over the bars. The value columns give back 8px each (a
+     six-character value like 100.0% is about 50px at 14px), so the bars
+     stay as wide as they were. */
   .cmp-row {
-    grid-template-columns: 64px 1fr 64px;
+    grid-template-columns: 56px 1fr 56px;
   }
   .cmp-bars {
-    grid-template-columns: 1fr 72px 1fr;
+    grid-template-columns: 1fr 84px 1fr;
   }
   .cmp-label {
     font-size: 9px;
+    letter-spacing: 0.04em;
   }
 }
