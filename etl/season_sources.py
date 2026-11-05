@@ -88,3 +88,65 @@ def fetch_optional(
             print(f"nflverse has no {name} data for season {season} yet; skipping.")
             return None
         raise
+
+
+EXPECTED_FIELDS = {
+    "expectedPprPoints": "total_fantasy_points_exp",
+    "pprPointsOverExpected": "total_fantasy_points_diff",
+    "expectedTds": "total_touchdown_exp",
+    "expectedReceptions": "receptions_exp",
+}
+
+
+def expected_points_season(
+    ff: pl.DataFrame | None, reg_game_ids: set[str], reg_last_week: int
+) -> pl.DataFrame:
+    """Sum weekly ff_opportunity expectations over the regular season per player."""
+    schema = {"playerId": pl.Utf8, **{k: pl.Float64 for k in EXPECTED_FIELDS}}
+    if ff is None or ff.height == 0:
+        return pl.DataFrame(schema=schema)
+    by_game = ff.filter(pl.col("game_id").is_in(list(reg_game_ids)))
+    # Fall back to the week cutoff when the schedule ids do not line up with ff's.
+    reg = by_game if by_game.height else ff.filter(pl.col("week") <= reg_last_week)
+    return (
+        reg.group_by("player_id", maintain_order=True)
+        .agg(*[pl.col(col).cast(pl.Float64).fill_null(0).sum().alias(k)
+               for k, col in EXPECTED_FIELDS.items()])
+        .rename({"player_id": "playerId"})
+        .cast(schema)
+    )
+
+
+# position -> (20+ column, 40+ column); each counts plays gaining at least N yards.
+_BIG_PLAY_COLUMNS = {
+    "QB": ("passing_20", "passing_40"),
+    "RB": ("rushing_20", "rushing_40"),
+    "WR": ("receiving_20", "receiving_40"),
+    "TE": ("receiving_20", "receiving_40"),
+}
+_FUMBLE_COLUMNS = ("sack_fumbles", "rushing_fumbles", "receiving_fumbles")
+
+
+def _position_value(index: int) -> pl.Expr:
+    expr = pl.lit(0)
+    for pos, cols in _BIG_PLAY_COLUMNS.items():
+        expr = pl.when(pl.col("position") == pos).then(
+            pl.col(cols[index]).fill_null(0)
+        ).otherwise(expr)
+    return expr
+
+
+def big_plays_season(raw_stats: pl.DataFrame) -> pl.DataFrame:
+    """20+/40+ yard plays (by position) and total fumbles per player."""
+    return (
+        raw_stats.select(
+            pl.col("player_id").alias("playerId"),
+            _position_value(0).alias("plays20Plus"),
+            _position_value(1).alias("plays40Plus"),
+            pl.sum_horizontal(
+                *[pl.col(c).fill_null(0) for c in _FUMBLE_COLUMNS]
+            ).alias("fumbles"),
+        )
+        .group_by("playerId", maintain_order=True)
+        .agg(pl.col("plays20Plus", "plays40Plus", "fumbles").sum())
+    )
