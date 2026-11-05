@@ -100,8 +100,8 @@
 }
 
 /* ── Fit all five tabs on one line at any row width. Full padding needs
-   ~495px; 12px padding ~415px; the phone step below that ~330px; the last
-   step ~240px (all with the ADVANCED badge dot). ── */
+   ~495px; 12px padding ~415px; 6px padding ~310px; the last step (4px padding,
+   tighter tracking) ~280px. All include the ADVANCED badge dot. ── */
 @container tabs (max-width: 500px) {
   .tabs-tab {
     padding: 14px 12px;
@@ -110,7 +110,7 @@
 
 @container tabs (max-width: 420px) {
   .tabs-tab {
-    padding: 14px 8px;
+    padding: 14px 6px;
     font-size: 10px;
     letter-spacing: 0.06em;
   }
@@ -123,9 +123,9 @@
   }
 }
 
-/* Smallest phones (320px viewport leaves a ~288px row): five tabs plus the
-   6px badge dot need 4px padding and tighter tracking to stay on one line. */
-@container tabs (max-width: 300px) {
+/* Smallest phones (a 320px viewport leaves a ~284px row): below the ~310px
+   the 6px step needs, 4px padding and tighter tracking keep one line. */
+@container tabs (max-width: 320px) {
   .tabs-tab {
     padding: 14px 4px;
     letter-spacing: 0.03em;
