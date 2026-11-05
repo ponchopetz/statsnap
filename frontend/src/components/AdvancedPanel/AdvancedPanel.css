@@ -30,7 +30,9 @@
 .adv-group {
   border-top: 1px solid var(--line);
 }
-.adv-group:first-of-type {
+/* The first group sits under .panel-head (or .adv-pending), which already
+   draws the rule; :first-of-type can't match because those are divs too. */
+:not(.adv-group) + .adv-group {
   border-top: 0;
 }
 .adv-group-head {

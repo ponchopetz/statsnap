@@ -96,7 +96,7 @@ function AdvancedPanel({ player }) {
                 <span className="adv-group-chev" aria-hidden="true">{groupOpen ? "▾" : "▸"}</span>
                 <span className="adv-group-name">{group}</span>
                 <span className="adv-group-count">{groupRowsList.length}</span>
-                <span className="adv-group-peek">{peekText(groupRowsList)}</span>
+                <span className="adv-group-peek" aria-hidden="true">{peekText(groupRowsList)}</span>
               </button>
               <ul className="adv-list" id={listId} hidden={!groupOpen}>
                 {groupRowsList.map((row) => {

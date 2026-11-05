@@ -134,6 +134,12 @@ describe("AdvancedPanel collapsible groups", () => {
     expect(headFor("EXPECTED POINTS").querySelector(".adv-group-count")).toHaveTextContent("3");
   });
 
+  it("the peek is hidden from the header button's accessible name", () => {
+    render(<AdvancedPanel player={qbSeason({ advanced: { timeToThrow: 0.824 }, advancedValues: { timeToThrow: 2.51 } })} />);
+    expect(headFor("TRACKING").querySelector(".adv-group-peek")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByRole("button", { name: /^TRACKING/ })).not.toHaveAccessibleName(/Time to Throw/);
+  });
+
   it("peek omits the percentile when the row has none", () => {
     const player = qbSeason({ advanced: {}, advancedValues: { timeToThrow: 2.51 } });
     render(<AdvancedPanel player={player} />);
