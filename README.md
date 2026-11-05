@@ -82,7 +82,7 @@ already in `player_stats`. `etl/season_sources.py` turns them into one set of
 season values per player, stored on the document as `advancedValues`, and the
 same metrics get percentiles in `advanced`. PFR is built from its weekly files
 so finished and in-progress seasons share one path. A source that isn't
-published yet is skipped with a warning; any other error fails the run.
+published for that season is skipped with a warning; any other error fails the run.
 
 Limitations of the new data:
 
@@ -177,6 +177,7 @@ python -m venv venv          # Python 3.11.18, from .python-version via pyenv
 source venv/bin/activate
 pip install -r requirements.txt
 # create etl/.env containing: MONGO_URI=your_atlas_connection_string
+# optional: DB_NAME=statsnap_preview to load a preview copy (defaults to statsnap)
 SEASON=2024 python load.py
 ```
 
@@ -200,9 +201,9 @@ percentiles only change when their season reloads.
 |---|---|---|
 | `GET` | `/` | Healthcheck — returns `{ status: "StatSnap API is running" }` |
 | `GET` | `/players/search?q=` | Typeahead search by display name. Deduplicates a player across seasons via an aggregation pipeline; returns up to 10 rows of `playerId`, `displayName`, `position`, and most-recent `team`. Returns 400 if `q` is missing. |
-| `GET` | `/players/:playerId` | All seasons for one player, sorted most-recent-first, each with its embedded `weeks` array and the `advanced` metrics map. Returns 404 if no documents match. |
+| `GET` | `/players/:playerId` | All seasons for one player, sorted most-recent-first, each with its embedded `weeks` array, the `advanced` metrics map, and `advancedValues` (the stored season values). Returns 404 if no documents match. |
 | `GET` | `/schedule` | The freshest cached schedule document (`{ season, week, games, fetchedAt }`). On a cache miss returns a 200 with an empty `games` array — never a 404. |
-| `GET` | `/leaderboards?season=&position=&metric=&limit=` | Qualified players for one season and position ranked by the ETL-stored percentile for `metric` (so the ordering has one definition), up to `limit` (default 25, max 100). Rows carry `weeks` so the client formats the raw value with the same helper the Advanced panel uses. Returns 400 with a message for a bad season, position, metric name, or limit. |
+| `GET` | `/leaderboards?season=&position=&metric=&limit=` | Qualified players for one season and position ranked by the ETL-stored percentile for `metric` (so the ordering has one definition), up to `limit` (default 25, max 100). Rows carry `weeks` and `advancedValues` so the client formats the raw value with the same helper the Advanced panel uses. Returns 400 with a message for a bad season, position, metric name, or limit. |
 | `GET` | `/seasons` | Distinct seasons in the stats collection, newest first: `{ seasons: [2025, 2024, ...] }`. |
 
 ## Scope (V1)

@@ -320,7 +320,7 @@ golden-file contract.
 
 Why: Next Gen season rows are official numbers that can't be rebuilt from its
 partial weekly rows. Storing the other sources per week would have added about
-50% to every document and a second JS mirror of every formula and golden
+50% more storage per season and a second JS mirror of every formula and golden
 fixture. Season-level values add about 1 KB per document. Percent values are
 stored as decimals from 0 to 1, with each Next Gen column normalized because
 that source mixes 0 to 100 and 0 to 1 scales.
@@ -333,7 +333,8 @@ splits).
 
 A source the library reports as not published for a season (PFR before 2018,
 or a 404 on the current season) is skipped with a warning and those stats are
-left absent. Any other error fails the run, so the ETL-failure issue fires. A
+left absent. A 404 on an earlier season fails the run, and a source that comes
+back with no regular-season rows prints a warning. Any other error fails the run, so the ETL-failure issue fires. A
 late source can't stop the stats that already work, and a renamed column can't
 quietly erase a stat.
 
