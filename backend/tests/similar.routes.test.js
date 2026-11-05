@@ -9,7 +9,7 @@ process.env.FEATURE_SIMILAR = "true";
 const require = createRequire(import.meta.url);
 const app = require("../app.js");
 const PlayerStats = require("../models/playerStats.js");
-const { similarity, rankSimilar, DEFAULT_WEIGHTS } = require("../utils/similarity.js");
+const { similarity, rankSimilar, DEFAULT_WEIGHTS, SIMILARITY_METRICS } = require("../utils/similarity.js");
 
 beforeAll(startMongo);
 afterAll(stopMongo);
@@ -17,11 +17,11 @@ beforeEach(clearCollections);
 
 describe("similarity", () => {
   it("is 1 for identical profiles, 0 for opposite corners, null below the overlap floor", () => {
-    expect(similarity({ a: 0.5, b: 0.5, c: 0.5 }, { a: 0.5, b: 0.5, c: 0.5 })).toBe(1);
-    expect(similarity({ a: 0, b: 0, c: 0 }, { a: 1, b: 1, c: 1 })).toBeCloseTo(0, 10);
-    expect(similarity({ a: 0.5, b: 0.5 }, { a: 0.5, b: 0.5 })).toBeNull();
-    expect(similarity({ a: 0.5, b: 0.5, c: 0.5 }, { a: 0.5, b: 0.5, d: 0.5 })).toBeNull();
-    expect(similarity(undefined, { a: 1 })).toBeNull();
+    expect(similarity({ targetShare: 0.5, wopr: 0.5, racr: 0.5 }, { targetShare: 0.5, wopr: 0.5, racr: 0.5 })).toBe(1);
+    expect(similarity({ targetShare: 0, wopr: 0, racr: 0 }, { targetShare: 1, wopr: 1, racr: 1 })).toBeCloseTo(0, 10);
+    expect(similarity({ targetShare: 0.5, wopr: 0.5 }, { targetShare: 0.5, wopr: 0.5 })).toBeNull();
+    expect(similarity({ targetShare: 0.5, wopr: 0.5, racr: 0.5 }, { targetShare: 0.5, wopr: 0.5, airYardsShare: 0.5 })).toBeNull();
+    expect(similarity(undefined, { targetShare: 1 })).toBeNull();
   });
 
   it("weights EPA metrics more heavily than volume metrics", () => {
@@ -35,16 +35,25 @@ describe("similarity", () => {
   });
 
   it("ranks by similarity, drops the target itself and unmatched profiles, breaks ties by name", () => {
-    const target = { playerId: "t", advanced: { a: 0.9, b: 0.9, c: 0.9 } };
+    const target = { playerId: "t", advanced: { targetShare: 0.9, wopr: 0.9, racr: 0.9 } };
     const ranked = rankSimilar(target, [
-      { playerId: "far", displayName: "Far", advanced: { a: 0.1, b: 0.1, c: 0.1 } },
-      { playerId: "near", displayName: "Near", advanced: { a: 0.85, b: 0.9, c: 0.95 } },
-      { playerId: "t", displayName: "Self", advanced: { a: 0.9, b: 0.9, c: 0.9 } },
-      { playerId: "twin-b", displayName: "Zed", advanced: { a: 0.9, b: 0.9, c: 0.9 } },
-      { playerId: "twin-a", displayName: "Amy", advanced: { a: 0.9, b: 0.9, c: 0.9 } },
+      { playerId: "far", displayName: "Far", advanced: { targetShare: 0.1, wopr: 0.1, racr: 0.1 } },
+      { playerId: "near", displayName: "Near", advanced: { targetShare: 0.85, wopr: 0.9, racr: 0.95 } },
+      { playerId: "t", displayName: "Self", advanced: { targetShare: 0.9, wopr: 0.9, racr: 0.9 } },
+      { playerId: "twin-b", displayName: "Zed", advanced: { targetShare: 0.9, wopr: 0.9, racr: 0.9 } },
+      { playerId: "twin-a", displayName: "Amy", advanced: { targetShare: 0.9, wopr: 0.9, racr: 0.9 } },
       { playerId: "none", displayName: "None" },
     ], 3);
     expect(ranked.map((r) => r.candidate.playerId)).toEqual(["twin-a", "twin-b", "near"]);
+  });
+
+  it("ignores keys outside today's metric set", () => {
+    const base = { passingEpa: 0.5, pacr: 0.5, passingCpoe: 0.5, adot: 0.5, wopr: 0.5, racr: 0.5, carries: 0.5 };
+    const a = { ...base, dropRate: 0, separation: 0 };
+    const b = { ...base, dropRate: 1, separation: 1 };
+    expect(similarity(a, b)).toBe(1);
+    expect(SIMILARITY_METRICS.size).toBe(16);
+    expect(SIMILARITY_METRICS.has("dropRate")).toBe(false);
   });
 });
 

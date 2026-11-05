@@ -81,6 +81,7 @@ const getPlayerById = async (req, res, next) => {
         draftPick: 1,
         weeks: 1,
         advanced: 1,
+        advancedValues: 1,
       },
     ).sort({ season: -1 });
 

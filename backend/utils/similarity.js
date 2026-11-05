@@ -16,8 +16,16 @@ const DEFAULT_WEIGHTS = {
   passingCpoe: 1.5,
 };
 
+// Similar Players compares on this fixed set only; the ETL now stores more
+// percentile keys, and those must not change who counts as a comp.
+const SIMILARITY_METRICS = new Set([
+  "passingEpa", "pacr", "passingCpoe", "passingAirYards", "adot", "sacksSuffered", "sackYardsLost",
+  "targetShare", "airYardsShare", "wopr", "racr", "receivingAirYards", "yacPerRec", "receivingEpa",
+  "rushingEpa", "carries",
+]);
+
 function sharedMetrics(a, b) {
-  return Object.keys(a).filter((k) => typeof a[k] === "number" && typeof b[k] === "number");
+  return Object.keys(a).filter((k) => SIMILARITY_METRICS.has(k) && typeof a[k] === "number" && typeof b[k] === "number");
 }
 
 /** 0..1, where 1 is an identical percentile profile. null if too little overlaps. */
@@ -55,4 +63,4 @@ function rankSimilar(target, candidates, limit = 5, options = {}) {
     .slice(0, limit);
 }
 
-module.exports = { similarity, rankSimilar, DEFAULT_WEIGHTS };
+module.exports = { similarity, rankSimilar, DEFAULT_WEIGHTS, SIMILARITY_METRICS };

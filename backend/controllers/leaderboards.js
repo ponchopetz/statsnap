@@ -10,7 +10,7 @@
 const PlayerStats = require("../models/playerStats");
 
 const POSITIONS = new Set(["QB", "RB", "WR", "TE"]);
-const METRIC_PATTERN = /^[a-zA-Z]{1,40}$/;
+const METRIC_PATTERN = /^[a-zA-Z][a-zA-Z0-9]{0,39}$/;
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
 
@@ -58,6 +58,7 @@ const getLeaderboard = async (req, res, next) => {
         jerseyNumber: 1,
         weeks: 1,
         advanced: 1,
+        advancedValues: 1,
       },
     )
       .sort({ [metricPath]: -1, displayName: 1 })
