@@ -306,6 +306,63 @@ runs under load, and a dropped run leaves no failure to report. With a daily
 cadence that costs at most a day, because the next run reloads the whole
 season; a staleness check would be the fix if that ever matters.
 
+### Season-level advancedValues, computed in the ETL
+
+Decision: The new Advanced stats (Next Gen Stats, expected fantasy points, snap
+share, Pro Football Reference charting, big plays and fumbles) are computed
+once per player-season in Python and stored as `advancedValues`, a map of
+metric key to raw season value. The percentiles for the same keys go into the
+existing `advanced` map, behind the same qualifier gates (QB 150+ attempts,
+WR/TE 30+ targets, RB 50+ carries). Nothing new is stored per week, and the
+frontend reads `advancedValues[key]` directly instead of re-deriving it from
+`weeks`. The existing metrics keep computing in JS from `weeks`, under the
+golden-file contract.
+
+Why: Next Gen season rows are official numbers that can't be rebuilt from its
+partial weekly rows. Storing the other sources per week would have added about
+50% to every document and a second JS mirror of every formula and golden
+fixture. Season-level values add about 1 KB per document. Percent values are
+stored as decimals from 0 to 1, with each Next Gen column normalized because
+that source mixes 0 to 100 and 0 to 1 scales.
+
+PFR is built from the weekly files for every season, not the season files.
+That keeps finished and in-progress seasons on one code path, since the 2026
+QB season file isn't published mid-season. The cost is losing the stats that
+exist only in the season files (pocket time, on-target %, play-action and RPO
+splits).
+
+A source the library reports as not published for a season (PFR before 2018,
+or a 404 on the current season) is skipped with a warning and those stats are
+left absent. Any other error fails the run, so the ETL-failure issue fires. A
+late source can't stop the stats that already work, and a renamed column can't
+quietly erase a stat.
+
+Tradeoff: The new rows are season values only. They can't be recomputed in the
+browser or sliced by week. The share-metric averaging limitation stays as it
+is: `ff_opportunity` carries the team totals that would fix it, but that
+changes existing numbers and the golden contract, so it is a separate
+follow-up.
+
+### Style-direction metrics: neutral bar, no Compare winner, HIGHEST label
+
+Decision: Each Advanced row has a direction: `higher` is better, `lower` is
+better (ranked inverted, like Sacks Suffered), or `style`. Style metrics are
+Time to Throw, Aggressiveness, Air Yards to Sticks, Avg Cushion, 8+ Defenders
+in Box and Time to LOS. They rank by raw value, so P99 means "most", but the
+bar is neutral instead of lime, Compare never marks a winner on them and its
+win tally skips them, and the Career arc labels the peak season HIGHEST
+instead of BEST.
+
+Why: A quarterback who holds the ball longest is not a better or worse passer,
+and a receiver given a bigger cushion is not better or worse. A lime P99 bar
+reads as "good" in this UI, so a style stat shown that way would claim a
+judgment the data doesn't make. Ranking is kept so Leaderboards and the arc can
+still sort and compare them.
+
+Tradeoff: Direction is one more field on every config row, and each surface
+has to honor it. It is a single flag on `ADVANCED_CONFIG`, so the surfaces read
+it instead of keeping their own lists.
+
 ### Mid-season trades: per-week team, season document stamped with the last team
 
 Decision: Every embedded week carries the `team` the player was on that week,

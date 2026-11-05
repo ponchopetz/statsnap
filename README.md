@@ -74,6 +74,24 @@ which will cost API credits where the events endpoint does not.
 Full reasoning for each decision lives in
 [`docs/adr/DECISIONS.md`](docs/adr/DECISIONS.md).
 
+**Advanced stats.** Besides the weekly `player_stats` file, the ETL reads five
+more nflverse sources for each season: Next Gen Stats (passing, receiving,
+rushing), expected fantasy points (`ff_opportunity`), snap counts, Pro Football
+Reference advanced stats (pass, rush, rec), and the big-play and fumble columns
+already in `player_stats`. `etl/season_sources.py` turns them into one set of
+season values per player, stored on the document as `advancedValues`, and the
+same metrics get percentiles in `advanced`. PFR is built from its weekly files
+so finished and in-progress seasons share one path. A source that isn't
+published yet is skipped with a warning; any other error fails the run.
+
+Limitations of the new data:
+
+- Next Gen Stats publishes season rows only for players above its own volume
+  minimum, so lower-volume players show "—" on those rows.
+- Next Gen Stats has no receiving rows for running backs, so RBs have no
+  separation or YAC-over-expected stats.
+- PFR charting starts in 2018, so 2016 and 2017 show "—" for those rows.
+
 ## Decision highlights
 
 A few choices a reviewer might find worth discussing (each is expanded in the ADR log):
