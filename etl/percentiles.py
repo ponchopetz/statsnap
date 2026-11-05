@@ -230,9 +230,8 @@ def _rank_cohort(
     that metric to be omitted from the player's map entirely rather than
     ranked as 0. All other metrics the player qualifies for are still ranked.
 
-    Inverted metrics (sacksSuffered, sackYardsLost) are ranked with
-    descending=True so the player with the fewest sacks receives rank N
-    (best) rather than rank 1. This keeps tie-handling correct — (1 - p) on
+    Inverted (lower-is-better) metrics are ranked with descending=True so the
+    player with the lowest value receives rank N (best) rather than rank 1. This keeps tie-handling correct — (1 - p) on
     a forward rank would produce identical tie percentiles only by accident.
     """
     result: dict[str, dict[str, float]] = {}
@@ -298,6 +297,11 @@ def compute_percentiles(
     """
     agg = _aggregate_season(df)
     if season_frame is not None:
+        missing = SEASON_SOURCED_METRICS - set(season_frame.columns)
+        if missing:
+            # A key drifting between season_sources and POSITION_CONFIGS would
+            # otherwise drop that stat from every player without any error.
+            raise ValueError(f"season frame is missing metric columns: {sorted(missing)}")
         agg = agg.join(season_frame, on="playerId", how="left")
     result: dict[str, dict[str, float]] = {}
 

@@ -1,8 +1,11 @@
 import polars as pl
 import pytest
 
+import season_sources
+from percentiles import SEASON_SOURCED_METRICS
 from season_sources import (
     big_plays_season,
+    build_season_frame,
     crosswalk_from_rosters,
     expected_points_season,
     fetch_optional,
@@ -119,7 +122,9 @@ def _conn_error(status):
     return err
 
 
-def test_fetch_optional_skips_404_and_reraises_other_errors(capsys):
+def test_fetch_optional_skips_404_and_reraises_other_errors(capsys, monkeypatch):
+    monkeypatch.setattr(season_sources.nflreadpy, "get_current_season", lambda: 2024)
+
     def raise_404():
         raise _conn_error(404)
 
@@ -139,6 +144,26 @@ def test_fetch_optional_skips_404_and_reraises_other_errors(capsys):
         fetch_optional("pfr", 2024, raise_500)
 
     assert fetch_optional("pfr", 2024, lambda: 7, since=2018) == 7
+
+
+def test_fetch_optional_reraises_404_for_a_past_season(monkeypatch):
+    monkeypatch.setattr(season_sources.nflreadpy, "get_current_season", lambda: 2026)
+
+    def raise_404():
+        raise _conn_error(404)
+
+    with pytest.raises(ConnectionError):
+        fetch_optional("pfr", 2024, raise_404)
+
+
+def test_fetch_optional_warns_when_source_has_no_regular_season_rows(capsys):
+    empty = pl.DataFrame({"season_type": ["POST"], "week": [0]})
+    assert fetch_optional("next gen passing", 2025, lambda: empty) is empty
+    assert "WARNING: next gen passing has no regular-season rows" in capsys.readouterr().out
+
+    full = pl.DataFrame({"season_type": ["REG"], "week": [0]})
+    fetch_optional("next gen passing", 2025, lambda: full)
+    assert capsys.readouterr().out == ""
 
 
 def ff_frame(rows):
@@ -259,6 +284,14 @@ def test_crosswalk_drops_nulls_and_duplicates():
     out = crosswalk_from_rosters(rosters)
     assert out.columns == ["pfr_id", "playerId"]
     assert sorted(out.rows()) == [("PF1", "G1"), ("PF3", "G3")]
+
+
+def test_crosswalk_drops_a_pfr_id_shared_by_two_players():
+    rosters = pl.DataFrame({
+        "gsis_id": ["G1", "G2", "G3"],
+        "pfr_id": ["PF1", "PF1", "PF3"],
+    })
+    assert crosswalk_from_rosters(rosters).rows() == [("PF3", "G3")]
 
 
 def test_snap_share_divides_by_team_snaps_in_games_with_offensive_snaps():
@@ -407,3 +440,31 @@ def test_season_values_map_drops_null_and_non_finite():
         schema={"playerId": pl.Utf8, "x": pl.Float64, "y": pl.Float64, "z": pl.Float64},
     )
     assert season_values_map(frame_) == {"b": {"x": 0.0, "y": 2.5, "z": -1.0}}
+
+
+def test_build_season_frame_produces_every_season_sourced_metric():
+    sources = {"ngs": {}, "ff": None, "snaps": None,
+               "pfr": {"pass": None, "rush": None, "rec": None}}
+    raw = raw_frame([{"player_id": "P1"}])
+    rosters = pl.DataFrame({"gsis_id": ["P1"], "pfr_id": ["PF1"]})
+    schedules = pl.DataFrame({"game_id": ["g1"], "game_type": ["REG"], "week": [1]})
+    weekly = pfr_weekly([{"playerId": "P1"}])
+    out = build_season_frame(sources, weekly, raw, rosters, schedules)
+    assert set(out.columns) - {"playerId"} == SEASON_SOURCED_METRICS
+
+
+def test_build_season_frame_turns_nan_into_null():
+    sources = {"ngs": {}, "ff": None, "snaps": None,
+               "pfr": {"pass": None, "rush": None, "rec": None}}
+    nan_ngs = pl.DataFrame({
+        "player_gsis_id": ["P1"], "week": [0], "season_type": ["REG"],
+        "attempts": [100], "avg_time_to_throw": [float("nan")],
+        "aggressiveness": [10.0], "avg_air_yards_to_sticks": [1.0],
+    })
+    sources["ngs"] = {"passing": nan_ngs}
+    raw = raw_frame([{"player_id": "P1"}])
+    rosters = pl.DataFrame({"gsis_id": ["P1"], "pfr_id": ["PF1"]})
+    schedules = pl.DataFrame({"game_id": ["g1"], "game_type": ["REG"], "week": [1]})
+    out = build_season_frame(sources, pfr_weekly([{"playerId": "P1"}]), raw, rosters, schedules)
+    assert out["timeToThrow"].to_list() == [None]
+    assert out["timeToThrow"].is_nan().sum() == 0

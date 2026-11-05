@@ -279,6 +279,8 @@ class TestComputePercentiles:
 def season_frame(**columns):
     """A season frame keyed by playerId; columns map metric -> {playerId: value}."""
     ids = sorted({pid for values in columns.values() for pid in values})
+    # compute_percentiles requires every season-sourced column; absent ones are null.
+    columns = {**{m: {} for m in SEASON_SOURCED_METRICS}, **columns}
     return pl.DataFrame(
         {"playerId": ids, **{m: [v.get(i) for i in ids] for m, v in columns.items()}},
         schema={"playerId": pl.Utf8, **{m: pl.Float64 for m in columns}},
@@ -329,6 +331,12 @@ class TestSeasonFrameMetrics:
         assert result["a"]["timeToThrow"] == 0.5
         assert "timeToThrow" not in result["b"]
         assert result["b"]["passingEpa"] == 0.0
+
+    def test_season_frame_missing_a_sourced_metric_raises(self):
+        df = frame(("a", "QB", [qb_week(1, 200)]))
+        sf = season_frame(timeToThrow={"a": 2.6}).drop("dropRate")
+        with pytest.raises(ValueError, match="dropRate"):
+            compute_percentiles(df, sf)
 
 
 _QB = ["passingEpa", "passingCpoe", "pacr", "passingAirYards", "adot",
