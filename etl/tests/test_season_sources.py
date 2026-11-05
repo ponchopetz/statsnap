@@ -390,3 +390,10 @@ def test_pfr_all_sources_none_gives_typed_empty_frame():
     assert out.height == 0
     assert out.columns[0] == "playerId"
     assert len(out.columns) == 9
+
+
+def test_pfr_missing_required_column_raises():
+    weekly = pfr_weekly([{"attempts": 30}])
+    p = pass_frame([{}]).drop("times_pressured")
+    with pytest.raises(ValueError, match="times_pressured"):
+        pfr_season({"pass": p, "rush": None, "rec": None}, weekly, CROSSWALK)

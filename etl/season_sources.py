@@ -204,14 +204,16 @@ PFR_KEYS = (
 )
 
 
-def _pfr_reg(df: pl.DataFrame | None, needed: dict[str, pl.DataType], crosswalk: pl.DataFrame):
-    """Regular-season PFR rows keyed by playerId and an Int64 week, or None."""
+def _pfr_reg(
+    name: str, df: pl.DataFrame | None, required: tuple[str, ...], crosswalk: pl.DataFrame
+):
+    """Regular-season PFR rows keyed by playerId and an Int64 week, or None if unpublished."""
     if df is None or df.height == 0:
         return None
-    # A column a given file does not carry counts as zero.
-    df = df.with_columns(
-        [pl.lit(None, dtype=t).alias(c) for c, t in needed.items() if c not in df.columns]
-    )
+    # A renamed or dropped column must fail the run, not become a zero stat.
+    missing = [c for c in required if c not in df.columns]
+    if missing:
+        raise ValueError(f"PFR {name} data is missing expected columns: {missing}")
     return (
         df.filter(pl.col("game_type") == "REG")
         .join(crosswalk, left_on="pfr_player_id", right_on="pfr_id", how="inner")
@@ -234,9 +236,7 @@ def pfr_season(
     schema = {"playerId": pl.Utf8, **{k: pl.Float64 for k in PFR_KEYS}}
     parts: list[pl.DataFrame] = []
 
-    passing = _pfr_reg(
-        pfr.get("pass"), {"times_pressured": pl.Float64, "passing_bad_throws": pl.Float64}, crosswalk
-    )
+    passing = _pfr_reg("pass", pfr.get("pass"), ("times_pressured", "passing_bad_throws"), crosswalk)
     if passing is not None:
         j = _pfr_weekly_joined(passing, weekly)
         parts.append(
@@ -250,8 +250,9 @@ def pfr_season(
                     _ratio(pl.col("bad"), pl.col("att")).alias("badThrowPct"))
         )
 
+    bt_cols = ("rushing_broken_tackles", "receiving_broken_tackles")
     receiving = _pfr_reg(
-        pfr.get("rec"), {"receiving_drop": pl.Float64, "receiving_int": pl.Float64}, crosswalk
+        "rec", pfr.get("rec"), ("receiving_drop", "receiving_int", *bt_cols), crosswalk
     )
     if receiving is not None:
         j = _pfr_weekly_joined(receiving, weekly)
@@ -273,9 +274,9 @@ def pfr_season(
         ))
 
     rushing = _pfr_reg(
+        "rush",
         pfr.get("rush"),
-        {"carries": pl.Float64, "rushing_yards_before_contact": pl.Float64,
-         "rushing_yards_after_contact": pl.Float64},
+        ("carries", "rushing_yards_before_contact", "rushing_yards_after_contact", *bt_cols),
         crosswalk,
     )
     if rushing is not None:
@@ -291,13 +292,11 @@ def pfr_season(
 
     # Rush and rec files can both list a player-game's broken tackles, so count
     # each player-game once (max per column) rather than summing across files.
-    bt_needed = {"rushing_broken_tackles": pl.Float64, "receiving_broken_tackles": pl.Float64}
     bt_frames = [
         f.select("playerId", "game_id",
                  pl.col("rushing_broken_tackles").cast(pl.Float64),
                  pl.col("receiving_broken_tackles").cast(pl.Float64))
-        for f in (_pfr_reg(pfr.get("rush"), bt_needed, crosswalk),
-                  _pfr_reg(pfr.get("rec"), bt_needed, crosswalk))
+        for f in (rushing, receiving)
         if f is not None
     ]
     if bt_frames:
