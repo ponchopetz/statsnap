@@ -15,6 +15,7 @@ describe("AdvancedPanel states", () => {
     render(<AdvancedPanel player={qbSeason({ advanced: undefined, seasonComplete: false })} />);
     expect(screen.getByText(/Percentile ranks are pending/)).toBeInTheDocument();
     expect(screen.getByText("THROUGH WK 2")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "? KEY" }));
     expect(screen.getAllByRole("listitem").length).toBe(golden.positionConfigs.QB.metrics.length);
     expect(screen.getAllByText("—").length).toBeGreaterThan(0);
   });
@@ -45,7 +46,7 @@ describe("AdvancedPanel states", () => {
     render(<AdvancedPanel player={wrSeason({ advanced: { targetShare: 0.5 } })} />);
     expect(screen.queryByText(/Share of the team's pass attempts/)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /Target Share/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Target Share\s*\?/ }));
     expect(screen.getByText(/Share of the team's pass attempts/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "? KEY" }));
@@ -60,6 +61,7 @@ describe("AdvancedPanel agrees with the ETL ranking configuration", () => {
       const advanced = Object.fromEntries(config.metrics.map((m, i) => [m, (i + 1) / 100]));
       const base = position === "QB" ? qbSeason : wrSeason;
       const { unmount } = render(<AdvancedPanel player={base({ position, advanced })} />);
+      fireEvent.click(screen.getByRole("button", { name: "? KEY" }));
 
       const pcts = screen.getAllByRole("listitem").map((li) => li.querySelector(".pct").textContent);
       expect(pcts, position).toEqual(config.metrics.map((_, i) => `P${i + 1}`));
@@ -75,5 +77,95 @@ describe("AdvancedPanel agrees with the ETL ranking configuration", () => {
     expect(footnote).toContain(`RB ${RB.qualifierMin}+ car`);
     expect(WR.qualifierMin).toBe(TE.qualifierMin);
     expect(footnote).toContain(`WR/TE ${WR.qualifierMin}+ tgt`);
+    expect(footnote).toContain("PFR charting starts in 2018");
+  });
+});
+
+describe("AdvancedPanel collapsible groups", () => {
+  const groupHeads = () =>
+    screen.getAllByRole("button").filter((b) => b.classList.contains("adv-group-head"));
+  const headFor = (name) => groupHeads().find((b) => b.textContent.includes(name));
+
+  it("first group starts open and the rest collapsed", () => {
+    render(<AdvancedPanel player={qbSeason({ advanced: {} })} />);
+    const heads = groupHeads();
+    expect(heads.map((h) => h.getAttribute("aria-expanded"))).toEqual(
+      heads.map((_, i) => (i === 0 ? "true" : "false"))
+    );
+    expect(heads.length).toBeGreaterThan(1);
+    const list = document.getElementById(heads[1].getAttribute("aria-controls"));
+    expect(list).toHaveAttribute("hidden");
+    expect(document.getElementById(heads[0].getAttribute("aria-controls"))).not.toHaveAttribute("hidden");
+  });
+
+  it("clicking a group header toggles it, several can be open", () => {
+    render(<AdvancedPanel player={qbSeason({ advanced: {} })} />);
+    const pressure = headFor("PRESSURE");
+    fireEvent.click(pressure);
+    expect(pressure).toHaveAttribute("aria-expanded", "true");
+    expect(groupHeads()[0]).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(groupHeads()[0]);
+    expect(groupHeads()[0]).toHaveAttribute("aria-expanded", "false");
+    expect(pressure).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("? KEY opens every group and definition; turning it off restores the previous open set", () => {
+    render(<AdvancedPanel player={qbSeason({ advanced: {} })} />);
+    fireEvent.click(screen.getByRole("button", { name: "? KEY" }));
+    groupHeads().forEach((h) => expect(h).toHaveAttribute("aria-expanded", "true"));
+    expect(document.querySelectorAll(".adv-def").length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("button", { name: "✕ HIDE KEY" }));
+    const heads = groupHeads();
+    expect(heads.map((h) => h.getAttribute("aria-expanded"))).toEqual(
+      heads.map((_, i) => (i === 0 ? "true" : "false"))
+    );
+  });
+
+  it("peek shows the first row that has a value, or —", () => {
+    const player = qbSeason({
+      advanced: { timeToThrow: 0.824 },
+      advancedValues: { timeToThrow: 2.51 },
+    });
+    render(<AdvancedPanel player={player} />);
+    expect(headFor("TRACKING").querySelector(".adv-group-peek")).toHaveTextContent(
+      "Time to Throw · 2.51s · P82"
+    );
+    expect(headFor("EXPECTED POINTS").querySelector(".adv-group-peek")).toHaveTextContent("—");
+    expect(headFor("EXPECTED POINTS").querySelector(".adv-group-count")).toHaveTextContent("3");
+  });
+
+  it("peek omits the percentile when the row has none", () => {
+    const player = qbSeason({ advanced: {}, advancedValues: { timeToThrow: 2.51 } });
+    render(<AdvancedPanel player={player} />);
+    expect(headFor("TRACKING").querySelector(".adv-group-peek").textContent).toBe(
+      "Time to Throw · 2.51s"
+    );
+  });
+
+  it("style rows draw a neutral bar", () => {
+    render(<AdvancedPanel player={qbSeason({ advanced: { timeToThrow: 0.5 } })} />);
+    fireEvent.click(headFor("TRACKING"));
+    expect(screen.getByText("Time to Throw").closest("li")).toHaveClass("adv-row--style");
+    expect(screen.getByText("Passing EPA").closest("li")).not.toHaveClass("adv-row--style");
+  });
+
+  it("rows without advancedValues show — for value and percentile", () => {
+    render(<AdvancedPanel player={qbSeason({ advanced: {} })} />);
+    fireEvent.click(headFor("TRACKING"));
+    const row = screen.getByText("Time to Throw").closest("li");
+    expect(row.querySelector(".v")).toHaveTextContent("—");
+    expect(row.querySelector(".pct")).toHaveTextContent("—");
+  });
+
+  it("open state resets when a different player-season loads", () => {
+    const { rerender } = render(<AdvancedPanel player={qbSeason({ advanced: {} })} />);
+    fireEvent.click(headFor("PRESSURE"));
+    fireEvent.click(groupHeads()[0]);
+    expect(headFor("PRESSURE")).toHaveAttribute("aria-expanded", "true");
+    rerender(<AdvancedPanel player={qbSeason({ advanced: {}, season: 2023 })} />);
+    const heads = groupHeads();
+    expect(heads.map((h) => h.getAttribute("aria-expanded"))).toEqual(
+      heads.map((_, i) => (i === 0 ? "true" : "false"))
+    );
   });
 });

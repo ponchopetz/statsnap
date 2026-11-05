@@ -4,6 +4,7 @@
   gap: 10px;
   border: 1px solid var(--line);
   padding: 16px;
+  container-type: inline-size;
 }
 
 .panel-head {
@@ -24,10 +25,64 @@
   text-transform: uppercase;
 }
 
-/* The stat rows are an <li> list; keep them as direct flex children of the
-   panel (preserving the column gap) and drop default list chrome. */
+/* Collapsible group: a 1px rule between groups, a button header that previews
+   the group while it is collapsed. */
+.adv-group {
+  border-top: 1px solid var(--line);
+}
+.adv-group:first-of-type {
+  border-top: 0;
+}
+.adv-group-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  text-align: left;
+}
+.adv-group-name {
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--fg);
+}
+.adv-group-count {
+  font-family: var(--display);
+  font-size: 10px;
+  color: var(--fg-3);
+}
+.adv-group-peek {
+  margin-left: auto;
+  min-width: 0;
+  font-family: var(--display);
+  font-size: 10px;
+  color: var(--fg-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.adv-group-chev {
+  width: 12px;
+  flex-shrink: 0;
+  font-family: var(--display);
+  color: var(--accent);
+}
+.adv-group-open .adv-group-peek {
+  visibility: hidden;
+}
+.adv-group-head:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .adv-list {
-  display: contents;
+  margin: 0;
+  padding: 0 0 8px;
+}
+.adv-list[hidden] {
+  display: none;
 }
 .adv-row {
   list-style: none;
@@ -68,6 +123,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .adv-row .bar {
@@ -81,6 +138,11 @@
   position: absolute;
   inset: 0;
   background: var(--accent);
+}
+
+/* Style rows (how a player plays, not better or worse) get a neutral bar. */
+.adv-row--style .bar .fill {
+  background: var(--fg-3);
 }
 
 /* Percentile rank readout — names what the bar encodes (P87 = 87th
@@ -240,5 +302,15 @@
   }
   .adv-row .v {
     flex: 0 0 52px;
+  }
+}
+
+/* Phone-width panel: the peek would crowd the group name. */
+@container (max-width: 420px) {
+  .adv-group-peek {
+    display: none;
+  }
+  .adv-row .k {
+    flex: 1 1 auto;
   }
 }
