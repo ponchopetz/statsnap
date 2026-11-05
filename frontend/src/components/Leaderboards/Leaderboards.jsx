@@ -28,7 +28,7 @@ const pctlDefinition = (position) =>
   `Percentile rank among qualified ${position}s this season: P90 ranks ahead of 90% of them. The bar draws the same number.`;
 // A style metric has no better or worse end, so its rank is by value.
 const styleRankDefinition = (position) =>
-  `Rank by value among qualified ${position}s this season: P90 means a higher value than 90% of them. A style stat, so higher isn't better or worse.`;
+  `Rank by value among qualified ${position}s this season: P90 means a higher value than 90% of them.`;
 const GP_DEFINITION = "Games played this season. MIN GP hides players under a game count.";
 
 function Leaderboards() {
@@ -85,10 +85,13 @@ function Leaderboards() {
     return () => controller.abort();
   }, [season, position, metricRow.key, beforeSource]);
 
+  // A season before the metric's source has nothing to show, whatever was loaded last.
+  const shown = beforeSource ? null : data;
+
   const visibleRows = useMemo(() => {
-    if (!data?.rows) return [];
-    return data.rows.filter((r) => (r.gamesPlayed ?? r.weeks?.length ?? 0) >= minGames).slice(0, SHOW_LIMIT);
-  }, [data, minGames]);
+    if (!shown?.rows) return [];
+    return shown.rows.filter((r) => (r.gamesPlayed ?? r.weeks?.length ?? 0) >= minGames).slice(0, SHOW_LIMIT);
+  }, [shown, minGames]);
 
   const update = (patch) => {
     setSearchParams((prev) => {
@@ -98,11 +101,11 @@ function Leaderboards() {
     });
   };
 
-  const inProgress = useMemo(() => data?.rows?.some((r) => r.seasonComplete === false) ?? false, [data]);
+  const inProgress = useMemo(() => shown?.rows?.some((r) => r.seasonComplete === false) ?? false, [shown]);
   const throughWeek = useMemo(() => {
     if (!inProgress) return null;
-    return Math.max(...data.rows.flatMap((r) => (r.weeks ?? []).map((w) => w.week)));
-  }, [data, inProgress]);
+    return Math.max(...shown.rows.flatMap((r) => (r.weeks ?? []).map((w) => w.week)));
+  }, [shown, inProgress]);
 
   let body;
   if (seasons && seasons.length === 0) {
@@ -160,7 +163,7 @@ function Leaderboards() {
                   <td>{row.gamesPlayed ?? (row.weeks?.length ?? "—")}</td>
                   <td className="lb-value">{metricRow.rawValue(row.weeks ?? [], row)}</td>
                   <td className="lb-pct">
-                    <span className="lb-bar"><span className="lb-fill" style={{ width: `${(pct ?? 0) * 100}%` }} /></span>
+                    <span className="lb-bar"><span className={"lb-fill" + (metricRow.direction === "style" ? " lb-fill--style" : "")} style={{ width: `${(pct ?? 0) * 100}%` }} /></span>
                     <span className="lb-pct-num">{pct != null ? `P${Math.round(pct * 100)}` : "—"}</span>
                   </td>
                 </tr>

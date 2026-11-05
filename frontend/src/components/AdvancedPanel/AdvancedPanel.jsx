@@ -1,4 +1,4 @@
-import { useState, useEffect, useId } from "react";
+import { useState, useId } from "react";
 import { buildAdvancedRows, groupRows } from "../../utils/stats.js";
 import { STAT_GLOSSARY } from "../../utils/glossary.js";
 import "./AdvancedPanel.css";
@@ -24,12 +24,6 @@ function AdvancedPanel({ player }) {
   const [showAll, setShowAll] = useState(false);
   const idPrefix = useId();
 
-  useEffect(() => {
-    setOpenKey(null);
-    setOpenGroups(null);
-    setShowAll(false);
-  }, [player.playerId, player.season]);
-
   const rows = buildAdvancedRows(player);
   const groups = groupRows(rows);
   const currentOpen = openGroups ?? new Set(groups.slice(0, 1).map((g) => g.group));
@@ -45,6 +39,13 @@ function AdvancedPanel({ player }) {
   const toggleAll = () => setShowAll((prev) => !prev);
 
   const toggleGroup = (name) => {
+    if (showAll) {
+      // Every group reads open under KEY, so a click means "close this one":
+      // leave KEY and keep the rest open.
+      setShowAll(false);
+      setOpenGroups(new Set(groups.map((g) => g.group).filter((g) => g !== name)));
+      return;
+    }
     const next = new Set(currentOpen);
     if (!next.delete(name)) next.add(name);
     setOpenGroups(next);
@@ -95,7 +96,7 @@ function AdvancedPanel({ player }) {
               >
                 <span className="adv-group-chev" aria-hidden="true">{groupOpen ? "▾" : "▸"}</span>
                 <span className="adv-group-name">{group}</span>
-                <span className="adv-group-count">{groupRowsList.length}</span>
+                <span className="adv-group-count">{groupRowsList.length}<span className="visually-hidden"> stats</span></span>
                 <span className="adv-group-peek" aria-hidden="true">{peekText(groupRowsList)}</span>
               </button>
               <ul className="adv-list" id={listId} hidden={!groupOpen}>

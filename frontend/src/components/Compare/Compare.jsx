@@ -141,7 +141,7 @@ function AdvancedGroups({ rows }) {
         <button type="button" className="cmp-group-head" aria-expanded={isOpen} aria-controls={listId} onClick={() => toggle(group)}>
           <span className="cmp-group-chev" aria-hidden="true">{isOpen ? "▾" : "▸"}</span>
           <span className="cmp-group-name">{group}</span>
-          <span className="cmp-group-tally">A {tally.a} · B {tally.b}</span>
+          <span className="cmp-group-tally">{groupRows.every((r) => r.direction === "style") ? "NO WINNER" : `A ${tally.a} · B ${tally.b}`}</span>
         </button>
         <ul className="cmp-list" id={listId} hidden={!isOpen}>
           {groupRows.map((row) => <DiffRow key={row.key} row={row} showPct />)}
@@ -268,7 +268,7 @@ function Compare() {
               rows={comparison.advanced}
             />
             <div className="cmp-footnote">
-              BARS ARE POSITION-COHORT PERCENTILES FOR EACH PLAYER&apos;S OWN SEASON. HIGHER IS BETTER, INCLUDING SACKS (FEWER RANKS HIGHER). STYLE STATS (TIMING AND COVERAGE TENDENCIES) HAVE NO WINNER. HIGHLIGHTED VALUE WINS THE ROW.
+              BARS ARE POSITION-COHORT PERCENTILES FOR EACH PLAYER&apos;S OWN SEASON. HIGHER IS BETTER, INCLUDING LOWER-IS-BETTER STATS LIKE SACKS AND DROPS (RANKED INVERTED). STYLE STATS (TIMING AND COVERAGE TENDENCIES) HAVE NO WINNER. HIGHLIGHTED VALUE WINS THE ROW.
             </div>
           </section>
         </main>

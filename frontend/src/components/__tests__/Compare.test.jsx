@@ -128,6 +128,15 @@ describe("Compare page", () => {
       expect(head.querySelector(".cmp-group-tally")).not.toHaveAttribute("aria-hidden");
     });
 
+    it("a group of only style rows reads NO WINNER instead of a zero tally", async () => {
+      const qb = (id, name) => qbSeason({ playerId: id, displayName: name, season: 2024 });
+      getPlayerProfile.mockImplementation(async (id) => [id === "qa" ? qb("qa", "Quarter Back") : qb("qb", "Other Back")]);
+      renderCompare("?a=qa&b=qb");
+      await screen.findByText("SEASON · 2024");
+      expect(within(headerFor("TRACKING")).getByText("NO WINNER")).toHaveClass("cmp-group-tally");
+      expect(within(headerFor("TRACKING")).queryByText(/^A \d/)).toBeNull();
+    });
+
     it("style rows show values without a win highlight", async () => {
       pair(
         chase(2024, { advanced: { cushion: 0.9 }, advancedValues: { cushion: 6.1 } }),
@@ -158,6 +167,7 @@ describe("Compare page", () => {
       await screen.findByText("SEASON · 2024");
       const note = document.querySelector(".cmp-footnote");
       expect(note).toHaveTextContent(/STYLE STATS .* HAVE NO WINNER/);
+      expect(note).toHaveTextContent("INCLUDING LOWER-IS-BETTER STATS LIKE SACKS AND DROPS (RANKED INVERTED)");
       expect(note).not.toHaveTextContent(/RANKED INVERTED BY THE ETL/);
       expect(note.textContent).not.toContain("--");
     });

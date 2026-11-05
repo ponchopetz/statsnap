@@ -4,6 +4,7 @@ import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { useSlowLoading } from "../../hooks/useSlowLoading.js";
 import { HEADLINE_CONFIG } from "../../utils/headline.js";
 import { buildAdvancedRows } from "../../utils/stats.js";
+import { SHARE_CARD_KEYS } from "../../utils/shareCard.js";
 import { embeddedFontCss } from "../../utils/embedFonts.js";
 import LoadingStatus from "../LoadingStatus/LoadingStatus.jsx";
 import "./ShareCard.css";
@@ -14,15 +15,6 @@ import "./ShareCard.css";
 // page fonts are embedded into the exported SVG (utils/embedFonts.js) so the
 // PNG matches the screen; if that fails the export still runs on system
 // fonts.
-
-// The card keeps the advanced rows it has always shown, whatever else the
-// Advanced panel now lists.
-export const SHARE_CARD_KEYS = {
-  QB: ["passingEpa", "pacr", "passingCpoe", "passingAirYards", "adot", "sacksSuffered", "sackYardsLost"],
-  WR: ["targetShare", "airYardsShare", "wopr", "racr", "receivingAirYards", "yacPerRec", "receivingEpa"],
-  TE: ["targetShare", "airYardsShare", "wopr", "racr", "receivingAirYards", "yacPerRec", "receivingEpa"],
-  RB: ["rushingEpa", "targetShare", "wopr", "yacPerRec", "carries", "receivingAirYards"],
-};
 
 const W = 1200;
 const H = 630;

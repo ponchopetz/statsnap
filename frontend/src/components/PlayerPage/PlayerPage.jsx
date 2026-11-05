@@ -235,7 +235,7 @@ function PlayerPage() {
               </Tabs.Panel>
 
               <Tabs.Panel id="advanced">
-                <AdvancedPanel player={player} />
+                <AdvancedPanel key={`${player.playerId}-${player.season}`} player={player} />
                 {isFlagEnabled("similar") && <SimilarPlayers player={player} />}
               </Tabs.Panel>
 

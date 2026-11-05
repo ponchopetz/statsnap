@@ -104,7 +104,43 @@ describe("Leaderboards", () => {
     getLeaderboard.mockResolvedValue({ season: 2025, position: "WR", metric: "cushion", count: 0, rows: [] });
     renderPage("/leaderboards?position=WR&metric=cushion");
     fireEvent.click(await screen.findByRole("button", { name: "? KEY" }));
-    expect(screen.getAllByText(/higher isn't better or worse/, { selector: "dd" })).toHaveLength(2); // glossary + PCTL row
+    expect(screen.getAllByText(/higher isn't better or worse/, { selector: "dd" })).toHaveLength(1); // the glossary entry; the PCTL row does not repeat it
     expect(screen.getByText(/Rank by value among qualified WRs/)).toBeInTheDocument();
+  });
+
+  it("a style metric's bar is neutral and a quality metric's stays lime", async () => {
+    getSeasons.mockResolvedValue({ seasons: [2025] });
+    getLeaderboard.mockResolvedValue({
+      season: 2025, position: "WR", metric: "cushion", count: 1,
+      rows: [wrSeason({ playerId: "a", displayName: "Alpha One", gamesPlayed: 17, advanced: { cushion: 0.8 }, advancedValues: { cushion: 6.1 }, weeks: [week({ week: 1 })] })],
+    });
+    const { container, unmount } = renderPage("/leaderboards?position=WR&metric=cushion");
+    await screen.findByText("Alpha One");
+    expect(container.querySelector(".lb-fill")).toHaveClass("lb-fill--style");
+    unmount();
+
+    getLeaderboard.mockResolvedValue({
+      season: 2025, position: "WR", metric: "racr", count: 1,
+      rows: [row("a", "Alpha One", 0.97, 17)],
+    });
+    const second = renderPage();
+    await screen.findByText("Alpha One");
+    expect(second.container.querySelector(".lb-fill")).not.toHaveClass("lb-fill--style");
+  });
+
+  it("switching to a season before the source drops the old header and skips the fetch", async () => {
+    getSeasons.mockResolvedValue({ seasons: [2018, 2017] });
+    getLeaderboard.mockResolvedValue({
+      season: 2018, position: "WR", metric: "dropRate", count: 1,
+      rows: [wrSeason({ playerId: "a", displayName: "Alpha One", gamesPlayed: 5, seasonComplete: false, advanced: { dropRate: 0.5 }, advancedValues: { dropRate: 0.04 }, weeks: [week({ week: 5 })] })],
+    });
+    renderPage("/leaderboards?position=WR&metric=dropRate&season=2018");
+    expect(await screen.findByText(/THROUGH WK 5 · TOP 1/)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("SEASON"), { target: { value: "2017" } });
+    expect(await screen.findByText("PFR CHARTING STARTS IN 2018")).toBeInTheDocument();
+    expect(screen.queryByText(/TOP \d/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/THROUGH WK/)).not.toBeInTheDocument();
+    expect(getLeaderboard).not.toHaveBeenCalledWith(expect.objectContaining({ season: 2017 }), expect.anything());
   });
 });

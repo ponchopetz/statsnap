@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import Sparkline from "../Sparkline/Sparkline.jsx";
 import { groupRows } from "../../utils/stats.js";
 import { ARC_MODES, arcOptions, buildCareerArc } from "../../utils/careerArc.js";
@@ -14,7 +14,10 @@ const MODE_LABEL = { totals: "TOTALS", percentile: "PERCENTILE" };
 // 23) so every column still fits; see .arc-axis--dense in CareerArc.css.
 const DENSE_AXIS_SEASONS = 7;
 
+const slug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
 function CareerArc({ data }) {
+  const idPrefix = useId();
   const position = data?.[0]?.position;
   const [mode, setMode] = useState("totals");
   const [keys, setKeys] = useState({ totals: null, percentile: null });
@@ -58,8 +61,8 @@ function CareerArc({ data }) {
           {mode === "percentile"
             ? <div className="arc-stat-groups">
                 {groupRows(options).map((g) => (
-                  <div key={g.group} className="arc-stat-group" role="group" aria-label={g.group}>
-                    <span className="arc-stat-group-label">{g.group}</span>
+                  <div key={g.group} className="arc-stat-group" role="group" aria-labelledby={`${idPrefix}-${slug(g.group)}`}>
+                    <span className="arc-stat-group-label" id={`${idPrefix}-${slug(g.group)}`}>{g.group}</span>
                     {g.rows.map(renderChip)}
                   </div>
                 ))}

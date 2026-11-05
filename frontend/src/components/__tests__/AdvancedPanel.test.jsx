@@ -121,6 +121,21 @@ describe("AdvancedPanel collapsible groups", () => {
     );
   });
 
+  it("with ? KEY on, a header click leaves KEY and collapses just that group", () => {
+    render(<AdvancedPanel player={qbSeason({ advanced: {} })} />);
+    fireEvent.click(screen.getByRole("button", { name: "? KEY" }));
+    const first = groupHeads()[0];
+    fireEvent.click(first);
+    expect(first).toHaveAttribute("aria-expanded", "false");
+    groupHeads().slice(1).forEach((h) => expect(h).toHaveAttribute("aria-expanded", "true"));
+    expect(screen.getByRole("button", { name: "? KEY" })).toBeInTheDocument();
+  });
+
+  it("group header names read the count as stats", () => {
+    render(<AdvancedPanel player={qbSeason({ advanced: {} })} />);
+    expect(groupHeads()[0]).toHaveAccessibleName(/\d+ stats$/);
+  });
+
   it("peek shows the first row that has a value, or —", () => {
     const player = qbSeason({
       advanced: { timeToThrow: 0.824 },
@@ -164,11 +179,13 @@ describe("AdvancedPanel collapsible groups", () => {
   });
 
   it("open state resets when a different player-season loads", () => {
-    const { rerender } = render(<AdvancedPanel player={qbSeason({ advanced: {} })} />);
+    // PlayerPage keys the panel by player and season; mirror that here.
+    const panel = (player) => <AdvancedPanel key={`${player.playerId}-${player.season}`} player={player} />;
+    const { rerender } = render(panel(qbSeason({ advanced: {} })));
     fireEvent.click(headFor("PRESSURE"));
     fireEvent.click(groupHeads()[0]);
     expect(headFor("PRESSURE")).toHaveAttribute("aria-expanded", "true");
-    rerender(<AdvancedPanel player={qbSeason({ advanced: {}, season: 2023 })} />);
+    rerender(panel(qbSeason({ advanced: {}, season: 2023 })));
     const heads = groupHeads();
     expect(heads.map((h) => h.getAttribute("aria-expanded"))).toEqual(
       heads.map((_, i) => (i === 0 ? "true" : "false"))

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { SHARE_CARD_KEYS } from "../ShareCard/ShareCard.jsx";
+import { SHARE_CARD_KEYS } from "../../utils/shareCard.js";
 import { buildAdvancedRows } from "../../utils/stats.js";
 
 describe("share card advanced rows", () => {
