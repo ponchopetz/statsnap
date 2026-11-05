@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getLeaderboard, getSeasons } from "../../utils/api.js";
-import { ADVANCED_CONFIG } from "../../utils/stats.js";
+import { ADVANCED_CONFIG, groupRows } from "../../utils/stats.js";
 import { STAT_GLOSSARY } from "../../utils/glossary.js";
 import { useSlowLoading } from "../../hooks/useSlowLoading.js";
 import LoadingStatus from "../LoadingStatus/LoadingStatus.jsx";
@@ -26,6 +26,9 @@ const MIN_GAMES_OPTIONS = [0, 6, 10, 14];
 // metric's definition comes from the shared STAT_GLOSSARY.
 const pctlDefinition = (position) =>
   `Percentile rank among qualified ${position}s this season: P90 ranks ahead of 90% of them. The bar draws the same number.`;
+// A style metric has no better or worse end, so its rank is by value.
+const styleRankDefinition = (position) =>
+  `Rank by value among qualified ${position}s this season: P90 means a higher value than 90% of them. A style stat, so higher isn't better or worse.`;
 const GP_DEFINITION = "Games played this season. MIN GP hides players under a game count.";
 
 function Leaderboards() {
@@ -62,8 +65,11 @@ function Leaderboards() {
 
   const season = seasons?.includes(seasonParam) ? seasonParam : seasons?.[0] ?? null;
 
+  // Some sources start after the first loaded season; there is nothing to fetch before then.
+  const beforeSource = metricRow.since != null && season != null && season < metricRow.since;
+
   useEffect(() => {
-    if (season == null) return undefined;
+    if (season == null || beforeSource) return undefined;
     const controller = new AbortController();
     setStatus("loading");
     getLeaderboard({ season, position, metric: metricRow.key, limit: FETCH_LIMIT }, controller.signal)
@@ -77,7 +83,7 @@ function Leaderboards() {
         setStatus("error");
       });
     return () => controller.abort();
-  }, [season, position, metricRow.key]);
+  }, [season, position, metricRow.key, beforeSource]);
 
   const visibleRows = useMemo(() => {
     if (!data?.rows) return [];
@@ -101,6 +107,8 @@ function Leaderboards() {
   let body;
   if (seasons && seasons.length === 0) {
     body = <div className="lb-status">NO SEASONS LOADED ON THIS API YET</div>;
+  } else if (beforeSource) {
+    body = <div className="lb-status">{`PFR CHARTING STARTS IN ${metricRow.since}`}</div>;
   } else if (status === "loading") {
     body = (
       <LoadingStatus
@@ -150,7 +158,7 @@ function Leaderboards() {
                   </td>
                   <td className="ctx lb-team">{row.team}</td>
                   <td>{row.gamesPlayed ?? (row.weeks?.length ?? "—")}</td>
-                  <td className="lb-value">{metricRow.rawValue(row.weeks ?? [])}</td>
+                  <td className="lb-value">{metricRow.rawValue(row.weeks ?? [], row)}</td>
                   <td className="lb-pct">
                     <span className="lb-bar"><span className="lb-fill" style={{ width: `${(pct ?? 0) * 100}%` }} /></span>
                     <span className="lb-pct-num">{pct != null ? `P${Math.round(pct * 100)}` : "—"}</span>
@@ -191,7 +199,11 @@ function Leaderboards() {
         <label className="lb-control lb-control--metric">
           <span>METRIC</span>
           <select className="lb-select" value={metricRow.key} onChange={(e) => update({ metric: e.target.value })}>
-            {metrics.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+            {groupRows(metrics).map(({ group, rows }) => (
+              <optgroup key={group} label={group}>
+                {rows.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+              </optgroup>
+            ))}
           </select>
         </label>
         <label className="lb-control">
@@ -232,7 +244,7 @@ function Leaderboards() {
               </div>
               <div className="lb-key-row">
                 <dt>PCTL</dt>
-                <dd>{pctlDefinition(position)}</dd>
+                <dd>{metricRow.direction === "style" ? styleRankDefinition(position) : pctlDefinition(position)}</dd>
               </div>
               <div className="lb-key-row">
                 <dt>GP</dt>
