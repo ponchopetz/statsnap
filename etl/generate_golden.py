@@ -27,7 +27,9 @@ OUTPUT = (
     / "frontend" / "src" / "utils" / "__tests__" / "golden-season-aggregates.json"
 )
 
-# Columns _aggregate_season reads, all nullable floats except identity.
+# Weekly columns, all nullable floats except identity. The share columns are
+# kept because the weekly rows really carry them (the game log shows them),
+# but _aggregate_season ignores them: season shares are season-sourced.
 SCHEMA = {
     "playerId": pl.Utf8,
     "position": pl.Utf8,

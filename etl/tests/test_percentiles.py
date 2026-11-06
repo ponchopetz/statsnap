@@ -57,12 +57,6 @@ class TestRatioOfSums:
         assert season(agg, "rb")["rushingEpa"] == pytest.approx(2 / 40)
         assert season(agg, "wr")["receivingEpa"] == pytest.approx(4 / 20)
 
-    def test_share_metrics_are_averaged_over_non_null_weeks(self):
-        df = frame(("wr", "WR", [wr_week(1, 8, share=0.30), wr_week(2, 1, share=None), wr_week(3, 8, share=0.10)]))
-        row = season(_aggregate_season(df), "wr")
-        assert row["targetShare"] == pytest.approx(0.20)
-        assert row["wopr"] == pytest.approx(0.20)
-
     def test_counting_stats_treat_null_as_zero(self):
         df = frame(("qb", "QB", [
             {"week": 1, "attempts": 10, "passingAirYards": 80, "sacksSuffered": None},
@@ -122,7 +116,6 @@ class TestZeroAndUndefinedDenominators:
         assert row["receivingEpa"] == pytest.approx(0.7)
         assert row["racr"] == pytest.approx(1.5)
         assert row["yacPerRec"] == pytest.approx(4.0)
-        assert row["targetShare"] == pytest.approx(0.05)
 
     def test_all_null_weeks_yield_null_rates_and_zero_counts(self):
         df = frame(("qb", "QB", [{"week": 1}, {"week": 2}]))
@@ -130,7 +123,6 @@ class TestZeroAndUndefinedDenominators:
         assert row["passingEpa"] is None
         assert row["pacr"] is None
         assert row["adot"] is None
-        assert row["targetShare"] is None
         assert row["passingAirYards"] == 0
 
     def test_no_nan_ever_leaves_aggregation(self):
@@ -303,6 +295,23 @@ class TestSeasonFrameMetrics:
         assert result["c"]["dropRate"] == 0.0
         assert "tiny" not in result
 
+    def test_share_metrics_rank_on_the_season_frame_not_the_weekly_shares(self):
+        # The weekly shares say a leads b; the true season shares (ratio-of-sums
+        # from team totals) say b leads a. The ranking must follow the season frame.
+        df = frame(
+            ("a", "WR", [wr_week(1, 40, share=0.30)]),
+            ("b", "WR", [wr_week(1, 40, share=0.10)]),
+        )
+        sf = season_frame(
+            targetShare={"a": 0.18, "b": 0.24},
+            airYardsShare={"a": 0.20, "b": 0.30},
+            wopr={"a": 0.41, "b": 0.57},
+        )
+        result = compute_percentiles(df, sf)
+        for metric in ("targetShare", "airYardsShare", "wopr"):
+            assert result["a"][metric] == 0.0, metric
+            assert result["b"][metric] == 1.0, metric
+
     def test_style_metric_ranks_by_raw_value(self):
         df = frame(
             ("slow", "QB", [qb_week(1, 200)]),
@@ -370,9 +379,10 @@ def test_position_configs_match_the_contract():
     assert POSITION_CONFIGS["RB"]["inverted"] == {"fumbles"}
 
 
-def test_season_sourced_metrics_are_every_key_outside_the_original_sixteen():
-    original = {"passingEpa", "pacr", "passingCpoe", "passingAirYards", "adot",
-                "sacksSuffered", "sackYardsLost", "targetShare", "airYardsShare",
-                "wopr", "racr", "receivingAirYards", "yacPerRec", "receivingEpa",
-                "rushingEpa", "carries"}
-    assert SEASON_SOURCED_METRICS == (set(_QB) | set(_WR) | set(_RB)) - original
+def test_season_sourced_metrics_are_every_key_outside_the_weekly_derived_thirteen():
+    # The share metrics left this set when they moved to season_sources: a true
+    # ratio-of-sums share needs per-game team totals that the weekly rows lack.
+    weekly_derived = {"passingEpa", "pacr", "passingCpoe", "passingAirYards", "adot",
+                      "sacksSuffered", "sackYardsLost", "racr", "receivingAirYards",
+                      "yacPerRec", "receivingEpa", "rushingEpa", "carries"}
+    assert SEASON_SOURCED_METRICS == (set(_QB) | set(_WR) | set(_RB)) - weekly_derived

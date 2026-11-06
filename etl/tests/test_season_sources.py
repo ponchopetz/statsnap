@@ -13,6 +13,7 @@ from season_sources import (
     passer_rating_expr,
     pfr_season,
     season_values_map,
+    share_season,
     snap_share_season,
 )
 
@@ -169,8 +170,10 @@ def test_fetch_optional_warns_when_source_has_no_regular_season_rows(capsys):
 def ff_frame(rows):
     base = {
         "player_id": "P1", "game_id": "2024_01_ARI_BUF", "week": 1.0,
+        "posteam": "BUF",
         "total_fantasy_points_exp": 10.0, "total_fantasy_points_diff": 1.0,
         "total_touchdown_exp": 0.5, "receptions_exp": 4.0,
+        "rec_attempt": 0.0, "rec_air_yards": 0.0, "rec_air_yards_team": 0.0,
     }
     return pl.DataFrame(
         [{**base, **r} for r in rows],
@@ -218,6 +221,143 @@ def test_expected_points_missing_source_yields_typed_empty_frame():
             "playerId", "expectedPprPoints", "pprPointsOverExpected",
             "expectedTds", "expectedReceptions",
         ]
+
+
+def share_weekly(rows):
+    """StatSnap's weekly rows: the player side of every share (his game log)."""
+    base = {"playerId": "P1", "week": 1, "team": "BUF", "targets": 0, "receivingAirYards": 0}
+    return pl.DataFrame([{**base, **r} for r in rows])
+
+
+def shares(out, player_id):
+    return out.filter(pl.col("playerId") == player_id).row(0, named=True)
+
+
+def test_shares_are_ratio_of_sums_over_the_games_he_played():
+    # P1: 5 of 20 targets then 10 of 50 -> 15/70, not the weekly mean 0.225.
+    # Air yards 50 of 200 then 20 of 100 -> 70/300, not the weekly mean 0.225.
+    # Week 3 is not in P1's game log, so its team totals stay out.
+    ff = ff_frame([
+        {"game_id": "g1", "rec_attempt": 5.0, "rec_air_yards_team": 200.0},
+        {"player_id": "P2", "game_id": "g1", "rec_attempt": 15.0, "rec_air_yards_team": 200.0},
+        {"game_id": "g2", "week": 2.0, "rec_attempt": 10.0, "rec_air_yards_team": 100.0},
+        {"player_id": "P2", "game_id": "g2", "week": 2.0, "rec_attempt": 40.0,
+         "rec_air_yards_team": 100.0},
+        {"player_id": "P2", "game_id": "g3", "week": 3.0, "rec_attempt": 30.0,
+         "rec_air_yards_team": 120.0},
+    ])
+    weekly = share_weekly([
+        {"week": 1, "targets": 5, "receivingAirYards": 50},
+        {"week": 2, "targets": 10, "receivingAirYards": 20},
+    ])
+    out = share_season(ff, weekly, {"g1", "g2", "g3"}, 18)
+    assert out.columns == ["playerId", "targetShare", "airYardsShare", "wopr"]
+    assert shares(out, "P1")["targetShare"] == pytest.approx(15 / 70)
+    assert shares(out, "P1")["airYardsShare"] == pytest.approx(70 / 300)
+
+
+def test_a_game_log_week_without_an_ff_row_still_counts_in_the_denominator():
+    # A returner who played but drew no target or carry has no ff row that
+    # week. It is still a game he played: a 0-target week, so 5 of (10 + 10).
+    ff = ff_frame([
+        {"player_id": "P2", "game_id": "g1", "rec_attempt": 10.0, "rec_air_yards_team": 100.0},
+        {"game_id": "g2", "week": 2.0, "rec_attempt": 5.0, "rec_air_yards_team": 100.0},
+        {"player_id": "P2", "game_id": "g2", "week": 2.0, "rec_attempt": 5.0,
+         "rec_air_yards_team": 100.0},
+    ])
+    weekly = share_weekly([
+        {"week": 1, "targets": 0, "receivingAirYards": 0},
+        {"week": 2, "targets": 5, "receivingAirYards": 50},
+    ])
+    out = share_season(ff, weekly, {"g1", "g2"}, 18)
+    assert shares(out, "P1")["targetShare"] == pytest.approx(5 / 20)
+    assert shares(out, "P1")["airYardsShare"] == pytest.approx(50 / 200)
+
+
+def test_numerator_is_the_game_log_target_count_not_ffs():
+    # ff can credit a target to a different receiver than player stats does.
+    # The share must use the targets the game log shows: 10 of 20, not 9.
+    ff = ff_frame([
+        {"rec_attempt": 9.0, "rec_air_yards_team": 100.0},
+        {"player_id": "P2", "rec_attempt": 11.0, "rec_air_yards_team": 100.0},
+    ])
+    weekly = share_weekly([{"targets": 10, "receivingAirYards": 40}])
+    out = share_season(ff, weekly, {"2024_01_ARI_BUF"}, 18)
+    assert shares(out, "P1")["targetShare"] == pytest.approx(10 / 20)
+
+
+def test_team_targets_skip_no_receiver_rows_but_team_air_yards_keep_them():
+    # ff lists throwaways and spikes on a row with no player_id. They are not
+    # targets (nflverse's weekly target_share leaves them out), but their air
+    # yards are in rec_air_yards_team, which air_yards_share divides by.
+    ff = ff_frame([
+        {"rec_attempt": 6.0, "rec_air_yards_team": 100.0},
+        {"player_id": "P2", "rec_attempt": 6.0, "rec_air_yards_team": 100.0},
+        {"player_id": None, "rec_attempt": 3.0, "rec_air_yards_team": 100.0},
+    ])
+    weekly = share_weekly([{"targets": 6, "receivingAirYards": 30}])
+    out = share_season(ff, weekly, {"2024_01_ARI_BUF"}, 18)
+    assert shares(out, "P1")["targetShare"] == pytest.approx(6 / 12)
+    assert shares(out, "P1")["airYardsShare"] == pytest.approx(30 / 100)
+
+
+def test_team_totals_are_per_team_and_week_so_trades_and_opponents_stay_apart():
+    # P1 plays week 1 for BUF, then week 2 for MIA against NYJ. Each week
+    # divides by his own team's totals that week; NYJ's targets never reach P1.
+    ff = ff_frame([
+        {"game_id": "g1", "rec_attempt": 5.0, "rec_air_yards_team": 200.0},
+        {"player_id": "B1", "game_id": "g1", "rec_attempt": 15.0, "rec_air_yards_team": 200.0},
+        {"game_id": "g2", "week": 2.0, "posteam": "MIA", "rec_attempt": 10.0,
+         "rec_air_yards_team": 200.0},
+        {"player_id": "M1", "game_id": "g2", "week": 2.0, "posteam": "MIA",
+         "rec_attempt": 30.0, "rec_air_yards_team": 200.0},
+        {"player_id": "N1", "game_id": "g2", "week": 2.0, "posteam": "NYJ",
+         "rec_attempt": 50.0, "rec_air_yards_team": 500.0},
+    ])
+    weekly = share_weekly([
+        {"week": 1, "team": "BUF", "targets": 5, "receivingAirYards": 50},
+        {"week": 2, "team": "MIA", "targets": 10, "receivingAirYards": 100},
+    ])
+    out = share_season(ff, weekly, {"g1", "g2"}, 18)
+    assert shares(out, "P1")["targetShare"] == pytest.approx(15 / 60)
+    assert shares(out, "P1")["airYardsShare"] == pytest.approx(150 / 400)
+
+
+def test_postseason_games_never_count():
+    # Even if a postseason week reached the weekly rows, the ff side is
+    # filtered to regular-season games, so the week-19 game adds nothing.
+    ff = ff_frame([
+        {"game_id": "g1", "rec_attempt": 10.0, "rec_air_yards_team": 100.0},
+        {"game_id": "g19", "week": 19.0, "rec_attempt": 10.0, "rec_air_yards_team": 100.0},
+    ])
+    weekly = share_weekly([
+        {"week": 1, "targets": 5, "receivingAirYards": 50},
+        {"week": 19, "targets": 10, "receivingAirYards": 100},
+    ])
+    out = share_season(ff, weekly, {"g1"}, 18)
+    assert shares(out, "P1")["targetShare"] == pytest.approx(0.5)
+    assert shares(out, "P1")["airYardsShare"] == pytest.approx(0.5)
+
+
+def test_wopr_weights_target_share_1_5_and_air_yards_share_0_7():
+    # 5 of 20 targets = 0.25, 80 of 200 air yards = 0.40 -> 0.375 + 0.28.
+    ff = ff_frame([
+        {"rec_attempt": 5.0, "rec_air_yards_team": 200.0},
+        {"player_id": "P2", "rec_attempt": 15.0, "rec_air_yards_team": 200.0},
+    ])
+    weekly = share_weekly([{"targets": 5, "receivingAirYards": 80}])
+    out = share_season(ff, weekly, {"2024_01_ARI_BUF"}, 18)
+    assert shares(out, "P1")["wopr"] == pytest.approx(0.655)
+
+
+def test_shares_missing_source_yields_typed_empty_frame():
+    for src in (None, ff_frame([{}]).clear()):
+        out = share_season(src, share_weekly([{}]), {"g1"}, 18)
+        assert out.height == 0
+        assert out.schema == {
+            "playerId": pl.Utf8, "targetShare": pl.Float64,
+            "airYardsShare": pl.Float64, "wopr": pl.Float64,
+        }
 
 
 def raw_frame(rows):

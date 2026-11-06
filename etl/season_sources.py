@@ -116,6 +116,15 @@ EXPECTED_FIELDS = {
 }
 
 
+def _regular_season_ff(
+    ff: pl.DataFrame, reg_game_ids: set[str], reg_last_week: int
+) -> pl.DataFrame:
+    """ff_opportunity rows from regular-season games."""
+    by_game = ff.filter(pl.col("game_id").is_in(list(reg_game_ids)))
+    # Fall back to the week cutoff when the schedule ids do not line up with ff's.
+    return by_game if by_game.height else ff.filter(pl.col("week") <= reg_last_week)
+
+
 def expected_points_season(
     ff: pl.DataFrame | None, reg_game_ids: set[str], reg_last_week: int
 ) -> pl.DataFrame:
@@ -123,9 +132,7 @@ def expected_points_season(
     schema = {"playerId": pl.Utf8, **{k: pl.Float64 for k in EXPECTED_FIELDS}}
     if ff is None or ff.height == 0:
         return pl.DataFrame(schema=schema)
-    by_game = ff.filter(pl.col("game_id").is_in(list(reg_game_ids)))
-    # Fall back to the week cutoff when the schedule ids do not line up with ff's.
-    reg = by_game if by_game.height else ff.filter(pl.col("week") <= reg_last_week)
+    reg = _regular_season_ff(ff, reg_game_ids, reg_last_week)
     return (
         reg.group_by("player_id", maintain_order=True)
         .agg(*[pl.col(col).cast(pl.Float64).fill_null(0).sum().alias(k)
@@ -133,6 +140,59 @@ def expected_points_season(
         .rename({"player_id": "playerId"})
         .cast(schema)
     )
+
+
+SHARE_KEYS = ("targetShare", "airYardsShare", "wopr")
+
+
+def share_season(
+    ff: pl.DataFrame | None,
+    weekly: pl.DataFrame,
+    reg_game_ids: set[str],
+    reg_last_week: int,
+) -> pl.DataFrame:
+    """Season target share, air-yards share and WOPR as ratio-of-sums over the
+    regular-season games in each player's game log.
+
+    The player side is StatSnap's own weekly rows: the targets and air yards
+    the game log shows, in every game he played, including a 0-target week
+    that ff has no row for. ff supplies only the team side, per team and week,
+    so a traded player divides by the team he played for that week.
+
+    Team targets count only passes thrown to a named receiver. ff's
+    rec_attempt_team also counts throwaways and spikes (the rows with no
+    player_id), which nflverse's weekly target_share leaves out. Team air
+    yards keep those rows (rec_air_yards_team), as nflverse's air_yards_share
+    does. A week with no ff team row drops out of both sides.
+    """
+    schema = {"playerId": pl.Utf8, **{k: pl.Float64 for k in SHARE_KEYS}}
+    if ff is None or ff.height == 0:
+        return pl.DataFrame(schema=schema)
+    team = (
+        _regular_season_ff(ff, reg_game_ids, reg_last_week)
+        .with_columns(pl.col("week").cast(pl.Int64))
+        .group_by("posteam", "week")
+        .agg(
+            pl.col("rec_attempt").filter(pl.col("player_id").is_not_null()).sum()
+            .alias("team_targets"),
+            pl.col("rec_air_yards_team").first().alias("team_air_yards"),
+        )
+    )
+    season = (
+        weekly.select("playerId", pl.col("week").cast(pl.Int64), "team",
+                      "targets", "receivingAirYards")
+        .join(team, left_on=["team", "week"], right_on=["posteam", "week"], how="inner")
+        .group_by("playerId", maintain_order=True)
+        .agg(pl.col("targets", "team_targets", "receivingAirYards", "team_air_yards").sum())
+    )
+    target_share = _ratio(pl.col("targets"), pl.col("team_targets"))
+    air_yards_share = _ratio(pl.col("receivingAirYards"), pl.col("team_air_yards"))
+    return season.select(
+        "playerId",
+        target_share.alias("targetShare"),
+        air_yards_share.alias("airYardsShare"),
+        (1.5 * target_share + 0.7 * air_yards_share).alias("wopr"),
+    ).cast(schema)
 
 
 # position -> (20+ column, 40+ column); each counts plays gaining at least N yards.
@@ -386,6 +446,7 @@ def build_season_frame(
     parts = [
         nextgen_season(sources["ngs"]),
         expected_points_season(sources["ff"], reg_game_ids, reg_last_week),
+        share_season(sources["ff"], weekly, reg_game_ids, reg_last_week),
         big_plays_season(raw_stats),
         snap_share_season(sources["snaps"], crosswalk),
         pfr_season(sources["pfr"], weekly, crosswalk),
