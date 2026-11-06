@@ -12,7 +12,7 @@ from transform import transform, SEASON
 load_dotenv()  # reads MONGO_URI from etl/.env into os.environ
 
 MONGO_URI        = os.environ.get("MONGO_URI")
-DB_NAME            = "statsnap"
+DB_NAME            = os.environ.get("DB_NAME", "statsnap")
 COLLECTION_NAME    = "playerstats"
 
 # ── Column lists ──────────────────────────────────────────────────────────────
@@ -210,6 +210,22 @@ def upsert_documents(collection, docs):
     print(f"  Upserted (new documents created):     {result.upserted_count}")
 
 
+def attach_maps(docs, advanced_map, values_map) -> None:
+    """Attach each player's percentile map and raw season values to their doc.
+
+    Done here rather than inside reshape() because the maps have
+    position-varying string keys that Polars cannot represent as a struct
+    column without a fixed schema. Plain-Python dict mutation after
+    to_dicts() leaves reshape() unchanged.
+    """
+    for doc in docs:
+        pid = doc["playerId"]
+        if pid in advanced_map:
+            doc["advanced"] = advanced_map[pid]
+        if pid in values_map:
+            doc["advancedValues"] = values_map[pid]
+
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def load():
@@ -222,7 +238,7 @@ def load():
     # Step 1: run the full transform pipeline
     print("Running transform...")
     try:
-        clean_df, advanced_map = transform()
+        clean_df, advanced_map, values_map = transform()
     except ConnectionError as e:
         # nflverse 404s a season's file rather than returning an empty one
         # until that season's data pipeline creates it, so a pull for a
@@ -246,18 +262,9 @@ def load():
     docs = reshape(clean_df)
     print(f"Reshape complete: {len(docs)} documents")
 
-    # Attach the per-player advanced metrics map. Done here rather than inside
-    # reshape() because the map has position-varying string keys that Polars
-    # cannot represent as a struct column without a fixed schema. Plain-Python
-    # dict mutation after to_dicts() is the natural fit and leaves reshape()
-    # unchanged.
-    advanced_count = 0
-    for doc in docs:
-        pid = doc["playerId"]
-        if pid in advanced_map:
-            doc["advanced"] = advanced_map[pid]
-            advanced_count += 1
-    print(f"Advanced metrics attached to {advanced_count} documents")
+    attach_maps(docs, advanced_map, values_map)
+    print(f"Advanced metrics attached to {sum('advanced' in d for d in docs)} documents")
+    print(f"Advanced values attached to {sum('advancedValues' in d for d in docs)} documents")
 
     # Step 3: connect to MongoDB and write
     print("\nConnecting to MongoDB...")

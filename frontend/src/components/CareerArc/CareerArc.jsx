@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import Sparkline from "../Sparkline/Sparkline.jsx";
+import { groupRows } from "../../utils/stats.js";
 import { ARC_MODES, arcOptions, buildCareerArc } from "../../utils/careerArc.js";
 import "./CareerArc.css";
 
@@ -13,7 +14,10 @@ const MODE_LABEL = { totals: "TOTALS", percentile: "PERCENTILE" };
 // 23) so every column still fits; see .arc-axis--dense in CareerArc.css.
 const DENSE_AXIS_SEASONS = 7;
 
+const slug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
 function CareerArc({ data }) {
+  const idPrefix = useId();
   const position = data?.[0]?.position;
   const [mode, setMode] = useState("totals");
   const [keys, setKeys] = useState({ totals: null, percentile: null });
@@ -28,6 +32,18 @@ function CareerArc({ data }) {
   const bestPoint = points.find((p) => p.value === best);
   const unranked = mode === "percentile" ? points.filter((p) => p.value == null).length : 0;
 
+  const renderChip = (o) => (
+    <button
+      key={o.key}
+      type="button"
+      className={"arc-btn" + (o.key === row.key ? " arc-btn--active" : "")}
+      aria-pressed={o.key === row.key}
+      onClick={() => setKeys((k) => ({ ...k, [mode]: o.key }))}
+    >
+      {o.label}
+    </button>
+  );
+
   return (
     <section className="arc" aria-label="Career arc">
       <div className="arc-head">
@@ -41,23 +57,22 @@ function CareerArc({ data }) {
             ))}
           </div>
         </div>
-        <div className="arc-options arc-stat-options" role="group" aria-label="Stat">
-          {options.map((o) => (
-            <button
-              key={o.key}
-              type="button"
-              className={"arc-btn" + (o.key === row.key ? " arc-btn--active" : "")}
-              aria-pressed={o.key === row.key}
-              onClick={() => setKeys((k) => ({ ...k, [mode]: o.key }))}
-            >
-              {o.label}
-            </button>
-          ))}
+        <div className={"arc-options arc-stat-options" + (mode === "percentile" ? " arc-stat-options--grouped" : "")} role="group" aria-label="Stat">
+          {mode === "percentile"
+            ? <div className="arc-stat-groups">
+                {groupRows(options).map((g) => (
+                  <div key={g.group} className="arc-stat-group" role="group" aria-labelledby={`${idPrefix}-${slug(g.group)}`}>
+                    <span className="arc-stat-group-label" id={`${idPrefix}-${slug(g.group)}`}>{g.group}</span>
+                    {g.rows.map(renderChip)}
+                  </div>
+                ))}
+              </div>
+            : options.map(renderChip)}
         </div>
       </div>
       <div className="arc-stats">
         <div>
-          <span className="arc-stat-label">BEST</span>
+          <span className="arc-stat-label">{row.direction === "style" ? "HIGHEST" : "BEST"}</span>
           <span className="arc-stat-value">{best != null ? row.format(best) : "—"}{bestPoint ? ` · ${bestPoint.season}` : ""}</span>
         </div>
         <div>

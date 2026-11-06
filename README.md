@@ -74,6 +74,24 @@ which will cost API credits where the events endpoint does not.
 Full reasoning for each decision lives in
 [`docs/adr/DECISIONS.md`](docs/adr/DECISIONS.md).
 
+**Advanced stats.** Besides the weekly `player_stats` file, the ETL reads five
+more nflverse sources for each season: Next Gen Stats (passing, receiving,
+rushing), expected fantasy points (`ff_opportunity`), snap counts, Pro Football
+Reference advanced stats (pass, rush, rec), and the big-play and fumble columns
+already in `player_stats`. `etl/season_sources.py` turns them into one set of
+season values per player, stored on the document as `advancedValues`, and the
+same metrics get percentiles in `advanced`. PFR is built from its weekly files
+so finished and in-progress seasons share one path. A source that isn't
+published for that season is skipped with a warning; any other error fails the run.
+
+Limitations of the new data:
+
+- Next Gen Stats publishes season rows only for players above its own volume
+  minimum, so lower-volume players show "—" on those rows.
+- Next Gen Stats has no receiving rows for running backs, so RBs have no
+  separation or YAC-over-expected stats.
+- PFR charting starts in 2018, so 2016 and 2017 show "—" for those rows.
+
 ## Decision highlights
 
 A few choices a reviewer might find worth discussing (each is expanded in the ADR log):
@@ -91,10 +109,13 @@ A few choices a reviewer might find worth discussing (each is expanded in the AD
   `frontend/src/utils/stats.js` are now a deliberate mirror of the Python
   aggregation in `etl/percentiles.py`, enforced by a golden-file test
   (`npm test` in `frontend/`) generated from the Python side.
-  One documented exception: target share, air-yards share, and WOPR are
-  averaged across weeks, because a true ratio-of-sums for a share metric
-  needs per-week *team* totals that aren't stored. Known limitation,
-  slated for V2 alongside team-level data.
+  Share metrics follow the same rule. Target share, air-yards share and WOPR
+  need the team's totals, which the weekly rows don't carry, so the ETL
+  computes them per season from nflverse `ff_opportunity` team totals and
+  stores them in `advancedValues`; the UI reads them instead of re-deriving
+  them. One documented exception remains: the Splits tab still averages the
+  weekly target shares, because a home/away or half-season split would need
+  per-week team totals that aren't stored.
 
 - **Idempotent bulk upsert in the ETL.** `load.py` writes with `UpdateOne` +
   `$set` + `upsert=True` keyed on `{ playerId, season }`, so a re-run replaces
@@ -159,6 +180,7 @@ python -m venv venv          # Python 3.11.18, from .python-version via pyenv
 source venv/bin/activate
 pip install -r requirements.txt
 # create etl/.env containing: MONGO_URI=your_atlas_connection_string
+# optional: DB_NAME=statsnap_preview to load a preview copy (defaults to statsnap)
 SEASON=2024 python load.py
 ```
 
@@ -182,9 +204,9 @@ percentiles only change when their season reloads.
 |---|---|---|
 | `GET` | `/` | Healthcheck — returns `{ status: "StatSnap API is running" }` |
 | `GET` | `/players/search?q=` | Typeahead search by display name. Deduplicates a player across seasons via an aggregation pipeline; returns up to 10 rows of `playerId`, `displayName`, `position`, and most-recent `team`. Returns 400 if `q` is missing. |
-| `GET` | `/players/:playerId` | All seasons for one player, sorted most-recent-first, each with its embedded `weeks` array and the `advanced` metrics map. Returns 404 if no documents match. |
+| `GET` | `/players/:playerId` | All seasons for one player, sorted most-recent-first, each with its embedded `weeks` array, the `advanced` metrics map, and `advancedValues` (the stored season values). Returns 404 if no documents match. |
 | `GET` | `/schedule` | The freshest cached schedule document (`{ season, week, games, fetchedAt }`). On a cache miss returns a 200 with an empty `games` array — never a 404. |
-| `GET` | `/leaderboards?season=&position=&metric=&limit=` | Qualified players for one season and position ranked by the ETL-stored percentile for `metric` (so the ordering has one definition), up to `limit` (default 25, max 100). Rows carry `weeks` so the client formats the raw value with the same helper the Advanced panel uses. Returns 400 with a message for a bad season, position, metric name, or limit. |
+| `GET` | `/leaderboards?season=&position=&metric=&limit=` | Qualified players for one season and position ranked by the ETL-stored percentile for `metric` (so the ordering has one definition), up to `limit` (default 25, max 100). Rows carry `weeks` and `advancedValues` so the client formats the raw value with the same helper the Advanced panel uses. Returns 400 with a message for a bad season, position, metric name, or limit. |
 | `GET` | `/seasons` | Distinct seasons in the stats collection, newest first: `{ seasons: [2025, 2024, ...] }`. |
 
 ## Scope (V1)

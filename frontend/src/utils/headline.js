@@ -16,7 +16,6 @@
 //   primary       default sparkline selection
 import {
   sumWeeks,
-  averageWeeks,
   completionPct,
   totalTouchdowns,
   weekSeries,
@@ -99,7 +98,8 @@ const RECEIVER = [
   {
     key: "targetShare",
     label: "TGT SHARE",
-    value: (weeks) => averageWeeks(weeks, "targetShare"),
+    // Season ratio-of-sums from the ETL; the sparkline below keeps the weekly shares.
+    value: (_weeks, player) => player?.advancedValues?.targetShare ?? null,
     format: formatPercent,
     chartable: true,
     series: (weeks) => weekSeries(weeks, "targetShare"),

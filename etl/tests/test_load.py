@@ -4,11 +4,13 @@ The upsert tests run against a throwaway local mongod (see conftest.py).
 They never touch the URI in etl/.env.
 """
 import copy
+import importlib
 
 import polars as pl
 import pytest
 
-from load import TOP_LEVEL_FIELDS, WEEK_FIELDS, ensure_index, reshape, upsert_documents
+import load
+from load import TOP_LEVEL_FIELDS, WEEK_FIELDS, attach_maps, ensure_index, reshape, upsert_documents
 
 
 def flat_rows(player_id="p1", season=2024, weeks=(3, 1, 2), team_by_week=None):
@@ -124,6 +126,24 @@ class TestUpsertIdempotency:
         # $set replaces the whole sub-document, so the stale pacr key is gone.
         assert collection.find_one({"playerId": "p1"})["advanced"] == {"passingEpa": 0.9}
 
+    def test_advanced_values_round_trip_and_replace_not_merge(self, collection):
+        docs = reshape(pl.DataFrame(flat_rows()))
+        attach_maps(docs, {"p1": {"passingEpa": 0.8}}, {"p1": {"timeToThrow": 2.7, "fumbles": 3.0}})
+        upsert_documents(collection, copy.deepcopy(docs))
+
+        docs = reshape(pl.DataFrame(flat_rows()))
+        attach_maps(docs, {"p1": {"passingEpa": 0.9}}, {"p1": {"timeToThrow": 2.8}})
+        upsert_documents(collection, copy.deepcopy(docs))
+
+        doc = collection.find_one({"playerId": "p1"})
+        assert doc["advanced"] == {"passingEpa": 0.9}
+        assert doc["advancedValues"] == {"timeToThrow": 2.8}
+
+    def test_attach_maps_skips_players_without_entries(self):
+        docs = reshape(pl.DataFrame(flat_rows()))
+        attach_maps(docs, {}, {})
+        assert "advanced" not in docs[0] and "advancedValues" not in docs[0]
+
     def test_empty_batch_writes_nothing(self, collection, capsys):
         upsert_documents(collection, [])
         assert collection.count_documents({}) == 0
@@ -135,3 +155,19 @@ class TestUpsertIdempotency:
         info = collection.index_information()
         assert "playerId_season" in info
         assert info["playerId_season"]["key"] == [("playerId", 1), ("season", -1)]
+
+
+def test_db_name_defaults_to_statsnap_and_honours_env(monkeypatch):
+    # conftest forces MONGO_URI to an unreachable loopback port, and importing
+    # load never opens a connection, so reloading it here is safe.
+    try:
+        monkeypatch.delenv("DB_NAME", raising=False)
+        importlib.reload(load)
+        assert load.DB_NAME == "statsnap"
+
+        monkeypatch.setenv("DB_NAME", "statsnap_preview")
+        importlib.reload(load)
+        assert load.DB_NAME == "statsnap_preview"
+    finally:
+        monkeypatch.undo()
+        importlib.reload(load)

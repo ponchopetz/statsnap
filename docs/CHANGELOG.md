@@ -16,6 +16,16 @@ period.
 
 ### Added
 
+- Advanced stats expansion: about 12 to 16 new stats per position from Next
+  Gen Stats, expected fantasy points, snap counts, Pro Football Reference
+  charting, and big plays and fumbles. They appear on the Advanced tab,
+  Leaderboards, Compare, the Career arc and the ? KEY glossary. The Advanced
+  tab groups its rows into collapsible sections and the tab carries a count
+  badge. Stats with no better or worse direction (time to throw, cushion) get a
+  neutral bar, no Compare winner and a HIGHEST label on the arc. Next Gen
+  covers only players above its volume minimum, RBs have no Next Gen receiving
+  stats, and PFR charting starts in 2018. `DB_NAME` can now point the app and
+  the ETL at a different database.
 - Leaderboards key: a ? KEY toggle in the board's header defines the
   selected metric, PCTL and GP, and follows the position and metric you
   pick. The stat definitions now live in one shared module, which also
@@ -30,6 +40,13 @@ period.
 
 ### Fixed
 
+- Target share, air-yards share and WOPR now show true season values. They
+  were the average of the weekly shares, which counts a light week as much as
+  a busy one. The ETL now divides the player's season targets and air yards
+  by his team's totals in the games he played, using nflverse team totals.
+  The Advanced tab, Overview, Career (including the CAREER row), Compare and
+  Leaderboards show the new values, and their percentiles are re-ranked. The
+  Splits tab still averages the weekly shares.
 - QB Sack Yards Lost percentile was upside down on the Advanced panel and
   the leaderboard. nflverse stores sack yardage as negative yards, and
   ranking that raw sum with the "fewer is better" inversion flipped it

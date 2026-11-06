@@ -218,151 +218,206 @@ export function seasonCpoe(weeks) {
   return numerator / denominator;
 }
 
+/**
+ * Career target share as a ratio-of-sums across seasons. A season's stored
+ * share is its targets over the team's targets in the games he played, so
+ * that season's team targets are targets ÷ share. Summing both sides gives
+ * the career share without storing team totals. A season with no stored
+ * share above 0 is left out of both sums.
+ * @param {Array<Object>|null|undefined} seasons - Player-season documents
+ * @returns {number|null}
+ */
+export function careerTargetShare(seasons) {
+  let targets = 0;
+  let teamTargets = 0;
+  for (const season of seasons ?? []) {
+    const share = season.advancedValues?.targetShare;
+    if (!(share > 0)) continue;
+    const seasonTargets = sumWeeks(season.weeks ?? [], "targets");
+    targets += seasonTargets;
+    teamTargets += seasonTargets / share;
+  }
+  return teamTargets > 0 ? targets / teamTargets : null;
+}
+
 // ── Per-position advanced row config (module-local) ───────────────────────────
-// Each entry: { key, label, rawValue(weeks) → string }
-// key    — matches player.advanced map keys and Python metric names
-// label  — must match STAT_GLOSSARY keys (utils/glossary.js) so the Advanced
-//          panel and the Leaderboards key can look up its definition
-// rawValue — formatted display string for the raw season value
+// Each entry: { key, label, group, direction, since?, rawValue(weeks, player) → string }
+// key       — matches player.advanced / player.advancedValues keys and the
+//             Python metric names (etl/percentiles.py POSITION_CONFIGS)
+// label     — must match STAT_GLOSSARY keys (utils/glossary.js) so the Advanced
+//             panel and the Leaderboards key can look up its definition
+// group     — section the Advanced panel files the row under
+// direction — "higher" or "lower" is better; "style" has no better or worse
+// since     — first season with data (PFR charting starts in 2018)
+// rawValue  — formatted display string for the raw season value. Season-sourced
+//             rows read player.advancedValues; the rest derive from weeks.
+
+// Ranked inverted by the ETL (fewer is better).
+const LOWER_KEYS = new Set([
+  "sacksSuffered", "sackYardsLost", "pressureRate", "badThrowPct", "dropRate", "intsWhenTargeted", "fumbles",
+]);
+// Ranked by raw value but never colored good or bad.
+const STYLE_KEYS = new Set(["timeToThrow", "aggressiveness", "airYardsToSticks", "cushion", "eightBoxPct", "timeToLos"]);
+// Pro Football Reference charting, 2018 onward.
+const PFR_KEYS = new Set([
+  "pressureRate", "badThrowPct", "dropRate", "brokenTackles",
+  "ratingWhenTargeted", "intsWhenTargeted", "beforeContactPerAtt", "afterContactPerAtt",
+]);
+const PFR_FIRST_SEASON = 2018;
+
+function def(key, label, rawValue) {
+  const row = {
+    key,
+    label,
+    direction: LOWER_KEYS.has(key) ? "lower" : STYLE_KEYS.has(key) ? "style" : "higher",
+    rawValue,
+  };
+  if (PFR_KEYS.has(key)) row.since = PFR_FIRST_SEASON;
+  return row;
+}
+
+// A season-sourced row: the raw value is already a season total or rate in
+// player.advancedValues, so it only needs formatting.
+function seasonValue(key, label, format) {
+  return def(key, label, (_weeks, player) => {
+    const v = player?.advancedValues?.[key];
+    return v == null ? "—" : format(v);
+  });
+}
+
+const fmtSeconds = (v) => `${v.toFixed(2)}s`;
+const fmtPercent = (v) => formatPercent(v);
+const fmtSigned2 = (v) => formatSigned(v, 2);
+const fmtSigned1 = (v) => formatSigned(v, 1);
+const fmtDec1 = (v) => formatDecimal(v, 1);
+const fmtDec2 = (v) => formatDecimal(v, 2);
+
+const inGroup = (group, rows) => rows.map((row) => ({ ...row, group }));
+
+// Rows shared by more than one position.
+// The shares are season ratio-of-sums from the ETL (season_sources.share_season):
+// team totals live there, not in weeks, so there is nothing to average here.
+const targetShare = seasonValue("targetShare", "Target Share", fmtPercent);
+// wopr is a 0–2ish rating, not a percentage — plain 2-decimal display.
+const wopr = seasonValue("wopr", "WOPR", fmtDec2);
+const receivingAirYards = def("receivingAirYards", "Receiving Air Yards", (weeks) => formatNumber(sumWeeks(weeks, "receivingAirYards")));
+const yacPerRec = def("yacPerRec", "YAC / Rec", (weeks) => {
+  const v = seasonYacPerRec(weeks);
+  return v == null ? "—" : v.toFixed(1);
+});
+const snapShare = seasonValue("snapShare", "Snap Share", fmtPercent);
+const brokenTackles = seasonValue("brokenTackles", "Broken Tackles", formatNumber);
+const fumbles = seasonValue("fumbles", "Fumbles", formatNumber);
+const expectedPprPoints = seasonValue("expectedPprPoints", "Expected PPR Pts", fmtDec1);
+const pprPointsOverExpected = seasonValue("pprPointsOverExpected", "Pts Over Expected", fmtSigned1);
+const expectedTds = seasonValue("expectedTds", "Expected TDs", fmtDec1);
+const expectedReceptions = seasonValue("expectedReceptions", "Expected Receptions", fmtDec1);
+const bigPlays = (noun) => [
+  seasonValue("plays20Plus", `20+ Yd ${noun}`, formatNumber),
+  seasonValue("plays40Plus", `40+ Yd ${noun}`, formatNumber),
+];
 
 const RECEIVER_ROWS = [
-  {
-    key: "targetShare",
-    label: "Target Share",
-    rawValue: (weeks) => formatPercent(averageWeeks(weeks, "targetShare")),
-  },
-  {
-    key: "airYardsShare",
-    label: "Air Yards Share",
-    rawValue: (weeks) => formatPercent(averageWeeks(weeks, "airYardsShare")),
-  },
-  {
-    key: "wopr",
-    label: "WOPR",
-    // wopr is a 0–2ish rating, not a percentage — plain 2-decimal display.
-    rawValue: (weeks) => formatDecimal(averageWeeks(weeks, "wopr"), 2),
-  },
-  {
-    key: "racr",
-    label: "RACR",
-    rawValue: (weeks) => {
+  ...inGroup("USAGE", [
+    targetShare,
+    seasonValue("airYardsShare", "Air Yards Share", fmtPercent),
+    wopr,
+    snapShare,
+  ]),
+  ...inGroup("EFFICIENCY", [
+    def("receivingEpa", "Receiving EPA", (weeks) => formatSigned(seasonReceivingEpa(weeks), 2)),
+    def("racr", "RACR", (weeks) => {
       const v = seasonRacr(weeks);
       return v == null ? "—" : v.toFixed(2);
-    },
-  },
-  {
-    key: "receivingAirYards",
-    label: "Receiving Air Yards",
-    rawValue: (weeks) => formatNumber(sumWeeks(weeks, "receivingAirYards")),
-  },
-  {
-    key: "yacPerRec",
-    label: "YAC / Rec",
-    rawValue: (weeks) => {
-      const v = seasonYacPerRec(weeks);
-      return v == null ? "—" : v.toFixed(1);
-    },
-  },
-  {
-    key: "receivingEpa",
-    label: "Receiving EPA",
-    rawValue: (weeks) => formatSigned(seasonReceivingEpa(weeks), 2),
-  },
+    }),
+    yacPerRec,
+    receivingAirYards,
+  ]),
+  ...inGroup("TRACKING · NEXT GEN", [
+    seasonValue("separation", "Avg Separation", fmtDec2),
+    seasonValue("cushion", "Avg Cushion", fmtDec2),
+    seasonValue("yacOverExpected", "YAC Over Expected", fmtSigned2),
+    seasonValue("catchRate", "Catch Rate", fmtPercent),
+  ]),
+  ...inGroup("CHARTING · PFR", [
+    seasonValue("dropRate", "Drop Rate", fmtPercent),
+    brokenTackles,
+    seasonValue("ratingWhenTargeted", "Passer Rtg When Tgt", fmtDec1),
+    seasonValue("intsWhenTargeted", "INTs When Targeted", formatNumber),
+  ]),
+  ...inGroup("EXPECTED POINTS", [expectedPprPoints, pprPointsOverExpected, expectedTds, expectedReceptions]),
+  ...inGroup("BIG PLAYS & FUMBLES", [...bigPlays("Catches"), fumbles]),
 ];
 
 // Exported so prototype pages (leaderboards, compare) can list the ranked
 // metrics per position from the same source as the Advanced panel.
 export const ADVANCED_CONFIG = {
   QB: [
-    {
-      key: "passingEpa",
-      label: "Passing EPA",
-      rawValue: (weeks) => formatSigned(seasonPassingEpa(weeks), 2),
-    },
-    {
-      key: "pacr",
-      label: "PACR",
-      rawValue: (weeks) => {
-        const v = seasonPacr(weeks);
-        return v == null ? "—" : v.toFixed(2);
-      },
-    },
-    {
-      key: "passingCpoe",
-      label: "Passing CPOE",
-      // passingCpoe is stored in percentage points (11.78 = +11.78 pp).
-      // formatPercent expects a decimal, so divide by 100. Null guard is
-      // required because null / 100 === 0 in JS, not null. Explicit + sign
-      // because CPOE is an over/under-expected stat — the sign is the story.
-      rawValue: (weeks) => {
+    ...inGroup("EFFICIENCY", [
+      def("passingEpa", "Passing EPA", (weeks) => formatSigned(seasonPassingEpa(weeks), 2)),
+      def("passingCpoe", "Passing CPOE", (weeks) => {
+        // passingCpoe is stored in percentage points (11.78 = +11.78 pp).
+        // formatPercent expects a decimal, so divide by 100. Null guard is
+        // required because null / 100 === 0 in JS, not null. Explicit + sign
+        // because CPOE is an over/under-expected stat — the sign is the story.
         const v = seasonCpoe(weeks);
         if (v == null) return "—";
         const pct = formatPercent(v / 100);
         return v >= 0 ? `+${pct}` : pct;
-      },
-    },
-    {
-      key: "passingAirYards",
-      label: "Passing Air Yards",
-      rawValue: (weeks) => formatNumber(sumWeeks(weeks, "passingAirYards")),
-    },
-    {
-      key: "adot",
-      label: "Avg Depth of Target",
-      rawValue: (weeks) => {
+      }),
+      def("pacr", "PACR", (weeks) => {
+        const v = seasonPacr(weeks);
+        return v == null ? "—" : v.toFixed(2);
+      }),
+      def("passingAirYards", "Passing Air Yards", (weeks) => formatNumber(sumWeeks(weeks, "passingAirYards"))),
+      def("adot", "Avg Depth of Target", (weeks) => {
         const v = seasonAdot(weeks);
         return v == null ? "—" : v.toFixed(1);
-      },
-    },
-    {
-      key: "sacksSuffered",
-      label: "Sacks Suffered",
-      rawValue: (weeks) => formatNumber(sumWeeks(weeks, "sacksSuffered")),
-    },
-    {
-      key: "sackYardsLost",
-      label: "Sack Yards Lost",
+      }),
+    ]),
+    ...inGroup("TRACKING · NEXT GEN", [
+      seasonValue("timeToThrow", "Time to Throw", fmtSeconds),
+      seasonValue("aggressiveness", "Aggressiveness", fmtPercent),
+      seasonValue("airYardsToSticks", "Air Yards to Sticks", fmtSigned2),
+    ]),
+    ...inGroup("PRESSURE", [
+      seasonValue("pressureRate", "Pressure Rate", fmtPercent),
+      seasonValue("badThrowPct", "Bad Throw %", fmtPercent),
+      def("sacksSuffered", "Sacks Suffered", (weeks) => formatNumber(sumWeeks(weeks, "sacksSuffered"))),
       // nflverse stores sack yardage as negative. The label already says
       // "lost", so show the magnitude — "-193 lost" reads as a double negative.
-      rawValue: (weeks) => formatNumber(Math.abs(sumWeeks(weeks, "sackYardsLost"))),
-    },
+      def("sackYardsLost", "Sack Yards Lost", (weeks) => formatNumber(Math.abs(sumWeeks(weeks, "sackYardsLost")))),
+    ]),
+    ...inGroup("EXPECTED POINTS", [expectedPprPoints, pprPointsOverExpected, expectedTds]),
+    ...inGroup("BIG PLAYS & FUMBLES", [...bigPlays("Completions"), fumbles]),
   ],
   WR: RECEIVER_ROWS,
   TE: RECEIVER_ROWS,
   RB: [
-    {
-      key: "rushingEpa",
-      label: "Rushing EPA",
-      rawValue: (weeks) => formatSigned(seasonRushingEpa(weeks), 2),
-    },
-    {
-      key: "targetShare",
-      label: "Target Share",
-      rawValue: (weeks) => formatPercent(averageWeeks(weeks, "targetShare")),
-    },
-    {
-      key: "wopr",
-      label: "WOPR",
-      rawValue: (weeks) => formatDecimal(averageWeeks(weeks, "wopr"), 2),
-    },
-    {
-      key: "yacPerRec",
-      label: "YAC / Rec",
-      rawValue: (weeks) => {
-        const v = seasonYacPerRec(weeks);
-        return v == null ? "—" : v.toFixed(1);
-      },
-    },
-    {
-      key: "carries",
-      label: "Carries",
-      rawValue: (weeks) => formatNumber(sumWeeks(weeks, "carries")),
-    },
-    {
-      key: "receivingAirYards",
-      label: "Receiving Air Yards",
-      rawValue: (weeks) => formatNumber(sumWeeks(weeks, "receivingAirYards")),
-    },
+    ...inGroup("EFFICIENCY", [
+      def("rushingEpa", "Rushing EPA", (weeks) => formatSigned(seasonRushingEpa(weeks), 2)),
+      yacPerRec,
+      receivingAirYards,
+    ]),
+    ...inGroup("USAGE", [
+      def("carries", "Carries", (weeks) => formatNumber(sumWeeks(weeks, "carries"))),
+      snapShare,
+      targetShare,
+      wopr,
+    ]),
+    ...inGroup("TRACKING · NEXT GEN", [
+      seasonValue("ryoePerAtt", "RYOE / Att", fmtSigned2),
+      seasonValue("runsOverExpectedPct", "Runs Over Expected %", fmtPercent),
+      seasonValue("eightBoxPct", "8+ Defenders in Box", fmtPercent),
+      seasonValue("timeToLos", "Time to LOS", fmtSeconds),
+    ]),
+    ...inGroup("CHARTING · PFR", [
+      seasonValue("beforeContactPerAtt", "Before Contact / Att", fmtDec2),
+      seasonValue("afterContactPerAtt", "After Contact / Att", fmtDec2),
+      brokenTackles,
+    ]),
+    ...inGroup("EXPECTED POINTS", [expectedPprPoints, pprPointsOverExpected, expectedTds, expectedReceptions]),
+    ...inGroup("BIG PLAYS & FUMBLES", [...bigPlays("Runs"), fumbles]),
   ],
 };
 
@@ -416,9 +471,12 @@ export function combinedTds(week) {
  * players whose position is supported — the panel decides whether to show
  * raw-only or a pure empty state (deferred 15b.2). Unknown positions return [].
  *
- * Each row: { k: displayLabel, bar: percentile|null, v: formattedRawValue }
- * @param {Object} player - Player document with .position, .weeks, .advanced
- * @returns {Array<{k: string, bar: number|null, v: string}>}
+ * Each row: { k: displayLabel, key, group, direction, since, bar: percentile|null,
+ * v: formattedRawValue }. `since` is undefined except on PFR rows.
+ * @param {Object} player - Player document with .position, .weeks, .advanced,
+ *   .advancedValues
+ * @returns {Array<{k: string, key: string, group: string, direction: string,
+ *   since: number|undefined, bar: number|null, v: string}>}
  */
 export function buildAdvancedRows(player) {
   const rows = ADVANCED_CONFIG[player.position];
@@ -426,9 +484,34 @@ export function buildAdvancedRows(player) {
 
   const weeks = player.weeks ?? [];
 
-  return rows.map(({ key, label, rawValue }) => ({
+  return rows.map(({ key, label, group, direction, since, rawValue }) => ({
     k: label,
+    key,
+    group,
+    direction,
+    since,
     bar: player.advanced?.[key] ?? null,
-    v: rawValue(weeks),
+    v: rawValue(weeks, player),
   }));
+}
+
+/**
+ * Splits rows into their groups, keeping the order groups first appear in and
+ * the order of rows within each group.
+ * @param {Array<{group: string}>} rows
+ * @returns {Array<{group: string, rows: Array<Object>}>}
+ */
+export function groupRows(rows) {
+  const groups = [];
+  const byName = new Map();
+  for (const row of rows) {
+    let entry = byName.get(row.group);
+    if (!entry) {
+      entry = { group: row.group, rows: [] };
+      byName.set(row.group, entry);
+      groups.push(entry);
+    }
+    entry.rows.push(row);
+  }
+  return groups;
 }

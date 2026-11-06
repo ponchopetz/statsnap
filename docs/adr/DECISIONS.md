@@ -44,6 +44,10 @@ rather than embedding the database name in the connection string.
 Why: Keeps the URI focused on cluster and auth, and makes the database name a
 deliberate, visible choice in code rather than a buried URL segment.
 
+Amendment: the default stays in code. The ETL and the backend now also read an
+optional `DB_NAME` environment variable, used only to point a preview at a copy
+of the database. When it is unset, both use `statsnap`.
+
 ---
 
 ## Data sourcing & ETL
@@ -302,6 +306,99 @@ runs under load, and a dropped run leaves no failure to report. With a daily
 cadence that costs at most a day, because the next run reloads the whole
 season; a staleness check would be the fix if that ever matters.
 
+### Season-level advancedValues, computed in the ETL
+
+Decision: The new Advanced stats (Next Gen Stats, expected fantasy points, snap
+share, Pro Football Reference charting, big plays and fumbles) are computed
+once per player-season in Python and stored as `advancedValues`, a map of
+metric key to raw season value. The percentiles for the same keys go into the
+existing `advanced` map, behind the same qualifier gates (QB 150+ attempts,
+WR/TE 30+ targets, RB 50+ carries). Nothing new is stored per week, and the
+frontend reads `advancedValues[key]` directly instead of re-deriving it from
+`weeks`. The existing metrics keep computing in JS from `weeks`, under the
+golden-file contract.
+
+Why: Next Gen season rows are official numbers that can't be rebuilt from its
+partial weekly rows. Storing the other sources per week would have added about
+50% more storage per season and a second JS mirror of every formula and golden
+fixture. Season-level values add about 1 KB per document. Percent values are
+stored as decimals from 0 to 1, with each Next Gen column normalized because
+that source mixes 0 to 100 and 0 to 1 scales.
+
+PFR is built from the weekly files for every season, not the season files.
+That keeps finished and in-progress seasons on one code path, since the 2026
+QB season file isn't published mid-season. The cost is losing the stats that
+exist only in the season files (pocket time, on-target %, play-action and RPO
+splits).
+
+A source the library reports as not published for a season (PFR before 2018,
+or a 404 on the current season) is skipped with a warning and those stats are
+left absent. A 404 on an earlier season fails the run, and a source that comes
+back with no regular-season rows prints a warning. Any other error fails the run, so the ETL-failure issue fires. A
+late source can't stop the stats that already work, and a renamed column can't
+quietly erase a stat.
+
+Tradeoff: The new rows are season values only. They can't be recomputed in the
+browser or sliced by week. The share metrics were left averaged at first,
+because fixing them changed existing numbers and the golden contract; the
+follow-up below moved them here too.
+
+### Season share metrics from team totals
+
+Decision: Target share, air-yards share and WOPR are season ratio-of-sums,
+computed in the ETL (`season_sources.share_season`) and stored in
+`advancedValues` like the other season-sourced stats. The player side is
+StatSnap's own weekly rows: the targets and air yards the game log shows, in
+every game he played. nflverse `ff_opportunity` supplies only the team side,
+joined on team and week. Team targets count only passes thrown to a named
+receiver; team air yards are `rec_air_yards_team`. WOPR is 1.5 × target share +
+0.7 × air-yards share of the season values. Percentiles rank the true values,
+the JS `averageWeeks` mirror for these three is gone, and the golden file lists
+them as season-sourced.
+
+Why: The old season value was the mean of the weekly shares, which weights a
+3-target week the same as a 12-target week (Ja'Marr Chase's 2024 air-yards
+share read 31.9% instead of 33.1%). A true ratio needs the team's totals, which
+the weekly rows don't carry. `ff_opportunity`'s own `rec_attempt_team` also
+counts throwaways and spikes, the rows with no receiver (CIN 2024: 652 pass
+attempts against 628 targeted passes), so only the rows that name a receiver
+are summed; that matches nflverse's weekly `target_share` exactly. Taking the
+player side from the weekly rows keeps a 0-target game he played in the
+denominator and uses the target count the page shows. Validated on 2024: all
+52 receivers with 17 games and 30+ targets match nflverse's season
+`target_share` exactly, and air-yards share is within 0.07 points.
+
+"Games he played" is a choice. nflverse's season summary divides by the team's
+whole season, so an injured player reads low there (Chris Godwin 2024, 7 games:
+11.0% against 26.6% here). A share here describes his role while he played.
+
+Tradeoff: Season values can't be sliced by week, so the Splits tab still
+averages the weekly shares, the one documented exception. The CAREER row on the
+Career tab derives its share from the seasons instead: a season's team targets
+are its targets ÷ its share, so summing both sides is a true career
+ratio-of-sums with nothing new stored. A season with no stored share is left
+out of both sides.
+
+### Style-direction metrics: neutral bar, no Compare winner, HIGHEST label
+
+Decision: Each Advanced row has a direction: `higher` is better, `lower` is
+better (ranked inverted, like Sacks Suffered), or `style`. Style metrics are
+Time to Throw, Aggressiveness, Air Yards to Sticks, Avg Cushion, 8+ Defenders
+in Box and Time to LOS. They rank by raw value, so P99 means "most", but the
+bar is neutral instead of lime, Compare never marks a winner on them and its
+win tally skips them, and the Career arc labels the peak season HIGHEST
+instead of BEST.
+
+Why: A quarterback who holds the ball longest is not a better or worse passer,
+and a receiver given a bigger cushion is not better or worse. A lime P99 bar
+reads as "good" in this UI, so a style stat shown that way would claim a
+judgment the data doesn't make. Ranking is kept so Leaderboards and the arc can
+still sort and compare them.
+
+Tradeoff: Direction is one more field on every config row, and each surface
+has to honor it. It is a single flag on `ADVANCED_CONFIG`, so the surfaces read
+it instead of keeping their own lists.
+
 ### Mid-season trades: per-week team, season document stamped with the last team
 
 Decision: Every embedded week carries the `team` the player was on that week,
@@ -461,12 +558,14 @@ season document whose `weeks` array is the union of every season's weeks
 functions used for the per-season rows.
 
 Why: This makes career totals share one code path with season rows. Counting
-cells sum; rate cells become ratio-of-sums / mean at career scope automatically,
+cells sum; rate cells become ratio-of-sums at career scope automatically,
 by the identical definition a single season uses. There is no second computation
 to drift from, because there is no second code path — the totals row is just the
 column functions fed a bigger `weeks` array. Career completion % is therefore
 total completions over total attempts (attempt-weighted), never the mean of
-season percentages.
+season percentages. The one exception is TGT SHARE: shares are stored per
+season, not per week, so the pseudo-doc carries a career share derived from
+them (see "Season share metrics from team totals").
 
 Consequence (correct, not a bug): career counting cells equal the visual column
 sum of the season rows, but career rate cells do not equal the average of the

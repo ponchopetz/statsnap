@@ -57,6 +57,16 @@ describe("headline values", () => {
     expect(wr.format(wr.value([], {}))).toBe("—");
   });
 
+  it("TGT SHARE is the stored season share, not the mean of the weekly shares", () => {
+    // Weekly shares 0.24 and 0.29 average to 26.5%; the ETL's ratio-of-sums
+    // season share is what the headline must show.
+    const row = HEADLINE_CONFIG.WR.find((r) => r.key === "targetShare");
+    const player = wrSeason({ advancedValues: { targetShare: 0.2787 } });
+    expect(row.format(row.value(player.weeks, player))).toBe("27.9%");
+    // The sparkline still draws the per-week shares the game log shows.
+    expect(row.series(player.weeks)).toEqual([0.24, 0.29]);
+  });
+
   it("receiver total TD series combines rushing and receiving per week", () => {
     const row = HEADLINE_CONFIG.WR.find((r) => r.key === "totalTds");
     expect(row.series([week({ rushingTds: 1, receivingTds: 2 }), week({})])).toEqual([3, 0]);

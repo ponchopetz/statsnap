@@ -216,15 +216,6 @@
   font-weight: 600;
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
 .cmp-clear {
   position: absolute;
   top: -8px;
@@ -380,6 +371,10 @@
 }
 
 .cmp-label {
+  /* min-width + overflow-wrap: a single long word breaks inside its own
+     column instead of running over the bars on either side. */
+  min-width: 0;
+  overflow-wrap: anywhere;
   text-align: center;
   font-family: var(--display);
   font-size: 10px;
@@ -387,6 +382,53 @@
   line-height: 1.25;
   color: var(--fg-2);
   text-transform: uppercase;
+}
+
+/* Collapsible advanced group: mirrors the Advanced tab's group header, with
+   the win tally on the right instead of a value peek. */
+.cmp-group {
+  border-top: 1px solid var(--line);
+}
+/* The first group sits under the section label, which already draws the rule. */
+.cmp-section-label + .cmp-group {
+  border-top: 0;
+}
+.cmp-group-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  text-align: left;
+}
+.cmp-group-chev {
+  width: 12px;
+  flex-shrink: 0;
+  font-family: var(--display);
+  color: var(--accent);
+}
+.cmp-group-name {
+  min-width: 0;
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--fg);
+}
+.cmp-group-tally {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: var(--display);
+  font-size: 10px;
+  color: var(--fg-3);
+  white-space: nowrap;
+}
+.cmp-group-head:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+.cmp-group .cmp-list[hidden] {
+  display: none;
 }
 
 .cmp-footnote {
@@ -430,6 +472,11 @@
     grid-template-columns: 1fr 96px 1fr;
     gap: 8px;
   }
+  /* Tighter tracking so the longest one-word label (AGGRESSIVENESS, about
+     92px here) fits the 96px column whole. */
+  .cmp-label {
+    letter-spacing: 0.06em;
+  }
   .cmp-val {
     font-size: 14px;
     flex-direction: column;
@@ -450,13 +497,19 @@
   .cmp-body {
     padding: 16px;
   }
+  /* The label column takes 84px so the longest one-word label
+     (AGGRESSIVENESS, about 81px at 9px with tight tracking) fits whole; at
+     72px it ran over the bars. The value columns give back 8px each (a
+     six-character value like 100.0% is about 50px at 14px), so the bars
+     stay as wide as they were. */
   .cmp-row {
-    grid-template-columns: 64px 1fr 64px;
+    grid-template-columns: 56px 1fr 56px;
   }
   .cmp-bars {
-    grid-template-columns: 1fr 72px 1fr;
+    grid-template-columns: 1fr 84px 1fr;
   }
   .cmp-label {
     font-size: 9px;
+    letter-spacing: 0.04em;
   }
 }

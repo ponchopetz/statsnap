@@ -172,6 +172,13 @@ describe("GET /players/:playerId", () => {
     expect(latest.advanced).toBeUndefined();
   });
 
+  it("returns advancedValues on each season document", async () => {
+    await PlayerStats.insertMany([makePlayer({ playerId: "av", advancedValues: { snapShare: 0.9 } })]);
+    const res = await request(app).get("/players/av");
+    expect(res.status).toBe(200);
+    expect(res.body[0].advancedValues.snapShare).toBe(0.9);
+  });
+
   it("does not match a playerId by substring or regex", async () => {
     await PlayerStats.insertMany([makePlayer({ playerId: "00-0033873" })]);
 

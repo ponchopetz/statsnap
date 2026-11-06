@@ -4,6 +4,7 @@ import { usePlayerProfile } from "../../hooks/usePlayerProfile.js";
 import { useSlowLoading } from "../../hooks/useSlowLoading.js";
 import { HEADLINE_CONFIG } from "../../utils/headline.js";
 import { buildAdvancedRows } from "../../utils/stats.js";
+import { SHARE_CARD_KEYS } from "../../utils/shareCard.js";
 import { embeddedFontCss } from "../../utils/embedFonts.js";
 import LoadingStatus from "../LoadingStatus/LoadingStatus.jsx";
 import "./ShareCard.css";
@@ -39,7 +40,10 @@ export function CardSvg({ player, svgRef }) {
 
   const rows = HEADLINE_CONFIG[player.position] ?? [];
   const weeks = player.weeks ?? [];
-  const advanced = buildAdvancedRows(player).slice(0, 7);
+  const advancedRows = buildAdvancedRows(player);
+  const advanced = (SHARE_CARD_KEYS[player.position] ?? [])
+    .map((key) => advancedRows.find((r) => r.key === key))
+    .filter(Boolean);
   const nameParts = player.displayName.split(" ");
   const last = nameParts[nameParts.length - 1].toUpperCase();
   const first = nameParts.slice(0, -1).join(" ");

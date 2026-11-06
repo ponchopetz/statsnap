@@ -91,6 +91,45 @@
   background: var(--accent);
 }
 
+/* PERCENTILE: up to 23 chips, so they sit under small group labels on their
+   own full row. Chips share borders (-1px margins) and wrap within a group. */
+.arc-stat-options--grouped {
+  flex: 1 1 100%;
+  border: 0;
+  background: none;
+}
+
+.arc-stat-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.arc-stat-group {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 1px 0 0 1px;
+}
+
+.arc-stat-group-label {
+  flex: 0 0 100%;
+  margin: -1px 0 5px -1px;
+  font-family: var(--display);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--fg-3);
+}
+
+.arc-stat-group .arc-btn {
+  border: 1px solid var(--line-2);
+  margin: 0 0 -1px -1px;
+}
+
+.arc-stat-group .arc-btn--active {
+  background: var(--accent);
+}
+
 .arc-stats {
   display: flex;
   gap: 24px;

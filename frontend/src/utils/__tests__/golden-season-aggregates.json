@@ -4,17 +4,44 @@
     "QB": {
       "metrics": [
         "passingEpa",
-        "pacr",
         "passingCpoe",
+        "pacr",
         "passingAirYards",
         "adot",
+        "timeToThrow",
+        "aggressiveness",
+        "airYardsToSticks",
+        "pressureRate",
+        "badThrowPct",
         "sacksSuffered",
-        "sackYardsLost"
+        "sackYardsLost",
+        "expectedPprPoints",
+        "pprPointsOverExpected",
+        "expectedTds",
+        "plays20Plus",
+        "plays40Plus",
+        "fumbles"
       ],
       "qualifierMin": 150,
       "inverted": [
+        "badThrowPct",
+        "fumbles",
+        "pressureRate",
         "sackYardsLost",
         "sacksSuffered"
+      ],
+      "seasonSourced": [
+        "aggressiveness",
+        "airYardsToSticks",
+        "badThrowPct",
+        "expectedPprPoints",
+        "expectedTds",
+        "fumbles",
+        "plays20Plus",
+        "plays40Plus",
+        "pprPointsOverExpected",
+        "pressureRate",
+        "timeToThrow"
       ]
     },
     "WR": {
@@ -22,38 +49,156 @@
         "targetShare",
         "airYardsShare",
         "wopr",
+        "snapShare",
+        "receivingEpa",
         "racr",
-        "receivingAirYards",
         "yacPerRec",
-        "receivingEpa"
+        "receivingAirYards",
+        "separation",
+        "cushion",
+        "yacOverExpected",
+        "catchRate",
+        "dropRate",
+        "brokenTackles",
+        "ratingWhenTargeted",
+        "intsWhenTargeted",
+        "expectedPprPoints",
+        "pprPointsOverExpected",
+        "expectedTds",
+        "expectedReceptions",
+        "plays20Plus",
+        "plays40Plus",
+        "fumbles"
       ],
       "qualifierMin": 30,
-      "inverted": []
+      "inverted": [
+        "dropRate",
+        "fumbles",
+        "intsWhenTargeted"
+      ],
+      "seasonSourced": [
+        "airYardsShare",
+        "brokenTackles",
+        "catchRate",
+        "cushion",
+        "dropRate",
+        "expectedPprPoints",
+        "expectedReceptions",
+        "expectedTds",
+        "fumbles",
+        "intsWhenTargeted",
+        "plays20Plus",
+        "plays40Plus",
+        "pprPointsOverExpected",
+        "ratingWhenTargeted",
+        "separation",
+        "snapShare",
+        "targetShare",
+        "wopr",
+        "yacOverExpected"
+      ]
     },
     "TE": {
       "metrics": [
         "targetShare",
         "airYardsShare",
         "wopr",
+        "snapShare",
+        "receivingEpa",
         "racr",
-        "receivingAirYards",
         "yacPerRec",
-        "receivingEpa"
+        "receivingAirYards",
+        "separation",
+        "cushion",
+        "yacOverExpected",
+        "catchRate",
+        "dropRate",
+        "brokenTackles",
+        "ratingWhenTargeted",
+        "intsWhenTargeted",
+        "expectedPprPoints",
+        "pprPointsOverExpected",
+        "expectedTds",
+        "expectedReceptions",
+        "plays20Plus",
+        "plays40Plus",
+        "fumbles"
       ],
       "qualifierMin": 30,
-      "inverted": []
+      "inverted": [
+        "dropRate",
+        "fumbles",
+        "intsWhenTargeted"
+      ],
+      "seasonSourced": [
+        "airYardsShare",
+        "brokenTackles",
+        "catchRate",
+        "cushion",
+        "dropRate",
+        "expectedPprPoints",
+        "expectedReceptions",
+        "expectedTds",
+        "fumbles",
+        "intsWhenTargeted",
+        "plays20Plus",
+        "plays40Plus",
+        "pprPointsOverExpected",
+        "ratingWhenTargeted",
+        "separation",
+        "snapShare",
+        "targetShare",
+        "wopr",
+        "yacOverExpected"
+      ]
     },
     "RB": {
       "metrics": [
         "rushingEpa",
+        "yacPerRec",
+        "receivingAirYards",
+        "carries",
+        "snapShare",
         "targetShare",
         "wopr",
-        "yacPerRec",
-        "carries",
-        "receivingAirYards"
+        "ryoePerAtt",
+        "runsOverExpectedPct",
+        "eightBoxPct",
+        "timeToLos",
+        "beforeContactPerAtt",
+        "afterContactPerAtt",
+        "brokenTackles",
+        "expectedPprPoints",
+        "pprPointsOverExpected",
+        "expectedTds",
+        "expectedReceptions",
+        "plays20Plus",
+        "plays40Plus",
+        "fumbles"
       ],
       "qualifierMin": 50,
-      "inverted": []
+      "inverted": [
+        "fumbles"
+      ],
+      "seasonSourced": [
+        "afterContactPerAtt",
+        "beforeContactPerAtt",
+        "brokenTackles",
+        "eightBoxPct",
+        "expectedPprPoints",
+        "expectedReceptions",
+        "expectedTds",
+        "fumbles",
+        "plays20Plus",
+        "plays40Plus",
+        "pprPointsOverExpected",
+        "runsOverExpectedPct",
+        "ryoePerAtt",
+        "snapShare",
+        "targetShare",
+        "timeToLos",
+        "wopr"
+      ]
     }
   },
   "players": [
@@ -349,88 +494,72 @@
   ],
   "expected": {
     "wr-null-week": {
-      "targetShare": 0.27,
-      "airYardsShare": 0.33,
-      "wopr": 0.64,
+      "receivingEpa": 0.52,
       "racr": 0.8813559322033898,
-      "receivingAirYards": 118.0,
       "yacPerRec": 5.428571428571429,
-      "receivingEpa": 0.52
+      "receivingAirYards": 118.0
     },
     "qb-normal": {
       "passingEpa": 0.07239583333333334,
-      "pacr": 0.9946236559139785,
       "passingCpoe": 0.5864583333333334,
+      "pacr": 0.9946236559139785,
       "passingAirYards": 744.0,
       "adot": 7.75,
       "sacksSuffered": 6.0,
       "sackYardsLost": 43.0
     },
-    "qb-zero-air-yards": {
-      "passingEpa": 0.075,
-      "pacr": null,
-      "passingCpoe": 1.0,
-      "passingAirYards": 0.0,
-      "adot": 0.0,
-      "sacksSuffered": 1.0,
-      "sackYardsLost": 8.0
-    },
-    "rb-all-null": {
-      "rushingEpa": null,
-      "targetShare": null,
-      "wopr": null,
-      "yacPerRec": null,
-      "carries": 0.0,
-      "receivingAirYards": 0.0
-    },
-    "rb-normal": {
-      "rushingEpa": -0.017500000000000005,
-      "targetShare": 0.09666666666666668,
-      "wopr": 0.13,
-      "yacPerRec": 7.7,
-      "carries": 49.0,
-      "receivingAirYards": 4.0
-    },
     "wr-single-week": {
-      "targetShare": 0.05,
-      "airYardsShare": 0.04,
-      "wopr": 0.1,
+      "receivingEpa": 0.7,
       "racr": 1.5,
-      "receivingAirYards": 6.0,
       "yacPerRec": 4.0,
-      "receivingEpa": 0.7
-    },
-    "wr-normal": {
-      "targetShare": 0.21333333333333335,
-      "airYardsShare": 0.2833333333333333,
-      "wopr": 0.5199999999999999,
-      "racr": 0.875,
-      "receivingAirYards": 264.0,
-      "yacPerRec": 5.2,
-      "receivingEpa": 0.39999999999999997
-    },
-    "te-negative-air-yards": {
-      "targetShare": 0.105,
-      "airYardsShare": -0.025,
-      "wopr": 0.14,
-      "racr": null,
-      "receivingAirYards": -13.0,
-      "yacPerRec": 8.75,
-      "receivingEpa": 0.08888888888888888
+      "receivingAirYards": 6.0
     },
     "qb-negative-air-yards": {
       "passingEpa": 0.12,
-      "pacr": null,
       "passingCpoe": 4.0,
+      "pacr": null,
       "passingAirYards": -12.0,
       "adot": -1.2,
       "sacksSuffered": 0.0,
       "sackYardsLost": 0.0
     },
+    "rb-normal": {
+      "rushingEpa": -0.017500000000000005,
+      "yacPerRec": 7.7,
+      "receivingAirYards": 4.0,
+      "carries": 49.0
+    },
+    "wr-normal": {
+      "receivingEpa": 0.39999999999999997,
+      "racr": 0.875,
+      "yacPerRec": 5.2,
+      "receivingAirYards": 264.0
+    },
+    "qb-zero-air-yards": {
+      "passingEpa": 0.075,
+      "passingCpoe": 1.0,
+      "pacr": null,
+      "passingAirYards": 0.0,
+      "adot": 0.0,
+      "sacksSuffered": 1.0,
+      "sackYardsLost": 8.0
+    },
+    "te-negative-air-yards": {
+      "receivingEpa": 0.08888888888888888,
+      "racr": null,
+      "yacPerRec": 8.75,
+      "receivingAirYards": -13.0
+    },
+    "rb-all-null": {
+      "rushingEpa": null,
+      "yacPerRec": null,
+      "receivingAirYards": 0.0,
+      "carries": 0.0
+    },
     "qb-null-epa-week": {
       "passingEpa": 0.06164383561643835,
-      "pacr": 1.0611510791366907,
       "passingCpoe": 1.595890410958904,
+      "pacr": 1.0611510791366907,
       "passingAirYards": 556.0,
       "adot": 7.413333333333333,
       "sacksSuffered": 6.0,
