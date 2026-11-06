@@ -60,14 +60,14 @@ POSITION_CONFIGS: dict[str, dict] = {
 }
 
 # Metrics whose season value comes from the season frame (Next Gen, ff
-# opportunity, snap counts, PFR, big plays) rather than _aggregate_season.
+# opportunity incl. the share metrics, snap counts, PFR, big plays) rather
+# than _aggregate_season.
 SEASON_SOURCED_METRICS: frozenset[str] = frozenset(
     {m for c in POSITION_CONFIGS.values() for m in c["metrics"]}
     - {
         "passingEpa", "pacr", "passingCpoe", "passingAirYards", "adot",
-        "sacksSuffered", "sackYardsLost", "targetShare", "airYardsShare",
-        "wopr", "racr", "receivingAirYards", "yacPerRec", "receivingEpa",
-        "rushingEpa", "carries",
+        "sacksSuffered", "sackYardsLost", "racr", "receivingAirYards",
+        "yacPerRec", "receivingEpa", "rushingEpa", "carries",
     }
 )
 
@@ -85,9 +85,10 @@ def _aggregate_season(df: pl.DataFrame) -> pl.DataFrame:
         then divide after the group_by. This gives the correct season-level
         ratio rather than the average of weekly ratios (which would weight
         low-volume weeks equally to high-volume ones).
-      AVERAGE: Polars mean() skips nulls, giving the correct non-null-week
-        average without any special treatment. A bye week (null) is excluded,
-        not counted as 0 EPA.
+      SHARES are not aggregated here. Target share, air-yards share and WOPR
+        need per-game team totals that the weekly rows lack, so
+        season_sources.share_season computes them from ff_opportunity and they
+        reach the ranking through the season frame.
       WEIGHTED AVERAGE (passingCpoe only): weight each week's cpoe by that
         week's attempts. Null-cpoe weeks must be excluded from both numerator
         and denominator; achieved by letting the null product propagate to
@@ -116,11 +117,6 @@ def _aggregate_season(df: pl.DataFrame) -> pl.DataFrame:
         # so "inverted" (fewer is better) holds as for sacksSuffered. A raw
         # negative sum flipped twice: fewest yards lost ranked P0.
         col("sackYardsLost").fill_null(0).sum().abs().alias("sackYardsLost"),
-
-        # AVERAGE metrics (Polars mean already excludes nulls — correct behavior).
-        col("targetShare").mean().alias("targetShare"),
-        col("airYardsShare").mean().alias("airYardsShare"),
-        col("wopr").mean().alias("wopr"),
 
         # Raw components for RATIO metrics. Summed here, divided below.
         col("passingYards").fill_null(0).sum().alias("_sum_passingYards"),

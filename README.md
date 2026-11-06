@@ -109,10 +109,13 @@ A few choices a reviewer might find worth discussing (each is expanded in the AD
   `frontend/src/utils/stats.js` are now a deliberate mirror of the Python
   aggregation in `etl/percentiles.py`, enforced by a golden-file test
   (`npm test` in `frontend/`) generated from the Python side.
-  One documented exception: target share, air-yards share, and WOPR are
-  averaged across weeks, because a true ratio-of-sums for a share metric
-  needs per-week *team* totals that aren't stored. Known limitation,
-  slated for V2 alongside team-level data.
+  Share metrics follow the same rule. Target share, air-yards share and WOPR
+  need the team's totals, which the weekly rows don't carry, so the ETL
+  computes them per season from nflverse `ff_opportunity` team totals and
+  stores them in `advancedValues`; the UI reads them instead of re-deriving
+  them. One documented exception remains: the Splits tab still averages the
+  weekly target shares, because a home/away or half-season split would need
+  per-week team totals that aren't stored.
 
 - **Idempotent bulk upsert in the ETL.** `load.py` writes with `UpdateOne` +
   `$set` + `upsert=True` keyed on `{ playerId, season }`, so a re-run replaces

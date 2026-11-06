@@ -218,6 +218,28 @@ export function seasonCpoe(weeks) {
   return numerator / denominator;
 }
 
+/**
+ * Career target share as a ratio-of-sums across seasons. A season's stored
+ * share is its targets over the team's targets in the games he played, so
+ * that season's team targets are targets ÷ share. Summing both sides gives
+ * the career share without storing team totals. A season with no stored
+ * share above 0 is left out of both sums.
+ * @param {Array<Object>|null|undefined} seasons - Player-season documents
+ * @returns {number|null}
+ */
+export function careerTargetShare(seasons) {
+  let targets = 0;
+  let teamTargets = 0;
+  for (const season of seasons ?? []) {
+    const share = season.advancedValues?.targetShare;
+    if (!(share > 0)) continue;
+    const seasonTargets = sumWeeks(season.weeks ?? [], "targets");
+    targets += seasonTargets;
+    teamTargets += seasonTargets / share;
+  }
+  return teamTargets > 0 ? targets / teamTargets : null;
+}
+
 // ── Per-position advanced row config (module-local) ───────────────────────────
 // Each entry: { key, label, group, direction, since?, rawValue(weeks, player) → string }
 // key       — matches player.advanced / player.advancedValues keys and the
@@ -273,9 +295,11 @@ const fmtDec2 = (v) => formatDecimal(v, 2);
 const inGroup = (group, rows) => rows.map((row) => ({ ...row, group }));
 
 // Rows shared by more than one position.
-const targetShare = def("targetShare", "Target Share", (weeks) => formatPercent(averageWeeks(weeks, "targetShare")));
+// The shares are season ratio-of-sums from the ETL (season_sources.share_season):
+// team totals live there, not in weeks, so there is nothing to average here.
+const targetShare = seasonValue("targetShare", "Target Share", fmtPercent);
 // wopr is a 0–2ish rating, not a percentage — plain 2-decimal display.
-const wopr = def("wopr", "WOPR", (weeks) => formatDecimal(averageWeeks(weeks, "wopr"), 2));
+const wopr = seasonValue("wopr", "WOPR", fmtDec2);
 const receivingAirYards = def("receivingAirYards", "Receiving Air Yards", (weeks) => formatNumber(sumWeeks(weeks, "receivingAirYards")));
 const yacPerRec = def("yacPerRec", "YAC / Rec", (weeks) => {
   const v = seasonYacPerRec(weeks);
@@ -296,7 +320,7 @@ const bigPlays = (noun) => [
 const RECEIVER_ROWS = [
   ...inGroup("USAGE", [
     targetShare,
-    def("airYardsShare", "Air Yards Share", (weeks) => formatPercent(averageWeeks(weeks, "airYardsShare"))),
+    seasonValue("airYardsShare", "Air Yards Share", fmtPercent),
     wopr,
     snapShare,
   ]),

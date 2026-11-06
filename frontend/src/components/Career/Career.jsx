@@ -1,4 +1,4 @@
-import { sumWeeks, completionPct, totalTouchdowns, averageWeeks, seasonPassingEpa } from "../../utils/stats.js";
+import { sumWeeks, completionPct, totalTouchdowns, careerTargetShare, seasonPassingEpa } from "../../utils/stats.js";
 import { formatNumber, formatPercent, formatSigned } from "../../utils/format.js";
 import "./Career.css";
 
@@ -26,7 +26,8 @@ const RECEIVER_COLUMNS = [
   { k: "REC",       value: (d) => formatNumber(sumWeeks(d.weeks, "receptions")) },
   { k: "REC YDS",   value: (d) => formatNumber(sumWeeks(d.weeks, "receivingYards")) },
   { k: "TOTAL TD",  value: (d) => formatNumber(totalTouchdowns(d.weeks)) },
-  { k: "TGT SHARE", value: (d) => formatPercent(averageWeeks(d.weeks, "targetShare")) },
+  // Season rows carry the ETL's share; the CAREER row is given a derived one below.
+  { k: "TGT SHARE", value: (d) => formatPercent(d.advancedValues?.targetShare ?? null) },
 ];
 
 const CAREER_CONFIG = {
@@ -55,6 +56,9 @@ function Career({ data }) {
     team: "—",
     gamesPlayed: data.reduce((acc, d) => acc + (d.gamesPlayed ?? 0), 0),
     weeks: data.flatMap((d) => d.weeks ?? []),
+    // Shares can't pool weeks (team totals aren't stored per week), so the
+    // career share is derived from each season's stored share.
+    advancedValues: { targetShare: careerTargetShare(data) },
   };
 
   const rows = data.length > 1 ? [...seasonRows, careerRow] : seasonRows;

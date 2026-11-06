@@ -40,6 +40,13 @@ period.
 
 ### Fixed
 
+- Target share, air-yards share and WOPR now show true season values. They
+  were the average of the weekly shares, which counts a light week as much as
+  a busy one. The ETL now divides the player's season targets and air yards
+  by his team's totals in the games he played, using nflverse team totals.
+  The Advanced tab, Overview, Career (including the CAREER row), Compare and
+  Leaderboards show the new values, and their percentiles are re-ranked. The
+  Splits tab still averages the weekly shares.
 - QB Sack Yards Lost percentile was upside down on the Advanced panel and
   the leaderboard. nflverse stores sack yardage as negative yards, and
   ranking that raw sum with the "fewer is better" inversion flipped it

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { render, screen, within, fireEvent } from "@testing-library/react";
 import Career from "../Career/Career.jsx";
 import CareerArc from "../CareerArc/CareerArc.jsx";
-import { qbSeason, week } from "../../test/fixtures.js";
+import { qbSeason, wrSeason, week } from "../../test/fixtures.js";
 import { ADVANCED_CONFIG, groupRows } from "../../utils/stats.js";
 
 const rowByLabel = (label) => screen.getByText(label, { selector: "td" }).closest("tr");
@@ -36,6 +36,31 @@ describe("Career", () => {
     // PASS EPA = 9 / 100 attempts = +0.1, NOT the mean of +0.5 and +0.04.
     expect(career).toEqual(["CAREER", "—", "2", "52.0%", "1,000", "10", "3", "+0.1"]);
     expect(rowByLabel("CAREER")).toHaveClass("career-row-total");
+  });
+
+  // TGT SHARE is the last receiver column.
+  const tgtShare = (label) => cells(rowByLabel(label)).at(-1);
+  const wr = (season, targets, targetShare) =>
+    wrSeason({
+      season,
+      weeks: [week({ week: 1, targets })],
+      ...(targetShare == null ? {} : { advancedValues: { targetShare } }),
+    });
+
+  it("TGT SHARE is each season's stored share, and CAREER is a ratio-of-sums of them", () => {
+    // 30 targets at 30% implies 100 team targets; 60 at 20% implies 300.
+    // Career = 90 / 400 = 22.5%, NOT the 25% mean of the two season shares.
+    render(<Career data={[wr(2024, 60, 0.2), wr(2023, 30, 0.3)]} />);
+    expect(tgtShare("2023")).toBe("30.0%");
+    expect(tgtShare("2024")).toBe("20.0%");
+    expect(tgtShare("CAREER")).toBe("22.5%");
+  });
+
+  it("a season with no stored share reads — and stays out of the CAREER share", () => {
+    // Counting 2025's 10 targets with no team total would read 100 / 400 = 25%.
+    render(<Career data={[wr(2025, 10, null), wr(2024, 60, 0.2), wr(2023, 30, 0.3)]} />);
+    expect(tgtShare("2025")).toBe("—");
+    expect(tgtShare("CAREER")).toBe("22.5%");
   });
 
   describe("career arc stat chips", () => {

@@ -26,14 +26,19 @@ describe("AdvancedPanel states", () => {
   });
 
   it("qualified player: percentile label, bar width, and raw value per row", () => {
-    const player = wrSeason({ advanced: { targetShare: 0.875, racr: 0.5 } });
+    const player = wrSeason({
+      advanced: { targetShare: 0.875, racr: 0.5 },
+      advancedValues: { targetShare: 0.2787 },
+    });
     const { container } = render(<AdvancedPanel player={player} />);
 
     const row = screen.getByText("Target Share").closest("li");
     expect(row).toHaveTextContent("P88");
     expect(row.querySelector(".fill")).toHaveStyle({ width: "87.5%" });
-    // Raw value: mean of 0.24 and 0.29 → 26.5%
-    expect(row).toHaveTextContent("26.5%");
+    // Raw value: the stored season share (ratio-of-sums in the ETL), not the
+    // 26.5% mean of the weekly 0.24 and 0.29.
+    expect(row).toHaveTextContent("27.9%");
+    expect(row).not.toHaveTextContent("26.5%");
 
     // A metric without a percentile still shows its raw value and an em dash.
     const wopr = screen.getByText("WOPR").closest("li");
@@ -44,10 +49,10 @@ describe("AdvancedPanel states", () => {
 
   it("glossary rows toggle open on click and via the KEY button", () => {
     render(<AdvancedPanel player={wrSeason({ advanced: { targetShare: 0.5 } })} />);
-    expect(screen.queryByText(/Share of the team's pass attempts/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Share of the team's targets/)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /^Target Share\s*\?/ }));
-    expect(screen.getByText(/Share of the team's pass attempts/)).toBeInTheDocument();
+    expect(screen.getByText(/Share of the team's targets/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "? KEY" }));
     expect(screen.getByText(/Receiver Air Conversion Ratio/)).toBeInTheDocument();

@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   sumWeeks,
-  averageWeeks,
   seasonAdot,
   seasonPacr,
   seasonRacr,
@@ -37,9 +36,6 @@ const JS_EQUIVALENTS = {
   sacksSuffered: (weeks) => sumWeeks(weeks, "sacksSuffered"),
   // Magnitude, as ADVANCED_CONFIG displays it; nflverse stores it negative.
   sackYardsLost: (weeks) => Math.abs(sumWeeks(weeks, "sackYardsLost")),
-  targetShare: (weeks) => averageWeeks(weeks, "targetShare"),
-  airYardsShare: (weeks) => averageWeeks(weeks, "airYardsShare"),
-  wopr: (weeks) => averageWeeks(weeks, "wopr"),
   racr: (weeks) => seasonRacr(weeks),
   receivingAirYards: (weeks) => sumWeeks(weeks, "receivingAirYards"),
   yacPerRec: (weeks) => seasonYacPerRec(weeks),
